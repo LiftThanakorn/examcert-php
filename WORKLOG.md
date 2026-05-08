@@ -73,3 +73,22 @@ Notes:
 Next:
 
 - Build Project Management milestone: project CRUD, schedule fields, and admin project list/detail pages.
+
+## 2026-05-08 - Project Management
+
+Completed:
+
+- Added `src/Project.php` for project defaults, validation, create, update, delete, detail, and list queries.
+- Added admin project pages under `admin/projects/` for list, create, edit, detail, shared form, and delete.
+- Added `currentAdminId()` helper to `src/Auth.php` for created-by attribution.
+- Used CSRF validation on create, edit, and delete actions.
+- Kept project pages admin-protected with `requireLogin()`.
+
+Notes:
+
+- Project delete uses the existing database cascade behavior for child data defined in `database/schema.sql`.
+- UI is functional Tailwind CDN scaffolding; the preserved dashboard design remains unchanged.
+
+Next:
+
+- Build Participant Whitelist milestone: participant model, list/create/edit/import basics, token generation, and project-scoped participant management.

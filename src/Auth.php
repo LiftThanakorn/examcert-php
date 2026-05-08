@@ -16,6 +16,11 @@ function currentAdminName(): string
     return (string) ($_SESSION['admin_name'] ?? '');
 }
 
+function currentAdminId(): ?int
+{
+    return isset($_SESSION['admin_id']) ? (int) $_SESSION['admin_id'] : null;
+}
+
 function requireLogin(): void
 {
     if (!isLoggedIn()) {
@@ -80,4 +85,3 @@ function logoutAdmin(): void
 
     session_destroy();
 }
-
