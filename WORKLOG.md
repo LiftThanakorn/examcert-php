@@ -324,3 +324,16 @@ Next:
 
 - Refactor public exam, take-exam, result, and verify pages into public views.
 - Run local setup/browser testing and fix runtime bugs found during the full flow.
+
+## 2026-05-08 - Public Exam MVC Refactor
+
+Completed:
+
+- Added `PublicExamController` for exam entry, take exam, result, and certificate verify routes.
+- Converted `public/exam.php`, `public/take-exam.php`, `public/result.php`, and `public/verify.php` into thin compatibility wrappers.
+- Moved public rendering into `views/public/`.
+
+Next:
+
+- Run local setup/browser testing through login, project setup, participant token, exam submission, certificate issue, and verify.
+- Fix runtime bugs found during that full local flow.
