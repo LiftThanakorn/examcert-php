@@ -104,6 +104,20 @@ function getExamSession(int $sessionId): ?array
     return $session ?: null;
 }
 
+function getAdminExamSessions(): array
+{
+    $stmt = getDB()->query('
+        SELECT es.*, p.name AS project_name, pt.first_name, pt.last_name,
+               CONCAT(pt.first_name, " ", pt.last_name) AS participant_name
+        FROM exam_sessions es
+        JOIN projects p ON p.id = es.project_id
+        JOIN participants pt ON pt.id = es.participant_id
+        ORDER BY es.started_at DESC
+    ');
+
+    return $stmt->fetchAll();
+}
+
 function getSessionQuestions(array $session): array
 {
     $ids = json_decode((string) $session['question_order'], true);
@@ -200,4 +214,3 @@ function submitExamSession(int $sessionId, array $answers): array
         return ['success' => false, 'message' => 'เกิดข้อผิดพลาดในการส่งข้อสอบ'];
     }
 }
-

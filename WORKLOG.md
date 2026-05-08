@@ -310,3 +310,17 @@ Next:
 
 - Refactor exam sessions into controller/view structure.
 - Refactor public exam, take-exam, result, and verify pages into public views.
+
+## 2026-05-08 - Exam Session MVC Refactor
+
+Completed:
+
+- Added `getAdminExamSessions()` to centralize admin session listing/export data.
+- Moved exam session table rendering into `views/exam-sessions/index.php`.
+- Implemented `ExamController` admin actions for session list and CSV export.
+- Converted `admin/exam-sessions/index.php` and `admin/exam-sessions/export.php` into thin compatibility wrappers.
+
+Next:
+
+- Refactor public exam, take-exam, result, and verify pages into public views.
+- Run local setup/browser testing and fix runtime bugs found during the full flow.
