@@ -4,7 +4,7 @@ $errors = $errors ?? [];
 $action = $action ?? '';
 ?>
 <?php if ($errors): ?>
-    <div class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+    <div class="mb-4 rounded border border-danger-600 bg-danger-50 px-4 py-3 text-danger-600">
         <?php foreach ($errors as $error): ?>
             <div><?= e($error) ?></div>
         <?php endforeach; ?>
@@ -53,7 +53,7 @@ $action = $action ?? '';
     </div>
     <div class="flex items-center justify-end gap-3">
         <a href="<?= e(BASE_URL) ?>/admin/participants/?project_id=<?= (int) $project['id'] ?>" class="rounded border border-gray-200 px-4 py-2">ยกเลิก</a>
-        <button class="rounded bg-orange-600 px-4 py-2 text-white hover:bg-orange-700">บันทึก</button>
+        <button class="rounded bg-primary-600 px-4 py-2 text-white hover:bg-primary-700">บันทึก</button>
     </div>
 </form>
 

@@ -257,3 +257,16 @@ Completed:
 Next:
 
 - Refactor participants and questions into controller/view structure and remove duplicate admin view code.
+
+## 2026-05-08 - Participant MVC Refactor
+
+Completed:
+
+- Moved participant list/create/edit rendering into `views/participants/`.
+- Implemented `ParticipantController` actions for index, create, edit, and delete.
+- Converted `admin/participants/*.php` files into thin compatibility wrappers.
+- Removed the old duplicate `admin/participants/_form.php` after replacing it with `views/participants/_form.php`.
+
+Next:
+
+- Refactor questions into controller/view structure and remove duplicate admin view code.
