@@ -337,3 +337,14 @@ Next:
 
 - Run local setup/browser testing through login, project setup, participant token, exam submission, certificate issue, and verify.
 - Fix runtime bugs found during that full local flow.
+
+## 2026-05-08 - Cleanup Pass
+
+Completed:
+
+- Removed unused legacy `admin/_nav.php` after admin modules moved to `views/layout/`.
+- Confirmed old admin `_form.php` files for refactored modules are no longer present.
+
+Next:
+
+- Run full local setup/browser testing and fix runtime issues found in the end-to-end flow.
