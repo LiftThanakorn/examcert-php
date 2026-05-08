@@ -6,6 +6,12 @@ Import `database/schema.sql` into MySQL/MariaDB using phpMyAdmin or the MySQL CL
 
 Database name: `examcert`
 
+Or run the CLI installer:
+
+```powershell
+C:\laragon\bin\php\php-8.3.16-Win32-vs16-x64\php.exe setup/install.php
+```
+
 ## 2. Create first admin
 
 ```powershell
@@ -44,4 +50,3 @@ Use the token printed by the seed script.
 - Open `admin/exam-sessions/`
 - Issue certificate for a passed session
 - Open public verify URL
-

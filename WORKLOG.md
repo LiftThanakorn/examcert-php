@@ -177,3 +177,18 @@ Completed:
 Next:
 
 - Run final lint sweep and inspect repository status.
+
+## 2026-05-08 - Local Readiness Improvements
+
+Completed:
+
+- Added `src/Dashboard.php` for dashboard statistics and recent projects.
+- Replaced the protected admin dashboard fallback with a functional admin dashboard and navigation.
+- Added shared admin navigation at `admin/_nav.php`.
+- Added CLI-only `setup/install.php` to import `database/schema.sql`.
+- Updated `SETUP-LOCAL.md` to include the CLI installer.
+
+Notes:
+
+- `views/dashboard/index.html` remains untouched.
+- Dashboard now points to the functional admin modules.
