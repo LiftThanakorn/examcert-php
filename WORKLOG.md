@@ -33,3 +33,23 @@ Next:
 
 - Create the ExamCert foundation files and database schema.
 - Use a Git checkpoint after each completed milestone.
+
+## 2026-05-08 - Foundation Scaffold
+
+Completed:
+
+- Added `.gitignore` for logs, uploads, dependencies, generated CSS, and environment files.
+- Added root `index.php` that serves the existing dashboard design without modifying `views/dashboard/index.html`.
+- Added `config/config.php`, `config/database.php`, and `config/session.php`.
+- Added `src/helpers.php` with escaping, redirect, CSRF, flash, logging, token, and JSON helpers.
+- Added `database/schema.sql` for ExamCert Standalone v1 tables.
+- Added runtime directory placeholders for logs and upload folders.
+
+Notes:
+
+- Existing `views/dashboard/index.html` remains untouched as requested.
+- Root `index.php` currently passes through that HTML design; it can be converted to PHP views later.
+
+Next:
+
+- Add Admin Authentication milestone: admin model/controller, login view, logout, and protected admin pages.

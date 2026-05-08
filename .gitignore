@@ -1,0 +1,12 @@
+/logs/*.log
+/uploads/certificates/*
+/uploads/templates/*
+/uploads/signatures/*
+!/uploads/certificates/.gitkeep
+!/uploads/templates/.gitkeep
+!/uploads/signatures/.gitkeep
+/vendor/
+/node_modules/
+/assets/css/output.css
+.env
+
