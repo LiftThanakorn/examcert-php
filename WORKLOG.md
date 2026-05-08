@@ -284,3 +284,16 @@ Next:
 
 - Refactor certificates, exam sessions, and reports into controller/view structure.
 - Keep public exam and verification routes working while moving rendering into `views/public/`.
+
+## 2026-05-08 - Report MVC Refactor
+
+Completed:
+
+- Moved report table rendering into `views/reports/index.php`.
+- Implemented `ReportController` actions for index and CSV export.
+- Converted `admin/reports/index.php` and `admin/reports/export.php` into thin compatibility wrappers.
+
+Next:
+
+- Refactor certificates and exam sessions into controller/view structure.
+- Refactor public exam, take-exam, result, and verify pages into public views.

@@ -1,9 +1,56 @@
 <?php
 declare(strict_types=1);
 
+require_once ROOT_PATH . '/src/Auth.php';
 require_once ROOT_PATH . '/src/Report.php';
 
 class ReportController
 {
-}
+    public function index(): void
+    {
+        requireLogin();
 
+        $rows = projectReportRows();
+        $pageTitle = 'Reports';
+        $viewFile = VIEWS_PATH . '/reports/index.php';
+
+        require VIEWS_PATH . '/layout/admin.php';
+    }
+
+    public function export(): void
+    {
+        requireLogin();
+
+        $rows = projectReportRows();
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="project-reports.csv"');
+
+        $out = fopen('php://output', 'w');
+        if ($out === false) {
+            http_response_code(500);
+            exit('Unable to open output stream.');
+        }
+
+        fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        fputcsv($out, ['Project', 'Code', 'Status', 'Participants', 'Questions', 'Sessions', 'Passes', 'Average percent', 'Pass rate']);
+
+        foreach ($rows as $row) {
+            $sessions = (int) $row['session_count'];
+            $passes = (int) $row['pass_count'];
+            $passRate = $sessions > 0 ? round(($passes / $sessions) * 100, 2) : 0;
+
+            fputcsv($out, [
+                $row['name'],
+                $row['code'],
+                $row['status'],
+                $row['participant_count'],
+                $row['question_count'],
+                $sessions,
+                $passes,
+                $row['avg_percent'] !== null ? round((float) $row['avg_percent'], 2) : '',
+                $passRate,
+            ]);
+        }
+    }
+}
