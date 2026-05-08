@@ -50,6 +50,7 @@ Use the token printed by the seed script.
 - Open `admin/exam-sessions/`
 - Issue certificate for a passed session
 - Open public verify URL
+- Export CSV from `admin/exam-sessions/` and `admin/reports/`
 
 ## 5. Runtime notes
 

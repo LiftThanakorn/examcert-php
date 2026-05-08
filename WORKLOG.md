@@ -217,3 +217,15 @@ Completed:
 Next:
 
 - Run local setup and browser test flow, then fix runtime bugs found during execution.
+
+## 2026-05-08 - CSV Exports
+
+Completed:
+
+- Added `admin/exam-sessions/export.php` for exam session CSV export.
+- Added `admin/reports/export.php` for project report CSV export.
+- Added export links to exam sessions and reports pages.
+
+Next:
+
+- Run local setup and browser test flow, then fix runtime bugs found during execution.

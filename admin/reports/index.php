@@ -19,9 +19,12 @@ $rows = projectReportRows();
 <body class="bg-gray-50 text-gray-900">
     <?php require __DIR__ . '/../_nav.php'; ?>
     <main class="mx-auto max-w-7xl p-6">
-        <div class="mb-6">
-            <h1 class="text-2xl font-semibold">Reports</h1>
-            <p class="text-sm text-gray-600">สรุปภาพรวมรายโครงการสำหรับตรวจ local test</p>
+        <div class="mb-6 flex items-start justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-semibold">Reports</h1>
+                <p class="text-sm text-gray-600">สรุปภาพรวมรายโครงการสำหรับตรวจ local test</p>
+            </div>
+            <a class="rounded border border-gray-200 px-4 py-2" href="<?= e(BASE_URL) ?>/admin/reports/export.php">Export CSV</a>
         </div>
 
         <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
@@ -66,4 +69,3 @@ $rows = projectReportRows();
     </main>
 </body>
 </html>
-
