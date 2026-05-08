@@ -270,3 +270,17 @@ Completed:
 Next:
 
 - Refactor questions into controller/view structure and remove duplicate admin view code.
+
+## 2026-05-08 - Question MVC Refactor
+
+Completed:
+
+- Moved question list/create/edit rendering into `views/questions/`.
+- Implemented `QuestionController` actions for index, create, edit, and delete.
+- Converted `admin/questions/*.php` files into thin compatibility wrappers.
+- Removed the old duplicate `admin/questions/_form.php` after replacing it with `views/questions/_form.php`.
+
+Next:
+
+- Refactor certificates, exam sessions, and reports into controller/view structure.
+- Keep public exam and verification routes working while moving rendering into `views/public/`.
