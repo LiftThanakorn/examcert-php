@@ -111,3 +111,21 @@ Notes:
 Next:
 
 - Build Question Bank milestone: question model, project-scoped list/create/edit/delete, JSON choices, and answer validation.
+
+## 2026-05-08 - Question Bank
+
+Completed:
+
+- Added `src/Question.php` for project-scoped question list, create, update, delete, input validation, and JSON choices.
+- Added admin question pages under `admin/questions/` for list, create, edit, shared form, and delete.
+- Added multiple choice A-D, true/false, and fill blank support in the same model.
+- Linked project detail pages to project-scoped question bank management.
+
+Notes:
+
+- Question import is not implemented yet; manual CRUD is available first.
+- Multiple-choice choices are stored in `questions.choices` as JSON.
+
+Next:
+
+- Build Exam Engine milestone: public entry by project code/id, whitelist token verification, session creation, timed exam form, answer submit, scoring, and result page.
