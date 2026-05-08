@@ -36,6 +36,7 @@ $flash = getFlash();
             </div>
             <div class="flex gap-2">
                 <a href="<?= e(BASE_URL) ?>/admin/projects/" class="rounded border border-gray-200 px-4 py-2">กลับ</a>
+                <a href="<?= e(BASE_URL) ?>/admin/participants/?project_id=<?= (int) $project['id'] ?>" class="rounded border border-gray-200 px-4 py-2">ผู้มีสิทธิ์สอบ</a>
                 <a href="<?= e(BASE_URL) ?>/admin/projects/edit.php?id=<?= (int) $project['id'] ?>" class="rounded bg-orange-600 px-4 py-2 text-white">แก้ไข</a>
             </div>
         </div>
@@ -65,4 +66,3 @@ $flash = getFlash();
     </main>
 </body>
 </html>
-

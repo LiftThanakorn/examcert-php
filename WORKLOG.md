@@ -92,3 +92,22 @@ Notes:
 Next:
 
 - Build Participant Whitelist milestone: participant model, list/create/edit/import basics, token generation, and project-scoped participant management.
+
+## 2026-05-08 - Participant Whitelist
+
+Completed:
+
+- Added `src/Participant.php` for participant defaults, validation, project-scoped list, create, update, and delete.
+- Added admin participant pages under `admin/participants/` for list, create, edit, shared form, and delete.
+- Added automatic `access_token` generation with `generateToken(32)` when creating a participant.
+- Linked project detail pages to project-scoped participant management.
+- Protected participant pages with `requireLogin()` and CSRF validation on write actions.
+
+Notes:
+
+- Import Excel is not implemented yet; this milestone covers manual whitelist management first.
+- Participant delete may fail if related exam sessions/certificates exist, depending on database constraints.
+
+Next:
+
+- Build Question Bank milestone: question model, project-scoped list/create/edit/delete, JSON choices, and answer validation.
