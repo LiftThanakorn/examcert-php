@@ -229,3 +229,18 @@ Completed:
 Next:
 
 - Run local setup and browser test flow, then fix runtime bugs found during execution.
+
+## 2026-05-08 - MVC/Layout Alignment Pass 1
+
+Completed:
+
+- Added master-prompt folder structure: `controllers/`, `models/`, `views/layout/`, `assets/`, and `api/`.
+- Added reusable admin layout files based on the original dashboard design language: sidebar, topbar, header, footer, and admin wrapper.
+- Moved dashboard rendering into `views/dashboard/index.php` and routed `admin/dashboard.php` through `DashboardController`.
+- Added placeholder controller/model classes so the codebase now has the expected MVC entry points.
+- Added Tailwind/PostCSS config and reserved API endpoint files.
+
+Notes:
+
+- Existing procedural admin/public pages are still present as compatibility routes.
+- Next pass should move projects, participants, questions, certificates, reports, and exam pages into `views/*` and controller actions.

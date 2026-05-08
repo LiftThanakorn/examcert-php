@@ -1,0 +1,2 @@
+window.ExamCert = window.ExamCert || {};
+
