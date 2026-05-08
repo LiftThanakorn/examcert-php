@@ -129,3 +129,21 @@ Notes:
 Next:
 
 - Build Exam Engine milestone: public entry by project code/id, whitelist token verification, session creation, timed exam form, answer submit, scoring, and result page.
+
+## 2026-05-08 - Exam Engine and Scoring
+
+Completed:
+
+- Added `src/Exam.php` for project lookup, token-based participant verification, session creation, question ordering, answer checking, scoring, and result updates.
+- Added public exam entry at `public/exam.php`.
+- Added public exam taking page at `public/take-exam.php`.
+- Added public result page at `public/result.php`.
+
+Notes:
+
+- Timer is server-side through `expires_at`; client-side countdown can be improved later.
+- Passed sessions can be used by the certificate milestone.
+
+Next:
+
+- Build Certificate Engine milestone: issue certificate from passed session, public verify token, admin certificate list.
