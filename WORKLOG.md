@@ -53,3 +53,23 @@ Notes:
 Next:
 
 - Add Admin Authentication milestone: admin model/controller, login view, logout, and protected admin pages.
+
+## 2026-05-08 - Admin Authentication
+
+Completed:
+
+- Added `src/Auth.php` for admin login state, login verification, required-login guard, and logout.
+- Added `admin/login.php` with CSRF validation and password login.
+- Added `admin/logout.php`.
+- Added `admin/dashboard.php` as a protected page that serves the existing dashboard design without editing it.
+- Added CLI-only `setup/create-admin.php` to create or update the first superadmin.
+
+Notes:
+
+- Create the first admin after importing `database/schema.sql`:
+  `C:\laragon\bin\php\php-8.3.16-Win32-vs16-x64\php.exe setup/create-admin.php admin <password>`
+- `setup/create-admin.php` is CLI-only to avoid exposing admin creation through the browser.
+
+Next:
+
+- Build Project Management milestone: project CRUD, schedule fields, and admin project list/detail pages.
