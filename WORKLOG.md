@@ -192,3 +192,15 @@ Notes:
 
 - `views/dashboard/index.html` remains untouched.
 - Dashboard now points to the functional admin modules.
+
+## 2026-05-08 - Reports
+
+Completed:
+
+- Added `src/Report.php` for project summary rows.
+- Added `admin/reports/index.php` with participant count, question count, session count, pass count, average score, and pass rate.
+- Added Reports link to the admin navigation.
+
+Next:
+
+- Continue hardening local test flow after running setup and identifying runtime bugs.

@@ -8,10 +8,10 @@ $adminName = function_exists('currentAdminName') ? currentAdminName() : '';
             <a class="text-gray-700 hover:text-orange-700" href="<?= e(BASE_URL) ?>/admin/projects/">โครงการสอบ</a>
             <a class="text-gray-700 hover:text-orange-700" href="<?= e(BASE_URL) ?>/admin/exam-sessions/">ผลสอบ</a>
             <a class="text-gray-700 hover:text-orange-700" href="<?= e(BASE_URL) ?>/admin/certificates/">ใบเซอร์</a>
+            <a class="text-gray-700 hover:text-orange-700" href="<?= e(BASE_URL) ?>/admin/reports/">Reports</a>
             <span class="text-gray-400">|</span>
             <span class="text-gray-500"><?= e($adminName) ?></span>
             <a class="text-red-700 hover:underline" href="<?= e(BASE_URL) ?>/admin/logout.php">ออกจากระบบ</a>
         </div>
     </div>
 </nav>
-
