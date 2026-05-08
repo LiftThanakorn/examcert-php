@@ -147,3 +147,22 @@ Notes:
 Next:
 
 - Build Certificate Engine milestone: issue certificate from passed session, public verify token, admin certificate list.
+
+## 2026-05-08 - Certificate Engine
+
+Completed:
+
+- Added `src/Certificate.php` for certificate listing, token lookup, duplicate-safe issue from passed session, verify URL, cert number, and local HTML certificate artifact.
+- Added admin certificate list and issue endpoint under `admin/certificates/`.
+- Added admin exam session list under `admin/exam-sessions/` with issue-certificate action for passed sessions.
+- Added public certificate verification at `public/verify.php`.
+- Added a default certificate template seed in `database/schema.sql` for local testing.
+
+Notes:
+
+- Certificate file generation currently writes an HTML artifact into `uploads/certificates/`; PDF generation can replace this later with TCPDF/mPDF.
+- Certificate issue currently requires a passed, submitted session.
+
+Next:
+
+- Add local setup/test instructions and sample data script to make first local verification easier.

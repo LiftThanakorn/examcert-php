@@ -46,6 +46,23 @@ CREATE TABLE IF NOT EXISTS cert_templates (
     FOREIGN KEY (created_by) REFERENCES admins(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+INSERT INTO cert_templates (
+    id, name, description, orientation, layout_json, font_name,
+    show_score, show_qr, show_date, color_primary, is_active
+) VALUES (
+    1,
+    'Default Certificate',
+    'Default template for local testing',
+    'L',
+    JSON_OBJECT(),
+    'thsarabun',
+    1,
+    1,
+    1,
+    '#E87722',
+    1
+) ON DUPLICATE KEY UPDATE name = VALUES(name);
+
 CREATE TABLE IF NOT EXISTS projects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -179,4 +196,3 @@ CREATE TABLE IF NOT EXISTS certificates (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
-
