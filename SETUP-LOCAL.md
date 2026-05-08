@@ -50,3 +50,10 @@ Use the token printed by the seed script.
 - Open `admin/exam-sessions/`
 - Issue certificate for a passed session
 - Open public verify URL
+
+## 5. Runtime notes
+
+- `setup/install.php`, `setup/create-admin.php`, and `setup/seed-sample.php` are CLI-only.
+- CSRF tokens rotate after successful validation; refresh forms if you reuse an old browser tab.
+- Participant records are checked for duplicate email, ID card, or full name within the same project.
+- The exam page has a client-side countdown and auto-submits when the session expires.

@@ -204,3 +204,16 @@ Completed:
 Next:
 
 - Continue hardening local test flow after running setup and identifying runtime bugs.
+
+## 2026-05-08 - Runtime Hardening Pass 1
+
+Completed:
+
+- Rotated CSRF tokens after successful validation.
+- Added project-scoped duplicate participant checks by email, ID card, or full name.
+- Added client-side countdown and auto-submit to `public/take-exam.php`.
+- Updated local setup notes with runtime behavior and duplicate/CSRF notes.
+
+Next:
+
+- Run local setup and browser test flow, then fix runtime bugs found during execution.

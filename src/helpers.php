@@ -27,7 +27,12 @@ function validateCsrfToken(?string $token): bool
         return false;
     }
 
-    return hash_equals($_SESSION['csrf_token'], $token);
+    $valid = hash_equals($_SESSION['csrf_token'], $token);
+    if ($valid) {
+        unset($_SESSION['csrf_token']);
+    }
+
+    return $valid;
 }
 
 function csrfField(): string
@@ -82,4 +87,3 @@ function jsonResponse(bool $success, string $message = '', array $data = []): ne
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
-

@@ -91,6 +91,11 @@ function createParticipant(int $projectId, array $data, ?int $adminId): array
     $payload = participantPayload($data);
 
     try {
+        $duplicate = findDuplicateParticipant($projectId, $payload);
+        if ($duplicate) {
+            return ['success' => false, 'errors' => ['พบรายชื่อหรือข้อมูลอ้างอิงซ้ำในโครงการนี้']];
+        }
+
         $stmt = getDB()->prepare('
             INSERT INTO participants (
                 project_id, title, first_name, last_name, organization, position,
@@ -129,6 +134,16 @@ function updateParticipant(int $id, array $data): array
     $payload = participantPayload($data);
 
     try {
+        $participant = getParticipant($id);
+        if (!$participant) {
+            return ['success' => false, 'errors' => ['ไม่พบรายชื่อผู้มีสิทธิ์สอบ']];
+        }
+
+        $duplicate = findDuplicateParticipant((int) $participant['project_id'], $payload, $id);
+        if ($duplicate) {
+            return ['success' => false, 'errors' => ['พบรายชื่อหรือข้อมูลอ้างอิงซ้ำในโครงการนี้']];
+        }
+
         $stmt = getDB()->prepare('
             UPDATE participants SET
                 title = ?, first_name = ?, last_name = ?, organization = ?, position = ?,
@@ -155,6 +170,39 @@ function updateParticipant(int $id, array $data): array
     }
 }
 
+function findDuplicateParticipant(int $projectId, array $payload, ?int $excludeId = null): ?array
+{
+    $conditions = ['project_id = ?'];
+    $params = [$projectId];
+    $duplicateRules = [];
+
+    if (!empty($payload['email'])) {
+        $duplicateRules[] = 'email = ?';
+        $params[] = $payload['email'];
+    }
+    if (!empty($payload['id_card'])) {
+        $duplicateRules[] = 'id_card = ?';
+        $params[] = $payload['id_card'];
+    }
+    if (!$duplicateRules) {
+        $duplicateRules[] = '(first_name = ? AND last_name = ?)';
+        $params[] = $payload['first_name'];
+        $params[] = $payload['last_name'];
+    }
+
+    $conditions[] = '(' . implode(' OR ', $duplicateRules) . ')';
+    if ($excludeId !== null) {
+        $conditions[] = 'id <> ?';
+        $params[] = $excludeId;
+    }
+
+    $stmt = getDB()->prepare('SELECT * FROM participants WHERE ' . implode(' AND ', $conditions) . ' LIMIT 1');
+    $stmt->execute($params);
+    $row = $stmt->fetch();
+
+    return $row ?: null;
+}
+
 function deleteParticipant(int $id): bool
 {
     try {
@@ -165,4 +213,3 @@ function deleteParticipant(int $id): bool
         return false;
     }
 }
-
