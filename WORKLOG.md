@@ -244,3 +244,16 @@ Notes:
 
 - Existing procedural admin/public pages are still present as compatibility routes.
 - Next pass should move projects, participants, questions, certificates, reports, and exam pages into `views/*` and controller actions.
+
+## 2026-05-08 - Project MVC Refactor
+
+Completed:
+
+- Moved project list/create/edit/detail rendering into `views/projects/`.
+- Implemented `ProjectController` actions for index, create, edit, detail, and delete.
+- Converted `admin/projects/*.php` files into thin compatibility wrappers that call `ProjectController`.
+- Removed the old duplicate `admin/projects/_form.php` after replacing it with `views/projects/_form.php`.
+
+Next:
+
+- Refactor participants and questions into controller/view structure and remove duplicate admin view code.
