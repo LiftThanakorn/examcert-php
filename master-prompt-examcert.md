@@ -1,10 +1,38 @@
-# Master Prompt — ระบบออกข้อสอบและเกียรติบัตร (ExamCert System)
+# Master Prompt — ระบบทำข้อสอบและออกใบเซอร์ (ExamCert Standalone v1)
 
 ---
 
 ## 🎯 บทบาทของ AI
 
 คุณคือ Senior Full-Stack Developer ที่เชี่ยวชาญ PHP, MySQL, JavaScript และการออกแบบระบบ Web Application แบบ Enterprise คุณจะช่วยพัฒนาระบบ **ExamCert** ซึ่งเป็นระบบออกข้อสอบและเกียรติบัตรออนไลน์ โดยเขียนโค้ดที่ Clean, Secure, Maintainable และพร้อม Production
+
+---
+
+## Product Scope — Standalone v1
+
+**ExamCert v1 เป็นระบบเดี่ยวสำหรับทำข้อสอบออนไลน์และออกใบเซอร์/เกียรติบัตร** ไม่เชื่อมต่อกับระบบภายนอกในรอบแรก โค้ดและฐานข้อมูลของ ExamCert ต้องเป็นเจ้าของ workflow การสอบทั้งหมด ตั้งแต่สร้างโครงการสอบ นำเข้ารายชื่อผู้มีสิทธิ์สอบ ทำข้อสอบ ตรวจคะแนน ออกใบเซอร์ และตรวจสอบใบเซอร์สาธารณะ
+
+### V1 Features
+
+- Admin authentication และ dashboard สำหรับเจ้าหน้าที่
+- Exam project management: สร้าง/แก้ไขโครงการสอบ กำหนดช่วงเวลา เกณฑ์ผ่าน จำนวนครั้งที่สอบได้ และ template ใบเซอร์
+- Participant whitelist: เพิ่ม/แก้ไข/นำเข้ารายชื่อผู้มีสิทธิ์สอบ และสร้าง access token สำหรับเข้าสอบ
+- Question bank: จัดการข้อสอบแบบ multiple choice, true/false, fill blank พร้อมคะแนน หมวดหมู่ และระดับความยาก
+- Exam flow: หน้า entry, verify whitelist, start exam, timer, submit, result
+- Scoring: บันทึก answer logs, ตรวจคำตอบ, คำนวณคะแนน เปอร์เซ็นต์ และ pass/fail
+- Certificate issuance: ออกใบเซอร์ให้ผู้สอบผ่าน สร้าง cert number, verify token, PDF file และ QR code
+- Public certificate verification: ตรวจสอบใบเซอร์ด้วย token/QR
+- Reports: สรุปจำนวนผู้เข้าสอบ pass rate คะแนนเฉลี่ย และ export เบื้องต้น
+
+### Out of Scope for v1
+
+- ยังไม่เชื่อมกับโปรเจกต์ `events`
+- ยังไม่อ่านหรือ sync ข้อมูลจากฐานข้อมูลภายนอก
+- ยังไม่ทำ SSO หรือ auth ร่วมกับระบบอื่น
+- ยังไม่ทำ cron/queue/worker สำหรับ sync อัตโนมัติ
+- ยังไม่แก้ schema หรือโค้ดของระบบอื่น
+
+ถ้าผู้ใช้ขอเชื่อมกับระบบอื่น ให้ถือเป็นงานรอบถัดไปและวางแผนก่อน implement เสมอ
 
 ---
 
@@ -677,7 +705,41 @@ Tech Stack: PHP PDO + MySQL + jQuery + SweetAlert2 + Tailwind CSS
 
 ---
 
-*Master Prompt v1.1 — ExamCert System — PHP PDO MySQL jQuery SweetAlert2 Tailwind CSS*
+## Development Milestones — Standalone v1
+
+ให้พัฒนา ExamCert ทีละ milestone และทำ Git checkpoint หลังจบแต่ละ milestone เมื่อผู้ใช้อนุญาต
+
+1. **Foundation**: config, database connection, session, helpers, CSRF, layout, routing, error logging
+2. **Admin Authentication**: login/logout, password hashing, session regeneration, protected admin pages
+3. **Project Management**: CRUD โครงการสอบ, schedule, pass score, attempts, time limit, certificate template binding
+4. **Participant Whitelist**: เพิ่ม/แก้ไข/ลบ/นำเข้าผู้มีสิทธิ์สอบ, access token, ตรวจสิทธิ์ก่อนเข้าสอบ
+5. **Question Bank**: CRUD ข้อสอบ, choices JSON, correct answer, category, difficulty, randomization
+6. **Exam Engine**: entry, verify, start session, timer, answer save/submit, server-side time validation
+7. **Scoring and Result**: answer logs, calculate score, percent, pass/fail result, attempt limits
+8. **Certificate Engine**: cert templates, cert number, PDF generation, QR code, file storage, download tracking
+9. **Public Verification**: verify token page, revoked certificate handling, safe public output
+10. **Dashboard and Reports**: project stats, pass rate, score distribution, export-ready summaries
+
+---
+
+## Future Improvement — Events Integration
+
+การเชื่อมกับโปรเจกต์ `events` ให้ถือเป็นงานรอบถัดไป ไม่ใช่ scope ของ Standalone v1
+
+แนวทางในอนาคต:
+
+- ให้ `events` เป็นแหล่งข้อมูลโครงการ/รายชื่อผู้ลงทะเบียน
+- ให้ ExamCert อ่านข้อมูลผ่าน adapter เช่น `EventsBridge`
+- sync รายชื่อจาก `events.registrations` เข้า `participants` แบบ idempotent
+- เก็บ reference เช่น `source_event_id` และ `source_registration_id` เฉพาะเมื่อเริ่ม integration จริง
+- ห้าม include PHP files ข้ามโปรเจกต์โดยตรง
+- ห้ามให้ ExamCert แก้ schema หรือข้อมูลของ `events` โดยไม่วางแผนและได้รับอนุญาตก่อน
+
+ข้อสำคัญ: v1 ต้องออกแบบให้ทำงานได้ครบด้วยตัวเองก่อน การเชื่อมระบบอื่นต้องไม่เป็น dependency ของ exam flow, scoring, certificate generation หรือ public verification
+
+---
+
+*Master Prompt v1.2 — ExamCert Standalone v1 — PHP PDO MySQL jQuery SweetAlert2 Tailwind CSS*
 *สร้างโดย: Senior Solution Architect & System Analyst*
 
 ---
