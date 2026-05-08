@@ -297,3 +297,16 @@ Next:
 
 - Refactor certificates and exam sessions into controller/view structure.
 - Refactor public exam, take-exam, result, and verify pages into public views.
+
+## 2026-05-08 - Certificate MVC Refactor
+
+Completed:
+
+- Moved certificate list rendering into `views/certificates/index.php`.
+- Implemented `CertificateController` actions for index and issue.
+- Converted `admin/certificates/index.php` and `admin/certificates/issue.php` into thin compatibility wrappers.
+
+Next:
+
+- Refactor exam sessions into controller/view structure.
+- Refactor public exam, take-exam, result, and verify pages into public views.
