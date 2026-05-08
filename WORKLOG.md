@@ -166,3 +166,14 @@ Notes:
 Next:
 
 - Add local setup/test instructions and sample data script to make first local verification easier.
+
+## 2026-05-08 - Local Setup Support
+
+Completed:
+
+- Added `SETUP-LOCAL.md` with database import, first-admin creation, sample data, and manual test checklist.
+- Added CLI-only `setup/seed-sample.php` for a sample active project, participant token, and starter questions.
+
+Next:
+
+- Run final lint sweep and inspect repository status.
