@@ -110,8 +110,10 @@ class PublicExamController
         $project = getProject((int) $session['project_id']);
         $participant = getParticipant((int) $session['participant_id']);
         $certificate = $session['result'] === 'pass' ? getCertificateBySession($sessionId) : null;
+        $answerLogs = getSessionAnswerLogs($sessionId);
+        
         $pageTitle = 'ผลสอบ';
-        $bodyClass = 'bg-mesh min-h-screen flex flex-col items-center justify-center p-6 font-sans'; 
+        $bodyClass = 'bg-mesh min-h-screen flex flex-col items-center justify-start p-6 font-sans'; 
         require VIEWS_PATH . '/layout/header.php';
         require VIEWS_PATH . '/exam/result.php';
         require VIEWS_PATH . '/layout/footer.php';

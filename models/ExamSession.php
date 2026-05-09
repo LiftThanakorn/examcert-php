@@ -233,6 +233,19 @@ function deleteExamSession(int $sessionId): bool
     }
 }
 
+function getSessionAnswerLogs(int $sessionId): array
+{
+    $stmt = getDB()->prepare('
+        SELECT al.*, q.question_text, q.choices, q.correct_answer, q.explanation, q.type
+        FROM answer_logs al
+        JOIN questions q ON q.id = al.question_id
+        WHERE al.session_id = ?
+        ORDER BY al.id ASC
+    ');
+    $stmt->execute([$sessionId]);
+    return $stmt->fetchAll();
+}
+
 class ExamSession extends BaseModel
 {
 }
