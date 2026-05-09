@@ -11,7 +11,8 @@ if ($basePath !== '' && str_starts_with($path, $basePath)) {
 $path = '/' . trim($path, '/');
 
 $route = match ($path) {
-    '/', '/admin', '/admin/', '/admin/dashboard.php' => [DashboardController::class, 'index'],
+    '/' => [HomeController::class, 'index'],
+    '/admin', '/admin/', '/admin/dashboard.php' => [DashboardController::class, 'index'],
     '/admin/login.php' => [AuthController::class, 'login'],
     '/admin/logout.php' => 'logout',
     '/admin/projects', '/admin/projects/', '/admin/projects/index.php' => [ProjectController::class, 'index'],

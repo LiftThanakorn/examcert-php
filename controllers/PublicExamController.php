@@ -33,7 +33,10 @@ class PublicExamController
         }
 
         $pageTitle = 'เข้าสอบ';
+        $bodyClass = 'bg-gray-900 font-sans'; // Dark background for the entry screen
+        require VIEWS_PATH . '/layout/header.php';
         require VIEWS_PATH . '/exam/entry.php';
+        require VIEWS_PATH . '/layout/footer.php';
     }
 
     public function take(): void
@@ -69,8 +72,10 @@ class PublicExamController
         $questions = getSessionQuestions($session);
         $secondsLeft = max(0, strtotime((string) $session['expires_at']) - time());
         $pageTitle = 'ทำข้อสอบ';
-
+        $bodyClass = 'bg-[#F9F8F6] font-sans';
+        require VIEWS_PATH . '/layout/header.php';
         require VIEWS_PATH . '/exam/start.php';
+        require VIEWS_PATH . '/layout/footer.php';
     }
 
     public function result(): void
@@ -86,8 +91,10 @@ class PublicExamController
         $participant = getParticipant((int) $session['participant_id']);
         $certificate = $session['result'] === 'pass' ? getCertificateBySession($sessionId) : null;
         $pageTitle = 'ผลสอบ';
-
+        $bodyClass = 'bg-gray-900 font-sans'; // Dark background for result screen
+        require VIEWS_PATH . '/layout/header.php';
         require VIEWS_PATH . '/exam/result.php';
+        require VIEWS_PATH . '/layout/footer.php';
     }
 
     public function verify(): void
@@ -95,7 +102,9 @@ class PublicExamController
         $token = trim((string) ($_GET['token'] ?? ''));
         $certificate = $token !== '' ? getCertificateByToken($token) : null;
         $pageTitle = 'ตรวจสอบเกียรติบัตร';
-
+        $bodyClass = 'bg-gray-50 font-sans';
+        require VIEWS_PATH . '/layout/header.php';
         require VIEWS_PATH . '/certificates/verify.php';
+        require VIEWS_PATH . '/layout/footer.php';
     }
 }
