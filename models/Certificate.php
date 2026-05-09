@@ -34,6 +34,24 @@ function getCertificateByToken(string $token): ?array
     return $certificate ?: null;
 }
 
+function getCertificateByNumber(string $number): ?array
+{
+    $stmt = getDB()->prepare('
+        SELECT c.*, p.name AS project_name, p.organizer,
+               pt.title, pt.first_name, pt.last_name, pt.organization, pt.position,
+               es.percent, es.score, es.total_score
+        FROM certificates c
+        JOIN projects p ON p.id = c.project_id
+        JOIN participants pt ON pt.id = c.participant_id
+        JOIN exam_sessions es ON es.id = c.session_id
+        WHERE c.cert_number = ?
+        LIMIT 1
+    ');
+    $stmt->execute([$number]);
+    $certificate = $stmt->fetch();
+    return $certificate ?: null;
+}
+
 function getCertificateBySession(int $sessionId): ?array
 {
     $stmt = getDB()->prepare('SELECT * FROM certificates WHERE session_id = ? LIMIT 1');
@@ -150,7 +168,6 @@ function writeCertificatePdf(string $token): void
     }
 
     // Font Configuration (Google Fonts: Sarabun)
-    // Note: To use Sarabun in TCPDF, the .php/.z/.php font files must be in lib/tcpdf/fonts/
     $color = $template['color_primary'] ?: '#E87722';
     list($r, $g, $b) = sscanf($color, "#%02x%02x%02x");
 
@@ -197,7 +214,7 @@ function writeCertificatePdf(string $token): void
                     // Draw Label (Name/Position) below signature
                     if (isset($s['label_y'])) {
                         $pdf->SetFont($activeFont, '', 11);
-                        $pdf->SetTextColor(0, 0, 0); // Names usually black
+                        $pdf->SetTextColor(0, 0, 0); 
                         $pdf->Text($s['x'] + (($s['w'] ?? 40) / 2), $s['label_y'], $sign['name'] ?? '', false, false, true, 0, 0, 'C');
                     }
                 }

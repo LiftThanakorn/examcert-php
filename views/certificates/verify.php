@@ -1,13 +1,16 @@
 <?php
+/** @var string $token */
+/** @var string $mode */
 /** @var array|null $certificate */
-$mode = 'invalid';
-if ($certificate) {
-    $mode = (int)$certificate['is_revoked'] === 1 ? 'revoked' : 'valid';
-}
 ?>
 
 <style>
-/* ── Mesh backgrounds ── */
+.bg-mesh-initial {
+  background-color:#F9F8F6;
+  background-image:
+    radial-gradient(ellipse 70% 55% at 15% -5%,  rgba(232,119,34,0.08) 0%,transparent 60%),
+    radial-gradient(ellipse 55% 45% at 88% 105%, rgba(232,119,34,0.05) 0%,transparent 55%);
+}
 .bg-mesh-valid {
   background-color:#F9F8F6;
   background-image:
@@ -140,6 +143,58 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
 <main class="flex-1 flex flex-col items-center justify-start pt-10 pb-20 px-4">
   <div class="w-full max-w-2xl">
 
+    <!-- ══ INITIAL STATE ══ -->
+    <?php if ($mode === 'initial'): ?>
+    <div id="state-initial" class="space-y-8 py-10">
+      <div class="text-center anim-fade-up">
+        <div class="w-24 h-24 mx-auto mb-6 bg-white rounded-3xl shadow-card-lg flex items-center justify-center relative overflow-hidden group">
+          <div class="absolute inset-0 bg-gradient-to-br from-primary-50 to-primary-100/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <i class="fas fa-search text-4xl text-primary-400 relative z-10 transition-transform group-hover:scale-110"></i>
+        </div>
+        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight mb-3">ตรวจสอบเกียรติบัตร</h1>
+        <p class="text-gray-500 max-w-sm mx-auto leading-relaxed">
+          กรุณากรอก Verify Token หรือเลขที่เกียรติบัตร <br>เพื่อตรวจสอบความถูกต้องของเอกสาร
+        </p>
+      </div>
+
+      <div class="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white p-8 shadow-card-lg anim-fade-up d2">
+        <div class="space-y-4">
+          <div class="relative">
+            <label class="block text-xxs font-bold text-primary-400 uppercase tracking-[0.2em] mb-2 ml-1">กรอกข้อมูลเพื่อตรวจสอบ</label>
+            <input id="initial-token-input" type="text" placeholder="วาง Verify Token หรือเลขที่เกียรติบัตรที่นี่..."
+              class="token-input w-full h-14 px-5 text-base font-mono border border-gray-100 rounded-2xl bg-white/50 backdrop-blur transition-all focus:bg-white">
+          </div>
+          <button onclick="handleInitialSearch()"
+            class="w-full h-14 bg-primary-400 hover:bg-primary-500 text-white font-bold rounded-2xl transition-all shadow-lg shadow-primary-200 active:scale-[0.98] flex items-center justify-center gap-3">
+            <i class="fas fa-shield-check text-lg"></i>
+            ตรวจสอบข้อมูลเกียรติบัตร
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 anim-fade-up d3">
+        <div class="p-4 bg-white/40 rounded-2xl border border-white/60 flex items-center gap-4">
+          <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
+            <i class="fas fa-qrcode"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-gray-800">Scan QR Code</p>
+            <p class="text-[10px] text-gray-500">สแกนเพื่อตรวจสอบทันที</p>
+          </div>
+        </div>
+        <div class="p-4 bg-white/40 rounded-2xl border border-white/60 flex items-center gap-4">
+          <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+            <i class="fas fa-link"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-gray-800">Verify Link</p>
+            <p class="text-[10px] text-gray-500">ตรวจสอบผ่านลิงก์อ้างอิง</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <?php endif; ?>
+
     <!-- ══ VALID STATE ══ -->
     <?php if ($mode === 'valid'): ?>
     <div id="state-valid" class="space-y-4">
@@ -185,7 +240,7 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
             <p class="text-xxs text-gray-400 mb-2.5">Certificate of Achievement</p>
             <p class="text-xxs text-gray-500 mb-1">มอบให้แก่</p>
             <p class="font-bold text-gray-900 leading-tight mb-2" style="font-family:'Noto Serif Thai',serif;font-size:clamp(13px,3vw,20px);">
-              <?= e($certificate['first_name'] . ' ' . $certificate['last_name']) ?>
+              <?= e($certificate['title'] . $certificate['first_name'] . ' ' . $certificate['last_name']) ?>
             </p>
             <p class="text-xxs text-gray-400 mb-0.5">ผ่านการทดสอบหลักสูตร</p>
             <p class="font-semibold text-gray-700 mb-0.5" style="font-size:clamp(9px,2vw,13px);"><?= e($certificate['project_name']) ?></p>
@@ -333,7 +388,7 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
           <div class="stamp-revoked">REVOKED</div>
           <div class="relative z-5 flex flex-col items-center justify-center h-full px-8 text-center py-4 opacity-60">
             <p class="text-xxs uppercase tracking-[.15em] text-gray-400 font-semibold mb-1">เกียรติบัตร</p>
-            <p class="font-bold text-gray-700 leading-tight mb-1" style="font-family:'Noto Serif Thai',serif;font-size:clamp(12px,3vw,18px);"><?= e($certificate['first_name'] . ' ' . $certificate['last_name']) ?></p>
+            <p class="font-bold text-gray-700 leading-tight mb-1" style="font-family:'Noto Serif Thai',serif;font-size:clamp(12px,3vw,18px);"><?= e($certificate['title'] . $certificate['first_name'] . ' ' . $certificate['last_name']) ?></p>
             <p class="font-medium text-gray-500 mb-1" style="font-size:clamp(9px,2vw,12px);"><?= e($certificate['project_name']) ?></p>
             <p class="text-xxs font-mono text-gray-400"><?= e($certificate['cert_number']) ?></p>
           </div>
@@ -426,6 +481,15 @@ function copyLink() {
 
 function handleSearch() {
   const val = document.getElementById('token-input').value.trim();
+  if (!val) { 
+    showToast('กรุณากรอก Token หรือเลขที่เกียรติบัตร','fa-triangle-exclamation','text-amber-400'); 
+    return; 
+  }
+  window.location.href = `<?= e(BASE_URL) ?>/public/verify.php?token=${encodeURIComponent(val)}`;
+}
+
+function handleInitialSearch() {
+  const val = document.getElementById('initial-token-input').value.trim();
   if (!val) { 
     showToast('กรุณากรอก Token หรือเลขที่เกียรติบัตร','fa-triangle-exclamation','text-amber-400'); 
     return; 

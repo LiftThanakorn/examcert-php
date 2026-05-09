@@ -141,11 +141,21 @@ class PublicExamController
     public function verify(): void
     {
         $token = trim((string) ($_GET['token'] ?? ''));
-        $certificate = $token !== '' ? getCertificateByToken($token) : null;
+        $certificate = null;
+
+        if ($token !== '') {
+            // Try by token first
+            $certificate = getCertificateByToken($token);
+            
+            // If not found, try by certificate number
+            if (!$certificate) {
+                $certificate = getCertificateByNumber($token);
+            }
+        }
         
-        $mode = 'invalid';
-        if ($certificate) {
-            $mode = (int)$certificate['is_revoked'] === 1 ? 'revoked' : 'valid';
+        $mode = 'initial';
+        if ($token !== '') {
+            $mode = ($certificate && (int)$certificate['is_revoked'] === 1) ? 'revoked' : ($certificate ? 'valid' : 'invalid');
         }
         
         $bodyClass = "bg-mesh-{$mode} min-h-screen flex flex-col font-sans";
