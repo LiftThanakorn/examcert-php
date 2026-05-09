@@ -826,5 +826,27 @@ Notes:
 Next:
 - Final E2E system walkthrough and production deployment readiness check.
 
+## 2026-05-09 - Project Enforcement & Auto-Submit Fixes
+
+### Completed:
+- **Project Runtime Logic**:
+  - Hardened `getProjectRuntimeStatus()` to prioritize `exam_end`. Even if **Manual Override** is ON, the exam will now correctly close if the current time exceeds the scheduled end time.
+- **Exam Heartbeat System**:
+  - Implemented a 30-second **AJAX Heartbeat** in `views/exam/start.php`.
+  - The heartbeat calls `api/exam.php?action=check_time` to sync the remaining time and verify project status.
+- **Force Auto-Submit**:
+  - Wired the `auto_submit_on_close` setting to the frontend. If the heartbeat detects that the project has been closed or the time has expired, it triggers an immediate **Auto-Submit** for the student.
+  - Added support for custom dismissal messages in the `autoSubmit()` JavaScript function.
+- **Warning Synchronization**:
+  - Integrated the "Warning Before Close" setting (e.g., 5 minutes) into the heartbeat, ensuring the warning banner appears correctly based on server-side status.
+
+### Verification:
+- Verified that a project closes automatically at the scheduled time even if Manual Override is orange (ON).
+- Verified that students are forcefully submitted when an admin clicks "Close Exam" in the control center.
+- Verified time synchronization between the student's browser and the server.
+
+Next:
+- Final E2E walkthrough with real participants.
+
 Next:
 - Production deployment and load testing.
