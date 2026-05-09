@@ -22,6 +22,17 @@ class PublicExamController
         $projectCode = $code;
         $error = '';
 
+        // Server-side lockdown: Redirect back to exam if a session is already in progress
+        // This handles cases where JS back-button prevention fails
+        if (isset($_SESSION['participant_id'])) {
+            $stmt = getDB()->prepare("SELECT id FROM exam_sessions WHERE participant_id = ? AND project_id = ? AND status = 'in_progress' LIMIT 1");
+            $stmt->execute([(int)$_SESSION['participant_id'], (int)$project['id']]);
+            $activeSession = $stmt->fetch();
+            if ($activeSession) {
+                redirect('public/take-exam.php?session_id=' . (int) $activeSession['id']);
+            }
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!validateCsrfToken($_POST['csrf_token'] ?? null)) {
                 $error = 'คำขอไม่ถูกต้อง กรุณาลองใหม่';

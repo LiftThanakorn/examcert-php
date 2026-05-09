@@ -774,6 +774,7 @@ Notes:
 - **Navigation Integrity**:
   - Implemented multi-layered **Browser Back Button Locking** using `popstate` and `beforeunload`.
   - **Enhanced**: Moved locking script to immediate execution (IIFE) and used double-push history state to handle rapid navigation attempts.
+  - **Server-Side Lockdown**: Added automatic redirect in `entry()` controller to force participants back to an active session if they try to navigate away.
   - Handled "back-spamming" behavior to ensure students stay on the exam page.
   - Added `isSubmitting` flag to allow seamless navigation during legitimate form submissions.
 - **Session Resumption**:
