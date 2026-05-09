@@ -205,7 +205,7 @@ $action = $action ?? '';
                     <select name="cert_template_id" class="w-full px-4 py-3 text-sm bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-400/10 transition-all appearance-none">
                         <option value="">-- ไม่ระบุ (ใช้ค่าเริ่มต้น) --</option>
                         <?php foreach ($templates as $tmpl): ?>
-                            <option value="<?= (int) $tmpl['id'] ?>" <?= (int) $project['cert_template_id'] === (int) $tmpl['id'] ? 'selected' : '' ?>><?= e($tmpl['name']) ?></option>
+                            <option value="<?= (int) $tmpl['id'] ?>" <?= (int) ($project['cert_template_id'] ?? 0) === (int) $tmpl['id'] ? 'selected' : '' ?>><?= e($tmpl['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -214,7 +214,7 @@ $action = $action ?? '';
             <!-- Submit -->
             <div class="flex flex-col gap-3 pt-2">
                 <button type="submit" class="w-full py-4 bg-primary-400 hover:bg-primary-500 text-white font-bold rounded-2xl transition-all shadow-lg shadow-orange-100 flex items-center justify-center gap-2">
-                    <i class="fas fa-save"></i> <?= $project['id'] ? 'บันทึกการแก้ไข' : 'สร้างโครงการสอบ' ?>
+                    <i class="fas fa-save"></i> <?= !empty($project['id']) ? 'บันทึกการแก้ไข' : 'สร้างโครงการสอบ' ?>
                 </button>
                 <a href="<?= e(BASE_URL) ?>/admin/projects/" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium rounded-2xl transition-all text-center">
                     ยกเลิกและย้อนกลับ
