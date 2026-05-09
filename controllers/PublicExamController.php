@@ -125,5 +125,36 @@ class PublicExamController
         require VIEWS_PATH . '/layout/header.php';
         require VIEWS_PATH . '/certificates/verify.php';
         require VIEWS_PATH . '/layout/footer.php';
+    public function downloadCertificate(): void
+    {
+        $token = trim((string) ($_GET['token'] ?? ''));
+        if ($token === '') {
+            http_response_code(400);
+            exit('Invalid token.');
+        }
+
+        $certificate = getCertificateByToken($token);
+        if (!$certificate || (int) $certificate['is_revoked'] === 1) {
+            http_response_code(404);
+            exit('Certificate not found or revoked.');
+        }
+
+        $filePath = ROOT_PATH . '/' . $certificate['file_path'];
+        if (!is_file($filePath)) {
+            // Re-generate if file missing
+            writeCertificatePdf($token);
+            if (!is_file($filePath)) {
+                http_response_code(404);
+                exit('Certificate file not found.');
+            }
+        }
+
+        incrementCertificateDownload((int) $certificate['id']);
+
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $certificate['cert_number'] . '.pdf"');
+        header('Content-Length: ' . filesize($filePath));
+        readfile($filePath);
+        exit;
     }
 }

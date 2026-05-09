@@ -93,6 +93,15 @@
                             <p class="text-lg font-black text-primary-600 font-outfit"><?= e((string) $certificate['percent']) ?><span class="text-xs ml-0.5">%</span></p>
                         </div>
                     </div>
+
+                    <!-- Action Buttons -->
+                    <div class="pt-6">
+                        <a href="<?= e(BASE_URL) ?>/public/download-cert.php?token=<?= e($certificate['verify_token']) ?>" 
+                           class="inline-flex items-center justify-center gap-3 w-full h-16 bg-gray-900 hover:bg-black text-white font-black rounded-3xl transition-all shadow-xl active:scale-95 no-underline">
+                            <i class="fas fa-file-pdf text-xl"></i>
+                            ดาวน์โหลดใบประกาศนียบัตร (PDF)
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Footer Info -->

@@ -667,8 +667,9 @@ Completed:
 - **Exam Engine Fix**: Resolved **404 Not Found** errors for `save_answer` AJAX calls by implementing dynamic `BASE_URL` resolution.
 - **JS Stability**: Fixed "Identifier 'BASE_URL' has already been declared" by moving global constants to `window` properties in `app.js`.
 - **Exam Session Management**: Added the ability for admins to delete individual exam sessions and their associated logs.
-- **Auto-Issuance**: Implemented automatic certificate generation upon passing an exam, ensuring immediate availability on the result page.
-- **UI Refactoring**: Cleaned up redundant HTML structures in `result.php` and `verify.php` and standardized centering via global `bg-mesh` and flex-box body classes.
+- **Auto-Issuance**: Implemented automatic certificate generation upon passing an exam.
+- **Public Download**: Added a public endpoint and a button on the verification page to allow direct PDF downloads via tokens.
+- **UI Refactoring**: Cleaned up redundant HTML structures and standardized centering.
 - **Bug Fix**: Resolved Fatal Error "Call to undefined function getExamSession()" by adding missing `require_once` in `models/Certificate.php`.
 - **Question Logic**: Added the missing `is_active` toggle to the question management form.
 - **Workflow Documentation**: Created **`workflow.md`** to outline the complete operational lifecycle of the system.
