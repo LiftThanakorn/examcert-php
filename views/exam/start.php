@@ -101,7 +101,7 @@ tailwind.config = {
 
 <!-- ===================== TOP BAR ===================== -->
 <header class="fixed top-0 inset-x-0 bg-white border-b border-gray-100 z-30 shadow-card">
-  <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
 
     <!-- Project info -->
     <div class="flex items-center gap-3 min-w-0">
@@ -140,10 +140,10 @@ tailwind.config = {
 </header>
 
 <!-- ===================== MAIN ===================== -->
-<div class="max-w-4xl mx-auto px-4 pt-20 pb-32">
+<div class="max-w-6xl mx-auto px-4 pt-20 pb-32">
 
   <!-- Question card -->
-  <div id="question-card" class="bg-white rounded-2xl border border-gray-100 shadow-card p-6 mb-4 slide-right">
+  <div id="question-card" class="bg-white rounded-2xl border border-gray-100 shadow-card p-8 mb-6 slide-right">
 
     <!-- Header row -->
     <div class="flex items-center justify-between mb-5">
@@ -206,7 +206,7 @@ tailwind.config = {
 
 <!-- ===================== BOTTOM NAV ===================== -->
 <div class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-30">
-  <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
 
     <!-- Prev -->
     <button id="btn-prev" onclick="navigate(-1)"
@@ -307,6 +307,11 @@ function showWarningBanner(minutes) {
 
 // ── RENDER QUESTION ───────────────────────────────────────────────
 function renderQuestion(dir = 'right') {
+  if (!QUESTIONS || QUESTIONS.length === 0) {
+      document.getElementById('q-text').innerHTML = '<div class="text-center py-10 text-gray-400"><i class="fas fa-exclamation-circle mb-2 text-2xl block"></i>ไม่พบข้อมูลข้อสอบในระบบ</div>';
+      return;
+  }
+  
   const q    = QUESTIONS[current];
   const card = document.getElementById('question-card');
 
