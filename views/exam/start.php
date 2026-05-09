@@ -1,242 +1,554 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ห้องสอบออนไลน์ | <?= e($project['name']) ?></title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/globals.css">
-    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/custom.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'Noto Sans Thai', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: {
-                            50: '#FFF3EB', 100: '#FFE4D1', 200: '#FFC8A3', 300: '#FFA56E',
-                            400: '#FF813A', 500: '#E87722', 600: '#C76118', 700: '#A34D10',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style type="text/tailwindcss">
-        @layer components {
-            .glass {
-                @apply bg-white/80 backdrop-blur-xl border border-white/20;
-            }
-            .shadow-premium {
-                box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.1);
-            }
-            .shadow-soft {
-                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-            }
-            .card-premium {
-                @apply bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-soft;
-            }
-            .btn-premium {
-                @apply relative overflow-hidden px-6 py-3 bg-primary-500 text-white font-bold rounded-2xl transition-all duration-300 shadow-soft hover:shadow-premium hover:bg-primary-600 active:scale-95;
-            }
-            .option-input:checked + .option-label {
-                @apply border-primary-500 bg-primary-50 ring-4 ring-primary-500/10;
-            }
-            .option-input:checked + .option-label .option-marker {
-                @apply bg-primary-500 text-white border-primary-500;
-            }
-            .nav-item.active {
-                @apply bg-primary-500 text-white border-primary-500 shadow-lg shadow-primary-500/30;
-            }
-            .nav-item.done {
-                @apply bg-green-50 text-green-600 border-green-200;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ห้องสอบออนไลน์ | <?= e($project['name']) ?></title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50:'#FFF3E8', 100:'#FAEEDA', 200:'#FAC775',
+          300:'#EF9F27', 400:'#E87722', 500:'#C4601A',
+          600:'#9E4A12', 700:'#7A360C', 800:'#633806', 900:'#412402',
+        },
+      },
+      fontFamily: { sans: ['Sarabun','Noto Sans Thai','sans-serif'] },
+      fontSize:   { xxs: '0.65rem' },
+      boxShadow: {
+        card:     '0 1px 4px rgba(0,0,0,0.07)',
+        'card-md':'0 4px 16px rgba(0,0,0,0.10)',
+        orange:   '0 0 0 3px rgba(232,119,34,0.20)',
+      },
+    },
+  },
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+  body { font-family:'Sarabun','Noto Sans Thai',sans-serif; -webkit-font-smoothing:antialiased; }
+
+  /* Option selected state */
+  .option-item input[type="radio"]:checked ~ .option-label {
+    border-color: #E87722;
+    background-color: #FFF3E8;
+  }
+  .option-item input[type="radio"]:checked ~ .option-label .option-key {
+    background-color: #E87722;
+    border-color: #E87722;
+    color: #fff;
+  }
+  .option-item input[type="radio"]:checked ~ .option-label .option-text {
+    color: #7A360C;
+    font-weight: 500;
+  }
+
+  /* Timer danger pulse */
+  @keyframes pulse-red {
+    0%,100% { color:#dc2626; opacity:1; }
+    50%      { color:#dc2626; opacity:0.55; }
+  }
+  .timer-danger { animation: pulse-red 1s ease-in-out infinite; }
+
+  /* Progress fill animation */
+  .progress-fill { transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+
+  /* Question dot */
+  .q-dot { transition: all 0.2s; }
+
+  /* Slide transition */
+  @keyframes slideInRight {
+    from { opacity:0; transform:translateX(18px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+  @keyframes slideInLeft {
+    from { opacity:0; transform:translateX(-18px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+  .slide-right { animation: slideInRight 0.25s ease both; }
+  .slide-left  { animation: slideInLeft  0.25s ease both; }
+
+  /* Warning banner */
+  @keyframes slideDown {
+    from { transform:translateY(-100%); opacity:0; }
+    to   { transform:translateY(0);     opacity:1; }
+  }
+  .warning-banner { animation: slideDown 0.3s ease both; }
+</style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans antialiased overflow-x-hidden">
 
-    <!-- Header Area -->
-    <header class="fixed top-0 left-0 right-0 z-50 glass border-b border-gray-100 shadow-sm px-6 py-3">
-        <div class="max-w-[1600px] mx-auto flex items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-primary-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary-500/20">
-                    <i class="fas fa-graduation-cap text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-base font-bold text-gray-900 line-clamp-1 leading-none mb-1"><?= e($project['name']) ?></h1>
-                    <div class="flex items-center gap-3">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest"><?= e($participant['first_name'] . ' ' . $participant['last_name']) ?></span>
-                        <div class="w-1 h-1 bg-gray-200 rounded-full"></div>
-                        <span class="text-[10px] font-bold text-primary-500 uppercase tracking-widest">กำลังทำข้อสอบ</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-6">
-                <div class="hidden sm:flex flex-col items-end">
-                    <span class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-1">เวลาคงเหลือ</span>
-                    <div id="timer" class="text-2xl font-mono font-bold text-gray-900 tabular-nums">--:--</div>
-                </div>
-                <button onclick="confirmSubmit()" class="btn-premium px-6 py-2.5 h-auto text-sm">
-                    <i class="fas fa-paper-plane mr-2"></i> ส่งข้อสอบ
-                </button>
-            </div>
-        </div>
-    </header>
+<body class="bg-[#F9F8F6] min-h-screen">
 
-    <main class="max-w-[1600px] mx-auto pt-28 pb-32 px-6 flex flex-col lg:flex-row gap-8 min-h-screen">
-        
-        <!-- Sidebar: Navigator -->
-        <aside class="w-full lg:w-80 shrink-0 space-y-6">
-            <div class="card-premium p-6 sticky top-28">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest">ข้อสอบทั้งหมด</h3>
-                    <span id="progress-text" class="text-[10px] font-bold text-primary-500 bg-primary-50 px-2 py-1 rounded-md">0 / <?= count($questions) ?></span>
-                </div>
-                
-                <!-- Progress Mini Bar -->
-                <div class="h-1.5 w-full bg-gray-100 rounded-full mb-8 overflow-hidden">
-                    <div id="progress-bar" class="h-full bg-primary-500 transition-all duration-500" style="width: 0%"></div>
-                </div>
+<!-- ===================== WARNING BANNER (hidden by default) ===================== -->
+<div id="warning-banner" class="hidden fixed top-0 inset-x-0 z-50 warning-banner">
+  <div class="bg-amber-500 text-white text-sm font-medium px-6 py-2.5 flex items-center justify-center gap-3">
+    <i class="fas fa-triangle-exclamation"></i>
+    <span>เหลือเวลาอีก <strong id="warn-time">10 นาที</strong> — กรุณาตรวจสอบคำตอบและส่งข้อสอบ</span>
+    <button onclick="document.getElementById('warning-banner').classList.add('hidden')" class="ml-4 text-white/70 hover:text-white">
+      <i class="fas fa-xmark"></i>
+    </button>
+  </div>
+</div>
 
-                <div class="grid grid-cols-5 sm:grid-cols-8 lg:grid-cols-4 gap-3" id="navigator-grid">
-                    <?php foreach ($questions as $index => $q): ?>
-                    <button onclick="showQuestion(<?= $index ?>)" 
-                        id="nav-item-<?= $index ?>" 
-                        class="nav-item aspect-square rounded-xl border border-gray-100 bg-white text-sm font-bold text-gray-400 flex items-center justify-center transition-all hover:border-primary-200 hover:text-primary-500 active:scale-90">
-                        <?= $index + 1 ?>
-                    </button>
-                    <?php endforeach; ?>
-                </div>
+<!-- ===================== TOP BAR ===================== -->
+<header class="fixed top-0 inset-x-0 bg-white border-b border-gray-100 z-30 shadow-card">
+  <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
 
-                <div class="mt-8 pt-6 border-t border-gray-50 grid grid-cols-2 gap-4">
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded bg-green-500"></div>
-                        <span class="text-[10px] font-bold text-gray-400 uppercase">ทำแล้ว</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded bg-white border border-gray-200"></div>
-                        <span class="text-[10px] font-bold text-gray-400 uppercase">ยังไม่ทำ</span>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Question Space -->
-        <section class="flex-grow">
-            <form id="exam-form" method="post" action="<?= e(BASE_URL) ?>/public/take-exam.php?session_id=<?= (int) $session['id'] ?>" class="max-w-3xl mx-auto lg:mx-0">
-                <?= csrfField() ?>
-                <input type="hidden" name="action" value="submit">
-                
-                <div id="questions-container">
-                    <?php foreach ($questions as $index => $q): ?>
-                    <div class="question-slide space-y-8 <?= $index === 0 ? '' : 'hidden' ?>" 
-                        data-index="<?= $index ?>" 
-                        id="q-<?= (int) $q['id'] ?>">
-                        
-                        <!-- Question Card -->
-                        <div class="card-premium">
-                            <div class="flex items-start gap-6">
-                                <div class="w-14 h-14 bg-primary-500 rounded-2xl flex items-center justify-center text-white text-xl font-black shrink-0 shadow-lg shadow-primary-500/20">
-                                    <?= $index + 1 ?>
-                                </div>
-                                <div class="space-y-8 flex-grow">
-                                    <h2 class="text-xl md:text-2xl font-bold text-gray-900 leading-[1.4]">
-                                        <?= e($q['question_text']) ?>
-                                    </h2>
-
-                                    <div class="grid grid-cols-1 gap-4">
-                                        <?php 
-                                        $choices = json_decode($q['choices'], true);
-                                        if ($q['type'] === 'fill_blank'): 
-                                        ?>
-                                            <input type="text" name="answers[<?= (int) $q['id'] ?>]" 
-                                                placeholder="พิมพ์คำตอบของคุณที่นี่..." 
-                                                class="w-full h-16 px-6 rounded-2xl border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-primary-500 focus:ring-8 focus:ring-primary-500/5 transition-all outline-none text-lg font-medium"
-                                                oninput="markQuestionDone(<?= $index ?>, this.value !== '')">
-                                        <?php else: ?>
-                                            <?php foreach ($choices as $choice): ?>
-                                            <div class="relative">
-                                                <input type="radio" id="choice-<?= (int) $q['id'] ?>-<?= e($choice['key']) ?>" 
-                                                    name="answers[<?= (int) $q['id'] ?>]" 
-                                                    value="<?= e($choice['key']) ?>" 
-                                                    class="option-input hidden"
-                                                    onchange="markQuestionDone(<?= $index ?>, true)">
-                                                <label for="choice-<?= (int) $q['id'] ?>-<?= e($choice['key']) ?>" 
-                                                    class="option-label flex items-center p-6 rounded-3xl border-2 border-gray-100 bg-white hover:border-primary-200 cursor-pointer transition-all">
-                                                    <span class="option-marker w-10 h-10 rounded-xl border-2 border-gray-100 bg-gray-50 flex items-center justify-center text-xs font-black text-gray-400 mr-5 transition-all">
-                                                        <?= strtoupper($choice['key']) ?>
-                                                    </span>
-                                                    <span class="text-gray-700 font-bold text-lg"><?= e($choice['text']) ?></span>
-                                                </label>
-                                            </div>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-            </form>
-        </section>
-    </main>
-
-    <!-- Floating Navigation Bar -->
-    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-lg">
-        <div class="glass shadow-premium rounded-[2.5rem] p-3 flex items-center justify-between border border-white/50">
-            <button id="prev-btn" onclick="prevQuestion()" class="w-14 h-14 bg-white border border-gray-100 text-gray-400 rounded-[1.5rem] flex items-center justify-center hover:text-primary-500 disabled:opacity-30 transition-all active:scale-90">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            
-            <div class="flex flex-col items-center">
-                <span class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">หน้าข้อสอบ</span>
-                <span id="current-page-text" class="text-lg font-black text-gray-900">1 / <?= count($questions) ?></span>
-            </div>
-
-            <button id="next-btn" onclick="nextQuestion()" class="w-14 h-14 bg-primary-500 text-white rounded-[1.5rem] flex items-center justify-center shadow-lg shadow-primary-500/30 hover:bg-primary-600 transition-all active:scale-90">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        </div>
+    <!-- Project info -->
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-award text-primary-400 text-sm"></i>
+      </div>
+      <div class="min-w-0">
+        <p class="text-xs font-semibold text-gray-800 truncate leading-tight"><?= e($project['name']) ?></p>
+        <p class="text-xxs text-gray-400 truncate"><?= e($participant['title'] . $participant['first_name'] . ' ' . $participant['last_name']) ?></p>
+      </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="<?= e(BASE_URL) ?>/assets/js/exam.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            initExam(<?= (int) $secondsLeft ?>, <?= (int) $session['id'] ?>);
-            showQuestion(0);
-        });
+    <!-- Timer -->
+    <div id="timer-box"
+      class="flex items-center gap-2 px-4 py-1.5 bg-gray-50 border border-gray-200 rounded-xl font-mono text-sm font-semibold text-gray-700 flex-shrink-0 transition-colors duration-300">
+      <i class="fas fa-clock text-primary-400 text-xs" id="timer-icon"></i>
+      <span id="timer-display">--:--</span>
+    </div>
 
-        function markQuestionDone(index, done) {
-            const navItem = document.getElementById(`nav-item-${index}`);
-            if (done) {
-                navItem.classList.add('done');
-            } else {
-                navItem.classList.remove('done');
-            }
-            updateProgress();
-        }
+    <!-- Progress info -->
+    <div class="text-right flex-shrink-0">
+      <p class="text-xxs text-gray-400 leading-tight">ตอบแล้ว</p>
+      <p class="text-sm font-semibold text-gray-700">
+        <span id="answered-count" class="text-primary-400">0</span>
+        <span class="text-gray-300">/</span>
+        <span id="total-count"><?= count($questions) ?></span>
+      </p>
+    </div>
 
-        function updateProgress() {
-            const total = <?= count($questions) ?>;
-            const doneCount = document.querySelectorAll('.nav-item.done').length;
-            const percent = Math.round((doneCount / total) * 100);
-            
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-            
-            if (progressBar) progressBar.style.width = percent + '%';
-            if (progressText) progressText.innerText = `${doneCount} / ${total}`;
-        }
-    </script>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="h-1 bg-gray-100">
+    <div id="progress-bar" class="h-full bg-primary-400 rounded-r-full progress-fill" style="width:0%"></div>
+  </div>
+</header>
+
+<!-- ===================== MAIN ===================== -->
+<div class="max-w-4xl mx-auto px-4 pt-20 pb-32">
+
+  <!-- Question card -->
+  <div id="question-card" class="bg-white rounded-2xl border border-gray-100 shadow-card p-6 mb-4 slide-right">
+
+    <!-- Header row -->
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-50 text-primary-600 text-xxs font-semibold">
+          <i class="fas fa-circle-question text-xxs"></i>
+          ข้อที่ <span id="q-num">1</span> จาก <span id="q-total"><?= count($questions) ?></span>
+        </span>
+        <span id="q-category" class="px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 text-xxs font-medium">--</span>
+      </div>
+      <!-- Difficulty -->
+      <div class="flex items-center gap-1">
+        <i class="fas fa-signal text-green-500 text-xs" id="q-diff-icon"></i>
+        <span class="text-xxs text-gray-400" id="q-difficulty">--</span>
+      </div>
+    </div>
+
+    <!-- Question text -->
+    <div id="q-text" class="text-gray-800 font-medium leading-relaxed text-base mb-6">
+      --
+    </div>
+
+    <!-- Options -->
+    <div id="options-container" class="space-y-2.5">
+      <!-- rendered by JS -->
+    </div>
+
+  </div>
+
+  <!-- Question palette (mobile-friendly collapsible) -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-card p-4">
+    <button onclick="togglePalette()" class="w-full flex items-center justify-between text-sm font-medium text-gray-700 mb-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-grip-dots text-primary-400"></i>
+        แผงคำถามทั้งหมด
+      </span>
+      <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform" id="palette-chevron"></i>
+    </button>
+    <div id="palette-grid" class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+      <!-- rendered by JS -->
+    </div>
+    <!-- Legend -->
+    <div class="flex items-center gap-4 mt-3 pt-3 border-t border-gray-50">
+      <div class="flex items-center gap-1.5">
+        <div class="w-5 h-5 rounded-md bg-primary-400"></div>
+        <span class="text-xxs text-gray-400">กำลังดู</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <div class="w-5 h-5 rounded-md bg-green-100 border border-green-200"></div>
+        <span class="text-xxs text-gray-400">ตอบแล้ว</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <div class="w-5 h-5 rounded-md bg-gray-100 border border-gray-200"></div>
+        <span class="text-xxs text-gray-400">ยังไม่ตอบ</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== BOTTOM NAV ===================== -->
+<div class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-30">
+  <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+
+    <!-- Prev -->
+    <button id="btn-prev" onclick="navigate(-1)"
+      class="inline-flex items-center gap-2 px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700
+             border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+      <i class="fas fa-chevron-left text-xs"></i> ก่อนหน้า
+    </button>
+
+    <!-- Dots (max 10 visible) -->
+    <div id="dot-nav" class="flex items-center gap-1 overflow-x-auto max-w-xs pb-0.5"></div>
+
+    <!-- Next / Submit -->
+    <button id="btn-next" onclick="navigate(1)"
+      class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white
+             bg-primary-400 hover:bg-primary-500 rounded-xl transition-colors shadow-sm">
+      ถัดไป <i class="fas fa-chevron-right text-xs"></i>
+    </button>
+
+  </div>
+</div>
+
+<form id="exam-form" method="post" action="<?= e(BASE_URL) ?>/public/take-exam.php?session_id=<?= (int) $session['id'] ?>" class="hidden">
+    <?= csrfField() ?>
+    <input type="hidden" name="action" value="submit">
+</form>
+
+<!-- ===================== JS ===================== -->
+<script src="<?= e(BASE_URL) ?>/assets/js/exam.js"></script>
+<script>
+// ── DATA FROM PHP ──────────────────────────────────────────────────
+const QUESTIONS = <?= json_encode(array_map(function($q) {
+    return [
+        'id' => (int)$q['id'],
+        'text' => $q['question_text'],
+        'type' => $q['type'],
+        'category' => 'ทั่วไป', // Could be added to DB later
+        'difficulty' => 'ปานกลาง',
+        'diffColor' => 'text-amber-500',
+        'choices' => json_decode($q['choices'], true) ?: []
+    ];
+}, $questions)) ?>;
+
+// ── STATE ─────────────────────────────────────────────────────────
+let current  = 0;                          
+let answers  = new Array(QUESTIONS.length).fill(null); 
+let totalSec = <?= (int)$secondsLeft ?>;                    
+let timerInterval;
+let direction = 'right';                   
+
+// Load existing answers from session/DB if available
+// (Assuming your backend provides them, otherwise start fresh)
+
+// ── INIT ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    initExam(totalSec, <?= (int)$session['id'] ?>); // From exam.js
+    renderQuestion();
+    renderPalette();
+    renderDots();
+    startTimer();
+    updateProgress();
+});
+
+// ── TIMER ─────────────────────────────────────────────────────────
+function startTimer() {
+  timerInterval = setInterval(() => {
+    totalSec--;
+    updateTimerDisplay();
+
+    if (totalSec === 600) showWarningBanner(10);
+
+    if (totalSec === 300) {
+      document.getElementById('timer-display').classList.add('timer-danger','text-red-600');
+      document.getElementById('timer-box').classList.add('border-red-200','bg-red-50');
+      document.getElementById('timer-icon').classList.replace('text-primary-400','text-red-500');
+      showWarningBanner(5);
+    }
+
+    if (totalSec <= 0) {
+      clearInterval(timerInterval);
+      autoSubmit();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = String(Math.floor(totalSec / 60)).padStart(2,'0');
+  const s = String(totalSec % 60).padStart(2,'0');
+  document.getElementById('timer-display').textContent = `${m}:${s}`;
+}
+
+function showWarningBanner(minutes) {
+  const banner = document.getElementById('warning-banner');
+  const warnTime = document.getElementById('warn-time');
+  if(warnTime) warnTime.textContent = `${minutes} นาที`;
+  banner.classList.remove('hidden');
+  setTimeout(() => banner.classList.add('hidden'), 8000);
+}
+
+// ── RENDER QUESTION ───────────────────────────────────────────────
+function renderQuestion(dir = 'right') {
+  const q    = QUESTIONS[current];
+  const card = document.getElementById('question-card');
+
+  // Animate
+  card.classList.remove('slide-right','slide-left');
+  void card.offsetWidth; // reflow
+  card.classList.add(dir === 'right' ? 'slide-right' : 'slide-left');
+
+  document.getElementById('q-num').textContent        = current + 1;
+  document.getElementById('q-text').textContent       = q.text;
+  document.getElementById('q-category').textContent   = q.category;
+  document.getElementById('q-difficulty').textContent = q.difficulty;
+  document.getElementById('q-difficulty').className   = `text-xxs ${q.diffColor}`;
+
+  // Options
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  
+  if (q.type === 'fill_blank') {
+      container.innerHTML = `
+        <div class="mt-4">
+            <input type="text" 
+                class="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl bg-gray-50/50 
+                       focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-400/10 
+                       transition-all outline-none font-medium text-gray-700"
+                placeholder="พิมพ์คำตอบของคุณที่นี่..."
+                value="${answers[current] || ''}"
+                oninput="selectAnswer(this.value)">
+        </div>
+      `;
+  } else {
+      q.choices.forEach(choice => {
+        const checked = answers[current] === choice.key;
+        container.insertAdjacentHTML('beforeend', `
+          <label class="option-item block cursor-pointer select-none">
+            <input type="radio" name="q${q.id}" value="${choice.key}"
+              class="sr-only" ${checked ? 'checked' : ''}
+              onchange="selectAnswer('${choice.key}')">
+            <div class="option-label flex items-center gap-3 p-4 border-2 border-gray-100 rounded-xl
+                        hover:border-primary-200 hover:bg-primary-50/50 transition-all duration-150
+                        ${checked ? 'border-primary-400 bg-primary-50' : ''}">
+              <span class="option-key w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center
+                           text-sm font-semibold text-gray-400 flex-shrink-0
+                           ${checked ? 'bg-primary-400 border-primary-400 text-white' : ''}">
+                ${choice.key}
+              </span>
+              <span class="option-text text-sm text-gray-700 leading-snug
+                           ${checked ? 'text-primary-800 font-medium' : ''}">
+                ${choice.text}
+              </span>
+            </div>
+          </label>
+        `);
+      });
+  }
+
+  // Nav buttons state
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-prev').style.opacity = current === 0 ? '0.35' : '1';
+
+  const isLast = current === QUESTIONS.length - 1;
+  const btnNext = document.getElementById('btn-next');
+  if (isLast) {
+    btnNext.innerHTML = '<i class="fas fa-paper-plane text-xs"></i> ส่งข้อสอบ';
+    btnNext.onclick   = confirmSubmit;
+    btnNext.className = btnNext.className.replace('bg-primary-400 hover:bg-primary-500','bg-green-600 hover:bg-green-700');
+  } else {
+    btnNext.innerHTML = 'ถัดไป <i class="fas fa-chevron-right text-xs"></i>';
+    btnNext.onclick   = () => navigate(1);
+    btnNext.className = btnNext.className.replace('bg-green-600 hover:bg-green-700','bg-primary-400 hover:bg-primary-500');
+  }
+
+  updateProgress();
+  renderDots();
+  highlightPalette();
+}
+
+// ── SELECT ANSWER ─────────────────────────────────────────────────
+function selectAnswer(key) {
+  answers[current] = key;
+  updateProgress();
+  renderPalette();
+  renderDots();
+  
+  // Call Auto-save from exam.js
+  if (typeof saveAnswer === 'function') {
+      saveAnswer(QUESTIONS[current].id, key);
+  }
+
+  // Update UI for radio items
+  if (QUESTIONS[current].type !== 'fill_blank') {
+      document.querySelectorAll('.option-label').forEach(el => {
+        const input = el.closest('label').querySelector('input');
+        const chosen = input.value === key;
+        el.classList.toggle('border-primary-400', chosen);
+        el.classList.toggle('bg-primary-50', chosen);
+        el.classList.toggle('border-gray-100', !chosen);
+        el.querySelector('.option-key').classList.toggle('bg-primary-400', chosen);
+        el.querySelector('.option-key').classList.toggle('border-primary-400', chosen);
+        el.querySelector('.option-key').classList.toggle('text-white', chosen);
+        el.querySelector('.option-key').classList.toggle('text-gray-400', !chosen);
+        el.querySelector('.option-text').classList.toggle('text-primary-800', chosen);
+        el.querySelector('.option-text').classList.toggle('font-medium', chosen);
+      });
+  }
+}
+
+// ── NAVIGATE ─────────────────────────────────────────────────────
+function navigate(delta) {
+  const next = current + delta;
+  if (next < 0 || next >= QUESTIONS.length) return;
+  direction = delta > 0 ? 'right' : 'left';
+  current   = next;
+  renderQuestion(direction);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goToQuestion(idx) {
+  direction = idx > current ? 'right' : 'left';
+  current   = idx;
+  renderQuestion(direction);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── PROGRESS ──────────────────────────────────────────────────────
+function updateProgress() {
+  const done = answers.filter(a => a !== null && a !== '').length;
+  const pct  = (done / QUESTIONS.length) * 100;
+  const answeredCountEl = document.getElementById('answered-count');
+  const progressBarEl   = document.getElementById('progress-bar');
+  
+  if(answeredCountEl) answeredCountEl.textContent = done;
+  if(progressBarEl) progressBarEl.style.width = pct + '%';
+}
+
+// ── PALETTE ───────────────────────────────────────────────────────
+function renderPalette() {
+  const grid = document.getElementById('palette-grid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const answered = answers[i] !== null && answers[i] !== '';
+    const isCurrent = i === current;
+    let cls = 'w-full aspect-square rounded-lg text-xxs font-semibold flex items-center justify-center cursor-pointer q-dot transition-all ';
+    if (isCurrent)   cls += 'bg-primary-400 text-white shadow-orange scale-105';
+    else if (answered) cls += 'bg-green-100 text-green-700 border border-green-200';
+    else               cls += 'bg-gray-100 text-gray-500 border border-gray-200 hover:border-primary-200 hover:bg-primary-50';
+    grid.insertAdjacentHTML('beforeend',
+      `<button class="${cls}" onclick="goToQuestion(${i})">${i + 1}</button>`
+    );
+  });
+}
+
+function highlightPalette() { renderPalette(); }
+
+function togglePalette() {
+  const grid    = document.getElementById('palette-grid');
+  const chevron = document.getElementById('palette-chevron');
+  if(grid) grid.classList.toggle('hidden');
+  if(chevron) chevron.classList.toggle('rotate-180');
+}
+
+// ── DOT NAV (bottom bar) ──────────────────────────────────────────
+function renderDots() {
+  const nav = document.getElementById('dot-nav');
+  if(!nav) return;
+  nav.innerHTML = '';
+  const total  = QUESTIONS.length;
+  const winSize = 5;
+  let start = Math.max(0, current - Math.floor(winSize / 2));
+  let end   = Math.min(total - 1, start + winSize - 1);
+  if (end - start < winSize - 1) start = Math.max(0, end - winSize + 1);
+
+  if (start > 0) nav.insertAdjacentHTML('beforeend', `<span class="text-gray-300 text-xxs px-1">...</span>`);
+
+  for (let i = start; i <= end; i++) {
+    const answered = answers[i] !== null && answers[i] !== '';
+    const isCur    = i === current;
+    let cls = 'w-7 h-7 rounded-lg text-xxs font-semibold flex items-center justify-center cursor-pointer transition-all flex-shrink-0 ';
+    if (isCur)      cls += 'bg-primary-400 text-white';
+    else if(answered) cls += 'bg-green-100 text-green-700 border border-green-200';
+    else              cls += 'bg-gray-100 text-gray-400 hover:bg-primary-50 border border-gray-200';
+    nav.insertAdjacentHTML('beforeend', `<button class="${cls}" onclick="goToQuestion(${i})">${i+1}</button>`);
+  }
+
+  if (end < total - 1) nav.insertAdjacentHTML('beforeend', `<span class="text-gray-300 text-xxs px-1">...</span>`);
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────
+function confirmSubmit() {
+  const unanswered = answers.filter(a => a === null || a === '').length;
+
+  Swal.fire({
+    icon: unanswered > 0 ? 'warning' : 'question',
+    title: 'ยืนยันการส่งข้อสอบ?',
+    html: unanswered > 0
+      ? `<p class="text-gray-600 text-sm">คุณยังมี <strong class="text-red-600">${unanswered} ข้อ</strong> ที่ยังไม่ได้ตอบ</p>
+         <p class="text-gray-400 text-xs mt-1">คะแนนของข้อที่ไม่ตอบจะเป็น 0</p>`
+      : `<p class="text-gray-600 text-sm">ตอบครบทั้ง <strong class="text-green-600">${QUESTIONS.length} ข้อ</strong> แล้ว<br>พร้อมส่งข้อสอบ</p>`,
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-paper-plane mr-1.5"></i> ส่งข้อสอบ',
+    cancelButtonText: 'กลับไปตรวจสอบ',
+    customClass: {
+      popup:         'rounded-2xl font-sans',
+      title:         'text-lg font-semibold text-gray-800',
+      confirmButton: '!bg-primary-400 hover:!bg-primary-500 !text-white !rounded-xl !text-sm !px-5 !py-2.5 !font-semibold',
+      cancelButton:  '!bg-white !text-gray-600 !border !border-gray-200 !rounded-xl !text-sm !px-5 !py-2.5',
+      actions:       'gap-2',
+    },
+    buttonsStyling: false,
+    reverseButtons: true,
+  }).then(r => {
+    if (r.isConfirmed) submitExam();
+  });
+}
+
+function submitExam() {
+  clearInterval(timerInterval);
+  Swal.fire({
+    title: 'กำลังส่งข้อสอบ...',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    customClass: { popup: 'rounded-2xl font-sans' },
+    didOpen: () => Swal.showLoading(),
+  });
+  
+  // Actually submit the form
+  document.getElementById('exam-form').submit();
+}
+
+function autoSubmit() {
+  Swal.fire({
+    icon: 'info',
+    title: 'หมดเวลา!',
+    text: 'ระบบกำลังส่งคำตอบให้อัตโนมัติ...',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    timer: 2000,
+    showConfirmButton: false,
+    customClass: { popup: 'rounded-2xl font-sans' },
+  }).then(() => submitExam());
+}
+</script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-# Master Prompt — ระบบทำข้อสอบและออกใบเซอร์ (ExamCert Standalone v1)
+﻿# Master Prompt — ระบบทำข้อสอบและออกใบเซอร์ (ExamCert Standalone v1)
 
 ---
 
