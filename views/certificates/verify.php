@@ -132,7 +132,7 @@ body { transition: background-color 0.5s ease; min-height: 100vh; display: flex;
         </div>
 
         <div class="text-center anim-fade-up d5">
-          <p class="text-xs text-gray-400">ไม่พบรายการที่ต้องการ? <button onclick="document.getElementById('initial-token-input')?.focus()" class="text-primary-400 font-semibold underline">ลองค้นหาใหม่อีกครั้ง</button></p>
+          <p class="text-xs text-gray-400">ไม่พบรายการที่ต้องการ? <button onclick="document.getElementById('token-input')?.focus()" class="text-primary-400 font-semibold underline">ลองค้นหาใหม่อีกครั้ง</button></p>
         </div>
       </div>
 
@@ -256,40 +256,74 @@ body { transition: background-color 0.5s ease; min-height: 100vh; display: flex;
 
 <iframe id="download-iframe" name="cert_iframe" src="about:blank" style="display:none"></iframe>
 
-<div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-medium px-5 py-2.5 rounded-xl shadow-card-lg flex items-center gap-2.5 transition-all">
-  <i id="toast-icon" class="fas fa-check text-green-400 text-xs"></i>
-  <span id="toast-msg"></span>
-</div>
-
 <script>
-function showToast(msg, icon='fa-check', color='text-green-400') {
-  const t = document.getElementById('toast');
-  document.getElementById('toast-msg').textContent = msg;
-  document.getElementById('toast-icon').className = `fas ${icon} text-xs ${color}`;
-  t.classList.remove('hidden');
-  setTimeout(() => t.classList.add('hidden'), 2500);
-}
-function copyText(text, msg) { navigator.clipboard?.writeText(text); showToast(msg); }
-function copyLink() { navigator.clipboard?.writeText(window.location.href); showToast('คัดลอกลิงก์แล้ว'); }
-function handleSearch() {
-  const val = document.getElementById('token-input').value.trim();
-  if (!val) return;
-  window.location.href = `<?= e(BASE_URL) ?>/public/verify.php?token=${encodeURIComponent(val)}`;
-}
-function handleInitialSearch() {
-  const val = document.getElementById('initial-token-input').value.trim();
-  if (!val) return;
-  window.location.href = `<?= e(BASE_URL) ?>/public/verify.php?token=${encodeURIComponent(val)}`;
-}
-function triggerDownload() {
-    <?php if ($certificate): ?>
-    const btn = document.getElementById('btn-download');
-    const iframe = document.getElementById('download-iframe');
-    const originalHTML = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังเตรียมไฟล์...';
-    btn.disabled = true;
-    iframe.src = "<?= e(BASE_URL . '/public/render-cert.php?token=' . $certificate['verify_token']) ?>&download=1";
-    window.onmessage = (e) => { if (e.data === 'download_complete') { btn.innerHTML = originalHTML; btn.disabled = false; } };
-    <?php endif; ?>
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Reusable Swal Toast function
+    const swalToast = Swal.mixin({
+      toast: true,
+      position: 'bottom',
+      showConfirmButton: false,
+      timer: 2500,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      }
+    });
+
+    window.copyText = function(text, msg) { 
+      navigator.clipboard?.writeText(text); 
+      swalToast.fire({ icon: 'success', title: msg });
+    };
+
+    window.copyLink = function() { 
+      navigator.clipboard?.writeText(window.location.href); 
+      swalToast.fire({ icon: 'success', title: 'คัดลอกลิงก์แล้ว' });
+    };
+
+    window.handleSearch = function() {
+      const val = document.getElementById('token-input').value.trim();
+      if (!val) {
+        swalToast.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลค้นหา' });
+        return;
+      }
+      window.location.href = `<?= e(BASE_URL) ?>/public/verify.php?token=${encodeURIComponent(val)}`;
+    };
+
+    window.handleInitialSearch = function() {
+      const val = document.getElementById('initial-token-input').value.trim();
+      if (!val) {
+        swalToast.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลค้นหา' });
+        return;
+      }
+      window.location.href = `<?= e(BASE_URL) ?>/public/verify.php?token=${encodeURIComponent(val)}`;
+    };
+
+    window.triggerDownload = function() {
+        <?php if ($certificate): ?>
+        const btn = document.getElementById('btn-download');
+        const iframe = document.getElementById('download-iframe');
+        const originalHTML = btn.innerHTML;
+        
+        swalToast.fire({ 
+          icon: 'info', 
+          title: 'กำลังเตรียมไฟล์เกียรติบัตร...',
+          timer: 4000
+        });
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังเตรียมไฟล์...';
+        btn.disabled = true;
+        
+        iframe.src = "<?= e(BASE_URL . '/public/render-cert.php?token=' . $certificate['verify_token']) ?>&download=1";
+        
+        window.onmessage = (e) => { 
+          if (e.data === 'download_complete') { 
+            btn.innerHTML = originalHTML; 
+            btn.disabled = false;
+            swalToast.fire({ icon: 'success', title: 'ดาวน์โหลดสำเร็จ' });
+          } 
+        };
+        <?php endif; ?>
+    };
+});
 </script>
