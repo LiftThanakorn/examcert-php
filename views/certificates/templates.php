@@ -323,14 +323,23 @@ $template = array_merge(templateDefaults(), $template ?? []);
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
         .designer-tag {
             position: absolute; z-index: 100; cursor: grab; user-select: none;
-            padding: 3px 8px; background: #E87722; color: white; border-radius: 5px;
-            font-size: 10px; font-weight: bold; border: 1.5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 0; background: #E87722; color: white; border-radius: 4px;
+            font-size: 10px; font-weight: bold; border: 1px solid white; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            line-height: 1.2; display: flex; items-center; justify-content: center;
+            box-sizing: content-box; /* Maintain text size regardless of border */
+            white-space: nowrap;
         }
-        .designer-tag:active { cursor: grabbing; }
+        .designer-tag:active { cursor: grabbing; border-color: #3B82F6; }
         .designer-tag.tag-blue { background: #3B82F6; }
         .designer-tag.tag-green { background: #10B981; }
         .designer-tag.tag-purple { background: #8B5CF6; }
         .designer-tag.tag-dark { background: #1F2937; }
+        .designer-tag.tag-orange { background: #F59E0B; }
+        
+        /* Make text transparent-ish background when active to see the certificate under it */
+        .designer-tag { opacity: 0.9; }
+        .designer-tag:hover { opacity: 1; transform: scale(1.02); transition: all 0.2s; }
     </style>
 
     <script>
@@ -420,6 +429,11 @@ $template = array_merge(templateDefaults(), $template ?? []);
 
     function updateFromInputs(id) {
         const ratio = container.offsetWidth / A4_W;
+        // Accurate Font Scaling: points to pixels based on canvas width
+        // A4 width in points is approx 842pt (landscape) or 595pt (portrait)
+        const A4_PT_W = <?= $template['orientation'] === 'L' ? '842' : '595' ?>;
+        const fontRatio = container.offsetWidth / A4_PT_W;
+
         const el = document.getElementById('drag-' + id);
         const x = parseFloat(document.getElementById(`input-${id}-x`).value || 0);
         const y = parseFloat(document.getElementById(`input-${id}-y`).value || 0);
@@ -437,7 +451,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
             layout[id].label_y = size;
         } else {
             layout[id].size = size;
-            el.style.fontSize = (size * ratio) + 'px'; // Fix Preview Size
+            el.style.fontSize = (size * fontRatio) + 'px'; // Fixed accurate font scaling
         }
 
         el.style.left = (x * ratio) + 'px';
@@ -448,6 +462,9 @@ $template = array_merge(templateDefaults(), $template ?? []);
     function init() {
         updateDesignerFont();
         const ratio = container.offsetWidth / A4_W;
+        const A4_PT_W = <?= $template['orientation'] === 'L' ? '842' : '595' ?>;
+        const fontRatio = container.offsetWidth / A4_PT_W;
+
         ['name', 'course', 'date', 'certno', 'qrcode', 'logo', 'sign1', 'sign2'].forEach(id => {
             const el = document.getElementById('drag-' + id);
             if (!el || !layout[id]) return;
@@ -457,7 +474,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
                 el.style.width = ((layout[id].w || (id==='logo'?40:28)) * ratio) + 'px';
                 el.style.height = ((layout[id].h || (id==='logo'?40:28)) * ratio) + 'px';
             } else if (!id.startsWith('sign')) {
-                el.style.fontSize = ((layout[id].size || 20) * ratio) + 'px';
+                el.style.fontSize = ((layout[id].size || 20) * fontRatio) + 'px'; // Fixed initial font size
             }
             drag(el);
         });
@@ -486,6 +503,33 @@ $template = array_merge(templateDefaults(), $template ?? []);
         const input = document.getElementById(`input-${id}-size`);
         input.value = parseFloat(input.value || 0) + delta;
         updateFromInputs(id);
+    }
+
+    function loadDefaultLayout() {
+        Swal.fire({
+            title: 'ยืนยันการคืนค่าเริ่มต้น?',
+            text: 'ตำแหน่งและขนาดของทุกองค์ประกอบจะถูกรีเซ็ต',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยัน',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                layout = {
+                    "name":   { "x": 148.5, "y": 80,  "align": "C", "size": 38, "bold": true },
+                    "course": { "x": 148.5, "y": 110, "align": "C", "size": 22, "bold": false },
+                    "date":   { "x": 148.5, "y": 130, "align": "C", "size": 16, "bold": false },
+                    "certno": { "x": 230,   "y": 170, "align": "R", "size": 11, "bold": false },
+                    "qrcode": { "x": 240,   "y": 140, "w": 28, "h": 28 },
+                    "logo":   { "x": 20,    "y": 20,  "w": 30, "h": 30 },
+                    "sign1":  { "x": 100,   "y": 160, "label_y": 20 },
+                    "sign2":  { "x": 180,   "y": 160, "label_y": 20 }
+                };
+                layoutTextarea.value = JSON.stringify(layout, null, 4);
+                init();
+                Swal.fire({ icon: 'success', title: 'รีเซ็ตเรียบร้อย', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
+            }
+        });
     }
 
     window.onload = () => { setTimeout(init, 100); };
