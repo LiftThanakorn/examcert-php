@@ -132,33 +132,107 @@
     </footer>
 </div>
 
+<!-- Hidden Certificate Preview for PDF Generation -->
+<?php if ($certificate && (int) $certificate['is_revoked'] === 0): 
+    $template = getCertificateTemplate((int) ($certificate['template_id'] ?: 1));
+    $layout = json_decode((string) ($template['layout_json'] ?? ''), true) ?: [
+        "name"   => ["x" => 148.5, "y" => 100, "align" => "C", "size" => 38, "bold" => true],
+        "course" => ["x" => 148.5, "y" => 125, "align" => "C", "size" => 22, "bold" => false],
+        "date"   => ["x" => 148.5, "y" => 145, "align" => "C", "size" => 16, "bold" => false],
+        "certno" => ["x" => 250,   "y" => 185, "align" => "R", "size" => 11, "bold" => false]
+    ];
+    $orientation = ($template['orientation'] ?? 'L') === 'L' ? 'landscape' : 'portrait';
+    $w = ($template['orientation'] ?? 'L') === 'L' ? '297mm' : '210mm';
+    $h = ($template['orientation'] ?? 'L') === 'L' ? '210mm' : '297mm';
+?>
+    <div id="cert-pdf-template" style="position: absolute; left: -9999px; top: -9999px;">
+        <div style="width: <?= $w ?>; height: <?= $h ?>; position: relative; background-color: white; overflow: hidden;">
+            <!-- Background -->
+            <?php if (!empty($template['bg_image'])): ?>
+                <img src="<?= e(BASE_URL . '/' . $template['bg_image']) ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+            <?php endif; ?>
+
+            <!-- Dynamic Content based on Layout JSON -->
+            <?php foreach ($layout as $field => $cfg): 
+                $text = '';
+                if ($field === 'name') $text = $fullName;
+                elseif ($field === 'course') $text = $certificate['project_name'];
+                elseif ($field === 'date') $text = date('d/m/Y', strtotime($certificate['issued_date']));
+                elseif ($field === 'certno') $text = $certificate['cert_number'];
+                
+                if (!$text) continue;
+
+                $style = "position: absolute; ";
+                $style .= "left: " . ($cfg['x'] ?? 0) . "mm; ";
+                $style .= "top: " . ($cfg['y'] ?? 0) . "mm; ";
+                $style .= "font-size: " . ($cfg['size'] ?? 20) . "pt; ";
+                $style .= "color: " . ($template['color_primary'] ?? '#E87722') . "; ";
+                $style .= "font-family: 'Sarabun', sans-serif; ";
+                if (!empty($cfg['bold'])) $style .= "font-weight: bold; ";
+                if (($cfg['align'] ?? 'L') === 'C') $style .= "transform: translateX(-50%); text-align: center;";
+                elseif (($cfg['align'] ?? 'L') === 'R') $style .= "transform: translateX(-100%); text-align: right;";
+            ?>
+                <div style="<?= $style ?> white-space: nowrap;"><?= e($text) ?></div>
+            <?php endforeach; ?>
+            
+            <!-- QR Code Placeholder (Rendered by JS if needed, or just text) -->
+            <?php if (!empty($template['show_qr'])): ?>
+                <div id="pdf-qr-target" style="position: absolute; bottom: 20mm; right: 20mm; width: 30mm; height: 30mm; background: white; padding: 2mm; border: 1px solid #eee;">
+                    <!-- QR Code will be injected here by JS before capture -->
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php endif; ?>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 <script>
     function downloadPDF() {
-        const element = document.getElementById('certificate-content');
+        const element = document.getElementById('cert-pdf-template');
         const btn = document.getElementById('btn-download');
         
+        if (!element) return;
+
         // Change button state
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xl"></i> กำลังสร้างไฟล์ PDF...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xl"></i> กำลังสร้างไฟล์ตามเทมเพลต...';
         btn.disabled = true;
 
+        // Inject QR Code into the hidden template
+        const qrTarget = document.getElementById('pdf-qr-target');
+        if (qrTarget && qrTarget.innerHTML.trim() === "") {
+            new QRCode(qrTarget, {
+                text: window.location.href,
+                width: 120,
+                height: 120
+            });
+        }
+
         const opt = {
-            margin:       0.5,
+            margin:       0,
             filename:     '<?= e($certificate['cert_number'] ?? 'certificate') ?>.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            image:        { type: 'jpeg', quality: 1 },
+            html2canvas:  { 
+                scale: 3, 
+                useCORS: true, 
+                logging: false,
+                letterRendering: true
+            },
+            jsPDF:        { 
+                unit: 'mm', 
+                format: 'a4', 
+                orientation: '<?= ($template['orientation'] ?? 'L') === 'L' ? 'landscape' : 'portrait' ?>' 
+            }
         };
 
-        // Run html2pdf
-        html2pdf().set(opt).from(element).save().then(() => {
-            // Restore button state
+        // Run html2pdf on the hidden template
+        html2pdf().set(opt).from(element.firstElementChild).save().then(() => {
             btn.innerHTML = originalText;
             btn.disabled = false;
         }).catch(err => {
-            console.error('PDF Generation Error:', err);
-            alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF กรุณาลองใหม่อีกครั้ง');
+            console.error('PDF Error:', err);
             btn.innerHTML = originalText;
             btn.disabled = false;
         });

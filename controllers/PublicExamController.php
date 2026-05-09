@@ -5,6 +5,7 @@ require_once ROOT_PATH . '/models/ExamSession.php';
 require_once ROOT_PATH . '/models/Certificate.php';
 require_once ROOT_PATH . '/models/Participant.php';
 require_once ROOT_PATH . '/models/Project.php';
+require_once ROOT_PATH . '/models/CertTemplate.php';
 
 class PublicExamController
 {
