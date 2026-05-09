@@ -159,13 +159,6 @@
         <span class="text-xxs text-gray-400">ยังไม่ตอบ</span>
       </div>
     </div>
-    
-    <!-- Footer in Sidebar -->
-    <div class="mt-8 pt-4 border-t border-gray-50 opacity-50">
-        <p class="text-[9px] font-bold text-gray-400 leading-relaxed">
-            ระบบออกข้อสอบพร้อมรับเกียรติบัตร พัฒนาโดยนายธนากร อินทพันธ์
-        </p>
-    </div>
   </div>
 
 </div>

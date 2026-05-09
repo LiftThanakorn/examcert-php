@@ -35,4 +35,10 @@ class AuthController
         $pageTitle = 'เข้าสู่ระบบ';
         require VIEWS_PATH . '/auth/login.php';
     }
+
+    public function logout(): void
+    {
+        logoutAdmin();
+        redirect('admin/login.php');
+    }
 }

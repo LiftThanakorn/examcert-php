@@ -1,13 +1,44 @@
-<?php
-/** @var array|null $certificate */
-$mode = 'invalid';
-if ($certificate) {
-    $mode = (int)$certificate['is_revoked'] === 1 ? 'revoked' : 'valid';
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ExamCert — ตรวจสอบเกียรติบัตร</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50:'#FFF3E8',100:'#FAEEDA',200:'#FAC775',
+          300:'#EF9F27',400:'#E87722',500:'#C4601A',
+          600:'#9E4A12',700:'#7A360C',800:'#633806',900:'#412402',
+        },
+      },
+      fontFamily: { sans:['Sarabun','Noto Sans Thai','sans-serif'] },
+      fontSize:   { xxs:'0.65rem' },
+      boxShadow: {
+        card:    '0 1px 6px rgba(0,0,0,0.07)',
+        'card-lg':'0 8px 40px rgba(0,0,0,0.11)',
+        cert:    '0 24px 64px rgba(0,0,0,0.14)',
+        orange:  '0 0 0 4px rgba(232,119,34,0.18)',
+      },
+    },
+  },
 }
-?>
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Noto+Serif+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-/* ── Mesh backgrounds ── */
+*  { box-sizing:border-box; }
+body { font-family:'Sarabun','Noto Sans Thai',sans-serif; -webkit-font-smoothing:antialiased; }
+
+/* ── Mesh background ── */
 .bg-mesh-valid {
   background-color:#F9F8F6;
   background-image:
@@ -43,6 +74,7 @@ if ($certificate) {
   0%   { background-position:-200% 0; }
   100% { background-position: 200% 0; }
 }
+@keyframes pulse2  { 0%,100%{opacity:1} 50%{opacity:.45} }
 
 .anim-fade-up  { animation:fadeUp  0.45s ease both; }
 .anim-scale-in { animation:scaleIn 0.45s cubic-bezier(.34,1.46,.64,1) both; }
@@ -106,48 +138,69 @@ if ($certificate) {
 .info-row { border-bottom:1px solid #F1EFE8; }
 .info-row:last-child { border-bottom:none; }
 
+/* tab */
+.vtab { border-left:2px solid transparent; transition:all .15s; }
+.vtab.active { border-color:#E87722; background:#FFF3E8; color:#7A360C; }
+
 /* scan line animation on QR */
 @keyframes scan { 0%,100%{top:10%} 50%{top:85%} }
 .scan-line { animation:scan 2.5s ease-in-out infinite; }
-
-/* Override body mesh based on mode */
-body { transition: background-color 0.5s ease; min-height: 100vh; display: flex; flex-direction: column; }
-<?php if ($mode === 'valid'): ?>
-body { background-color: #F9F8F6 !important; background-image: radial-gradient(ellipse 70% 55% at 15% -5%, rgba(232,119,34,0.13) 0%,transparent 60%), radial-gradient(ellipse 55% 45% at 88% 105%, rgba(232,119,34,0.09) 0%,transparent 55%) !important; }
-<?php elseif ($mode === 'invalid'): ?>
-body { background-color: #F9F8F6 !important; background-image: radial-gradient(ellipse 70% 55% at 15% -5%, rgba(239,68,68,0.09) 0%,transparent 60%), radial-gradient(ellipse 55% 45% at 88% 105%, rgba(239,68,68,0.06) 0%,transparent 55%) !important; }
-<?php elseif ($mode === 'revoked'): ?>
-body { background-color: #F9F8F6 !important; background-image: radial-gradient(ellipse 70% 55% at 15% -5%, rgba(107,114,128,0.10) 0%,transparent 60%), radial-gradient(ellipse 55% 45% at 88% 105%, rgba(107,114,128,0.07) 0%,transparent 55%) !important; }
-<?php endif; ?>
 </style>
+</head>
 
-<!-- ── TOP NAV ── -->
-<nav class="bg-white/80 backdrop-blur border-b border-white/60 px-6 py-3.5 flex items-center justify-between sticky top-0 z-30">
-  <div class="flex items-center gap-2.5">
-    <div class="w-8 h-8 bg-primary-400 rounded-lg flex items-center justify-center shadow-orange">
-      <i class="fas fa-award text-white text-sm"></i>
-    </div>
-    <div>
-      <p class="text-sm font-semibold text-gray-800 leading-tight"><?= e(APP_NAME) ?></p>
-      <p class="text-xxs text-gray-400">ระบบตรวจสอบเกียรติบัตร</p>
-    </div>
-  </div>
-  <a href="<?= e(BASE_URL) ?>" class="text-xs text-primary-400 hover:text-primary-500 font-medium transition-colors">
-    <i class="fas fa-external-link mr-1 text-xxs"></i>หน้าหลัก
-  </a>
-</nav>
+<body class="bg-mesh-valid min-h-screen">
 
-<main class="flex-1 flex flex-col items-center justify-start pt-10 pb-20 px-4">
+<!-- DEMO switcher -->
+<div class="fixed top-4 right-4 z-50 flex flex-col gap-1.5">
+  <button onclick="setMode('valid')"   class="px-3 py-1.5 text-xxs font-semibold rounded-lg bg-green-600  text-white shadow-card hover:bg-green-700  transition-colors">✓ Valid</button>
+  <button onclick="setMode('invalid')" class="px-3 py-1.5 text-xxs font-semibold rounded-lg bg-red-500    text-white shadow-card hover:bg-red-600    transition-colors">✕ Invalid</button>
+  <button onclick="setMode('revoked')" class="px-3 py-1.5 text-xxs font-semibold rounded-lg bg-gray-500   text-white shadow-card hover:bg-gray-600   transition-colors">⊘ Revoked</button>
+  <button onclick="setMode('loading')" class="px-3 py-1.5 text-xxs font-semibold rounded-lg bg-blue-500   text-white shadow-card hover:bg-blue-600   transition-colors">⟳ Loading</button>
+</div>
+
+<main class="min-h-screen flex flex-col">
+
+  <!-- ── TOP NAV ── -->
+  <nav class="bg-white/80 backdrop-blur border-b border-white/60 px-6 py-3.5 flex items-center justify-between sticky top-0 z-30">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 bg-primary-400 rounded-lg flex items-center justify-center shadow-orange">
+        <i class="fas fa-award text-white text-sm"></i>
+      </div>
+      <div>
+        <p class="text-sm font-semibold text-gray-800 leading-tight">ExamCert</p>
+        <p class="text-xxs text-gray-400">ระบบตรวจสอบเกียรติบัตร</p>
+      </div>
+    </div>
+    <a href="#" class="text-xs text-primary-400 hover:text-primary-500 font-medium transition-colors">
+      <i class="fas fa-external-link mr-1 text-xxs"></i>เว็บหลัก
+    </a>
+  </nav>
+
+  <!-- ── CONTENT ── -->
+  <div class="flex-1 flex flex-col items-center justify-start pt-10 pb-20 px-4">
   <div class="w-full max-w-2xl">
 
+    <!-- ══ LOADING STATE ══ -->
+    <div id="state-loading" class="hidden text-center py-20 anim-fade-up">
+      <div class="w-16 h-16 mx-auto mb-5 relative">
+        <div class="w-16 h-16 rounded-full border-4 border-gray-100"></div>
+        <div class="absolute inset-0 w-16 h-16 rounded-full border-4 border-primary-400 border-t-transparent spinner"></div>
+      </div>
+      <p class="text-gray-600 font-medium">กำลังตรวจสอบเกียรติบัตร...</p>
+      <p class="text-xs text-gray-400 mt-1">token: <span class="font-mono">a7f3b2c9d1e4f6a8</span></p>
+    </div>
+
     <!-- ══ VALID STATE ══ -->
-    <?php if ($mode === 'valid'): ?>
-    <div id="state-valid" class="space-y-4">
+    <div id="state-valid" class="hidden space-y-4">
+
+      <!-- Status hero -->
       <div class="text-center anim-scale-in">
         <div class="relative inline-flex items-center justify-center w-24 h-24 mb-4">
+          <!-- Ripple rings -->
           <div class="ripple-ring"></div>
           <div class="ripple-ring"></div>
           <div class="ripple-ring"></div>
+          <!-- Icon circle -->
           <div class="relative w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center shadow-cert z-10">
             <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
               <path class="check-path" d="M8 19 L16 27 L30 11" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -159,9 +212,10 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
           <span class="text-xs font-semibold text-green-700">เกียรติบัตรถูกต้อง · Verified</span>
         </div>
         <h1 class="text-2xl font-bold text-gray-800 mb-1 anim-fade-up d2">เกียรติบัตรนี้แท้จริง</h1>
-        <p class="text-sm text-gray-400 anim-fade-up d3">ตรวจสอบ ณ <span id="verify-time-valid"><?= date('j') . ' ' . (['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][date('n')]) . ' ' . (date('Y')+543) . ' · ' . date('H:i') ?> น.</span></p>
+        <p class="text-sm text-gray-400 anim-fade-up d3">ออกโดยระบบ ExamCert · ตรวจสอบ ณ <span id="verify-time-valid"></span></p>
       </div>
 
+      <!-- Certificate preview -->
       <div class="anim-fade-up d3">
         <p class="text-xxs text-gray-400 uppercase tracking-widest mb-2.5 text-center">ตัวอย่างเกียรติบัตร</p>
         <div class="cert-wrapper bg-white rounded-2xl shadow-cert overflow-hidden relative" style="aspect-ratio:1.414/1; min-height:240px;">
@@ -173,27 +227,39 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
           <div class="cert-corner br"></div>
           <div class="cert-shimmer"></div>
           <div class="cert-watermark"><i class="fas fa-award"></i></div>
+          <!-- bg gradient -->
           <div class="absolute inset-0 z-0" style="background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(232,119,34,0.06) 0%,transparent 65%),#fff;"></div>
+          <!-- content -->
           <div class="relative z-5 flex flex-col items-center justify-center h-full px-10 text-center py-5">
             <div class="flex items-center gap-2 mb-2.5">
               <div class="w-7 h-7 rounded-lg bg-primary-400 flex items-center justify-center">
                 <i class="fas fa-award text-white text-xs"></i>
               </div>
-              <span class="text-xxs font-medium text-gray-500 tracking-wide">สถาบัน <?= e(APP_NAME) ?></span>
+              <span class="text-xxs font-medium text-gray-500 tracking-wide">สถาบัน ExamCert</span>
             </div>
             <p class="text-xxs uppercase tracking-[.18em] text-primary-400 font-semibold mb-0.5">เกียรติบัตร</p>
             <p class="text-xxs text-gray-400 mb-2.5">Certificate of Achievement</p>
             <p class="text-xxs text-gray-500 mb-1">มอบให้แก่</p>
             <p class="font-bold text-gray-900 leading-tight mb-2" style="font-family:'Noto Serif Thai',serif;font-size:clamp(13px,3vw,20px);">
-              <?= e($certificate['first_name'] . ' ' . $certificate['last_name']) ?>
+              นายสมชาย ใจดี
             </p>
-            <p class="text-xxs text-gray-400 mb-0.5">ผ่านการทดสอบหลักสูตร</p>
-            <p class="font-semibold text-gray-700 mb-0.5" style="font-size:clamp(9px,2vw,13px);"><?= e($certificate['project_name']) ?></p>
-            <p class="text-xxs text-gray-400 mb-3">คะแนน <span class="text-primary-500 font-semibold"><?= (int)$certificate['percent'] ?>%</span></p>
+            <p class="text-xxs text-gray-400 mb-0.5">ผ่านการอบรมและทดสอบหลักสูตร</p>
+            <p class="font-semibold text-gray-700 mb-0.5" style="font-size:clamp(9px,2vw,13px);">อบรม AI เบื้องต้น รุ่น 1</p>
+            <p class="text-xxs text-gray-400 mb-3">คะแนน <span class="text-primary-500 font-semibold">88%</span> · เกณฑ์ผ่าน 70%</p>
+            <div class="flex items-end justify-center gap-10 mb-2 w-full">
+              <div class="text-center">
+                <div class="w-16 border-b border-gray-300 mb-1 mx-auto"></div>
+                <p class="text-xxs text-gray-500">ผู้อำนวยการ</p>
+              </div>
+              <div class="text-center">
+                <div class="w-16 border-b border-gray-300 mb-1 mx-auto"></div>
+                <p class="text-xxs text-gray-500">ผู้จัดการโครงการ</p>
+              </div>
+            </div>
             <div class="flex items-center justify-between w-full mt-1">
               <div class="text-left">
-                <p class="text-xxs font-mono font-semibold text-gray-600"><?= e($certificate['cert_number']) ?></p>
-                <p class="text-xxs text-gray-400"><?= date('j', strtotime($certificate['issued_date'])) . ' ' . (['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][date('n', strtotime($certificate['issued_date']))]) . ' ' . (date('Y', strtotime($certificate['issued_date']))+543) ?></p>
+                <p class="text-xxs font-mono font-semibold text-gray-600">CERT-2568-AI-00001</p>
+                <p class="text-xxs text-gray-400">9 พ.ค. 2568</p>
               </div>
               <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 relative overflow-hidden">
                 <i class="fas fa-qrcode text-gray-400 text-lg"></i>
@@ -210,45 +276,68 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
           <i class="fas fa-circle-info text-primary-400 text-sm"></i>
           <p class="text-sm font-semibold text-primary-800">ข้อมูลเกียรติบัตร</p>
         </div>
+
+        <!-- Two-column info -->
         <div class="divide-y divide-gray-50">
           <div class="grid grid-cols-2 divide-x divide-gray-50">
             <div class="px-5 py-3.5 info-row">
               <p class="text-xxs text-gray-400 mb-0.5">ชื่อ-นามสกุล</p>
-              <p class="text-sm font-semibold text-gray-800"><?= e($certificate['first_name'] . ' ' . $certificate['last_name']) ?></p>
+              <p class="text-sm font-semibold text-gray-800">นายสมชาย ใจดี</p>
             </div>
             <div class="px-5 py-3.5 info-row">
+              <p class="text-xxs text-gray-400 mb-0.5">หน่วยงาน/องค์กร</p>
+              <p class="text-sm font-medium text-gray-700">กรมส่งเสริมการเกษตร</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 divide-x divide-gray-50">
+            <div class="px-5 py-3.5 info-row">
               <p class="text-xxs text-gray-400 mb-0.5">หลักสูตร/โครงการ</p>
-              <p class="text-sm font-medium text-gray-700"><?= e($certificate['project_name']) ?></p>
+              <p class="text-sm font-medium text-gray-700">อบรม AI เบื้องต้น รุ่น 1</p>
+            </div>
+            <div class="px-5 py-3.5 info-row">
+              <p class="text-xxs text-gray-400 mb-0.5">ผู้จัดอบรม</p>
+              <p class="text-sm font-medium text-gray-700">สถาบัน ExamCert</p>
             </div>
           </div>
           <div class="grid grid-cols-2 divide-x divide-gray-50">
             <div class="px-5 py-3.5 info-row">
               <p class="text-xxs text-gray-400 mb-0.5">คะแนนที่ได้</p>
-              <p class="text-sm font-semibold text-primary-500"><?= (int)$certificate['percent'] ?>% <span class="text-green-600 text-xs">(ผ่าน)</span></p>
+              <p class="text-sm font-semibold text-primary-500">88% <span class="text-green-600 text-xs">(ผ่าน)</span></p>
             </div>
             <div class="px-5 py-3.5 info-row">
+              <p class="text-xxs text-gray-400 mb-0.5">เกณฑ์ผ่าน</p>
+              <p class="text-sm font-medium text-gray-700">70%</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 divide-x divide-gray-50">
+            <div class="px-5 py-3.5 info-row">
               <p class="text-xxs text-gray-400 mb-0.5">วันที่ออกเกียรติบัตร</p>
-              <p class="text-sm font-medium text-gray-700"><?= date('j', strtotime($certificate['issued_date'])) . ' ' . (['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][date('n', strtotime($certificate['issued_date']))]) . ' ' . (date('Y', strtotime($certificate['issued_date']))+543) ?></p>
+              <p class="text-sm font-medium text-gray-700">9 พฤษภาคม 2568</p>
+            </div>
+            <div class="px-5 py-3.5 info-row">
+              <p class="text-xxs text-gray-400 mb-0.5">วันที่อบรม</p>
+              <p class="text-sm font-medium text-gray-700">1–7 มิถุนายน 2568</p>
             </div>
           </div>
           <div class="px-5 py-3.5 info-row">
             <p class="text-xxs text-gray-400 mb-0.5">เลขที่เกียรติบัตร</p>
             <div class="flex items-center gap-2">
-              <p class="text-sm font-mono font-semibold text-gray-800"><?= e($certificate['cert_number']) ?></p>
-              <button onclick="copyText('<?= e($certificate['cert_number']) ?>', 'คัดลอกเลขที่เกียรติบัตรแล้ว')" class="text-gray-400 hover:text-primary-400 transition-colors">
+              <p class="text-sm font-mono font-semibold text-gray-800">CERT-2568-AI-00001</p>
+              <button onclick="copyToken()" class="text-gray-400 hover:text-primary-400 transition-colors">
                 <i class="fas fa-copy text-xs"></i>
               </button>
             </div>
           </div>
           <div class="px-5 py-3.5">
             <p class="text-xxs text-gray-400 mb-0.5">Verify Token</p>
-            <p class="text-xxs font-mono text-gray-500 break-all"><?= e($certificate['verify_token']) ?></p>
+            <p class="text-xxs font-mono text-gray-500 break-all">a7f3b2c9d1e4f6a8b2c5d7e9f1a3b4c6</p>
           </div>
         </div>
       </div>
 
+      <!-- Download + share -->
       <div class="grid grid-cols-2 gap-2.5 anim-fade-up d5">
-        <button onclick="triggerDownload()" id="btn-download" class="flex items-center justify-center gap-2 py-3 bg-primary-400 hover:bg-primary-500 text-white font-semibold rounded-xl transition-colors text-sm shadow-card">
+        <button class="flex items-center justify-center gap-2 py-3 bg-primary-400 hover:bg-primary-500 text-white font-semibold rounded-xl transition-colors text-sm shadow-card">
           <i class="fas fa-download text-xs"></i> ดาวน์โหลด PDF
         </button>
         <button onclick="copyLink()" class="flex items-center justify-center gap-2 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm border border-gray-200">
@@ -256,15 +345,17 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
         </button>
       </div>
 
+      <!-- Verified footer -->
       <div class="flex items-center justify-center gap-2 pt-2 anim-fade-up d6">
         <i class="fas fa-shield-halved text-primary-300 text-sm"></i>
-        <p class="text-xxs text-gray-400">ตรวจสอบโดยระบบ <?= e(APP_NAME) ?> · ข้อมูลเชื่อถือได้</p>
+        <p class="text-xxs text-gray-400">ตรวจสอบโดยระบบ ExamCert · ข้อมูลเชื่อถือได้</p>
       </div>
-    </div>
+
+    </div><!-- /state-valid -->
 
     <!-- ══ INVALID STATE ══ -->
-    <?php elseif ($mode === 'invalid'): ?>
-    <div id="state-invalid" class="space-y-4">
+    <div id="state-invalid" class="hidden space-y-4">
+
       <div class="text-center anim-scale-in">
         <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center shadow-card-lg">
           <i class="fas fa-xmark text-3xl text-white"></i>
@@ -277,6 +368,7 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
         <p class="text-sm text-gray-400">Token ที่ระบุไม่มีอยู่ในระบบ หรืออาจพิมพ์ผิด</p>
       </div>
 
+      <!-- Reason card -->
       <div class="bg-white rounded-2xl shadow-card-lg overflow-hidden anim-fade-up d2">
         <div class="px-5 py-3.5 bg-red-50 border-b border-red-100 flex items-center gap-2">
           <i class="fas fa-triangle-exclamation text-red-400 text-sm"></i>
@@ -303,11 +395,34 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- Manual search -->
+      <div class="bg-white rounded-2xl shadow-card-lg p-5 anim-fade-up d3">
+        <p class="text-sm font-semibold text-gray-800 mb-1">ค้นหาด้วยเลขที่เกียรติบัตร</p>
+        <p class="text-xs text-gray-400 mb-3">กรอกเลขที่เกียรติบัตร (เช่น CERT-2568-AI-00001)</p>
+        <div class="flex gap-2">
+          <input type="text" placeholder="CERT-XXXX-XX-XXXXX"
+            class="token-input flex-1 h-10 px-3 text-sm font-mono border border-gray-200 rounded-xl transition-colors">
+          <button class="px-4 py-2 bg-primary-400 hover:bg-primary-500 text-white text-sm font-medium rounded-xl transition-colors">
+            <i class="fas fa-search text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 anim-fade-up d4">
+        <i class="fas fa-headset text-amber-500 mt-0.5"></i>
+        <div>
+          <p class="text-sm font-semibold text-amber-900 mb-0.5">ต้องการความช่วยเหลือ?</p>
+          <p class="text-xs text-amber-700">ติดต่อผู้ดูแลระบบที่ <a href="mailto:admin@examcert.go.th" class="underline font-medium">admin@examcert.go.th</a></p>
+        </div>
+      </div>
+
+    </div><!-- /state-invalid -->
 
     <!-- ══ REVOKED STATE ══ -->
-    <?php elseif ($mode === 'revoked'): ?>
-    <div id="state-revoked" class="space-y-4">
+    <div id="state-revoked" class="hidden space-y-4">
+
       <div class="text-center anim-scale-in">
         <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center shadow-card-lg">
           <i class="fas fa-ban text-3xl text-white"></i>
@@ -320,6 +435,7 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
         <p class="text-sm text-gray-400">เกียรติบัตรนี้เคยมีอยู่จริง แต่ถูกยกเลิกโดยผู้ออกเกียรติบัตร</p>
       </div>
 
+      <!-- Revoked cert preview (with stamp) -->
       <div class="anim-fade-up d2">
         <p class="text-xxs text-gray-400 uppercase tracking-widest mb-2.5 text-center">เกียรติบัตร (ถูกเพิกถอน)</p>
         <div class="relative bg-white rounded-2xl shadow-card overflow-hidden" style="aspect-ratio:1.414/1; min-height:200px; filter:grayscale(0.6);">
@@ -330,16 +446,18 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
           <div class="cert-corner br" style="border-color:#9ca3af"></div>
           <div class="cert-watermark"><i class="fas fa-award"></i></div>
           <div class="absolute inset-0 z-0" style="background:#f9f9f9;"></div>
+          <!-- REVOKED STAMP -->
           <div class="stamp-revoked">REVOKED</div>
           <div class="relative z-5 flex flex-col items-center justify-center h-full px-8 text-center py-4 opacity-60">
             <p class="text-xxs uppercase tracking-[.15em] text-gray-400 font-semibold mb-1">เกียรติบัตร</p>
-            <p class="font-bold text-gray-700 leading-tight mb-1" style="font-family:'Noto Serif Thai',serif;font-size:clamp(12px,3vw,18px);"><?= e($certificate['first_name'] . ' ' . $certificate['last_name']) ?></p>
-            <p class="font-medium text-gray-500 mb-1" style="font-size:clamp(9px,2vw,12px);"><?= e($certificate['project_name']) ?></p>
-            <p class="text-xxs font-mono text-gray-400"><?= e($certificate['cert_number']) ?></p>
+            <p class="font-bold text-gray-700 leading-tight mb-1" style="font-family:'Noto Serif Thai',serif;font-size:clamp(12px,3vw,18px);">นายสมชาย ใจดี</p>
+            <p class="font-medium text-gray-500 mb-1" style="font-size:clamp(9px,2vw,12px);">อบรม AI เบื้องต้น รุ่น 1</p>
+            <p class="text-xxs font-mono text-gray-400">CERT-2568-AI-00001</p>
           </div>
         </div>
       </div>
 
+      <!-- Revoke info -->
       <div class="bg-white rounded-2xl shadow-card-lg overflow-hidden anim-fade-up d3">
         <div class="px-5 py-3.5 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
           <i class="fas fa-circle-info text-gray-400 text-sm"></i>
@@ -349,23 +467,42 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
           <div class="grid grid-cols-2 divide-x divide-gray-50">
             <div class="px-5 py-3.5">
               <p class="text-xxs text-gray-400 mb-0.5">ชื่อ-นามสกุล</p>
-              <p class="text-sm font-semibold text-gray-500"><?= e($certificate['first_name'] . ' ' . $certificate['last_name']) ?></p>
+              <p class="text-sm font-semibold text-gray-500">นายสมชาย ใจดี</p>
             </div>
             <div class="px-5 py-3.5">
               <p class="text-xxs text-gray-400 mb-0.5">หลักสูตร</p>
-              <p class="text-sm font-medium text-gray-500"><?= e($certificate['project_name']) ?></p>
+              <p class="text-sm font-medium text-gray-500">อบรม AI เบื้องต้น รุ่น 1</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 divide-x divide-gray-50">
+            <div class="px-5 py-3.5">
+              <p class="text-xxs text-gray-400 mb-0.5">วันที่ออกเดิม</p>
+              <p class="text-sm font-medium text-gray-500">9 พ.ค. 2568</p>
+            </div>
+            <div class="px-5 py-3.5">
+              <p class="text-xxs text-gray-400 mb-0.5">วันที่เพิกถอน</p>
+              <p class="text-sm font-medium text-red-500">15 พ.ค. 2568</p>
             </div>
           </div>
           <div class="px-5 py-3.5">
             <p class="text-xxs text-gray-400 mb-0.5">เหตุผล</p>
-            <p class="text-sm text-gray-600">พบข้อผิดพลาดในการออกเกียรติบัตร หรือถูกยกเลิกโดยผู้ดูแลระบบ</p>
+            <p class="text-sm text-gray-600">พบข้อผิดพลาดในการออกเกียรติบัตร กรุณาติดต่อผู้ดูแลระบบ</p>
           </div>
         </div>
       </div>
-    <?php endif; ?>
 
-    <!-- ── Search bar ── -->
-    <div id="search-bar" class="mt-6 anim-fade-up d6">
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 anim-fade-up d4">
+        <i class="fas fa-headset text-amber-500 mt-0.5"></i>
+        <div>
+          <p class="text-sm font-semibold text-amber-900 mb-0.5">ต้องการข้อมูลเพิ่มเติม?</p>
+          <p class="text-xs text-amber-700">ติดต่อผู้ดูแลระบบที่ <a href="mailto:admin@examcert.go.th" class="underline font-medium">admin@examcert.go.th</a></p>
+        </div>
+      </div>
+
+    </div><!-- /state-revoked -->
+
+    <!-- ── Manual token search bar (always visible except loading) ── -->
+    <div id="search-bar" class="hidden mt-6 anim-fade-up d6">
       <div class="bg-white/70 backdrop-blur rounded-2xl border border-white/80 shadow-card p-4">
         <p class="text-xxs text-gray-400 uppercase tracking-widest mb-2.5">ตรวจสอบเกียรติบัตรอื่น</p>
         <div class="flex gap-2">
@@ -381,22 +518,22 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
     </div>
 
   </div>
-</div>
+  </div><!-- /content -->
 
-<!-- ── FOOTER ── -->
-<footer class="border-t border-gray-100 bg-white/60 backdrop-blur py-5 px-6 text-center">
-  <div class="flex items-center justify-center gap-2 mb-1">
-    <div class="w-5 h-5 bg-primary-400 rounded flex items-center justify-center">
-      <i class="fas fa-award text-white text-xxs"></i>
+  <!-- ── FOOTER ── -->
+  <footer class="border-t border-gray-100 bg-white/60 backdrop-blur py-5 px-6 text-center">
+    <div class="flex items-center justify-center gap-2 mb-1">
+      <div class="w-5 h-5 bg-primary-400 rounded flex items-center justify-center">
+        <i class="fas fa-award text-white text-xxs"></i>
+      </div>
+      <span class="text-xs font-semibold text-gray-600">ExamCert Verification System</span>
     </div>
-    <span class="text-xs font-semibold text-gray-600"><?= e(APP_NAME) ?> Verification System</span>
-  </div>
-  <p class="text-xxs text-gray-400">© <?= date('Y')+543 ?> <?= e(APP_NAME) ?> · ระบบออกข้อสอบและเกียรติบัตรออนไลน์</p>
-</footer>
+    <p class="text-xxs text-gray-400">© 2568 สถาบัน ExamCert · ระบบออกข้อสอบและเกียรติบัตรออนไลน์</p>
+  </footer>
 
-<!-- Hidden Iframe for PDF rendering -->
-<iframe id="download-iframe" name="cert_iframe" src="about:blank" style="width:1px; height:1px; border:none; opacity:0; position:absolute;"></iframe>
+</main>
 
+<!-- ── Toast notification ── -->
 <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50
   bg-gray-900 text-white text-sm font-medium px-5 py-2.5 rounded-xl shadow-card-lg
   flex items-center gap-2.5 transition-all">
@@ -405,6 +542,7 @@ body { background-color: #F9F8F6 !important; background-image: radial-gradient(e
 </div>
 
 <script>
+// ── HELPERS ──────────────────────────────────────────────────────
 function showToast(msg, icon='fa-check', color='text-green-400') {
   const t = document.getElementById('toast');
   document.getElementById('toast-msg').textContent  = msg;
@@ -414,9 +552,9 @@ function showToast(msg, icon='fa-check', color='text-green-400') {
   t._timer = setTimeout(() => t.classList.add('hidden'), 2500);
 }
 
-function copyText(text, successMsg) {
-  navigator.clipboard?.writeText(text);
-  showToast(successMsg);
+function copyToken() {
+  navigator.clipboard?.writeText('CERT-2568-AI-00001');
+  showToast('คัดลอกเลขที่เกียรติบัตรแล้ว');
 }
 
 function copyLink() {
@@ -426,32 +564,47 @@ function copyLink() {
 
 function handleSearch() {
   const val = document.getElementById('token-input').value.trim();
-  if (!val) { 
-    showToast('กรุณากรอก Token หรือเลขที่เกียรติบัตร','fa-triangle-exclamation','text-amber-400'); 
-    return; 
-  }
-  window.location.href = `<?= e(BASE_URL) ?>/public/verify.php?token=${encodeURIComponent(val)}`;
+  if (!val) { showToast('กรุณากรอก Token หรือเลขที่เกียรติบัตร','fa-triangle-exclamation','text-amber-400'); return; }
+  setMode('loading');
+  setTimeout(() => setMode(Math.random() > 0.4 ? 'valid' : 'invalid'), 1800);
 }
 
-function triggerDownload() {
-    <?php if ($certificate): ?>
-    const btn = document.getElementById('btn-download');
-    const iframe = document.getElementById('download-iframe');
-    if (!btn || !iframe) return;
+// ── STATE MACHINE ─────────────────────────────────────────────────
+const STATES = ['loading','valid','invalid','revoked'];
 
-    const originalHTML = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังเตรียมไฟล์...';
-    btn.disabled = true;
+function setMode(mode) {
+  // BG
+  document.body.className = {
+    valid:   'bg-mesh-valid min-h-screen',
+    invalid: 'bg-mesh-invalid min-h-screen',
+    revoked: 'bg-mesh-revoked min-h-screen',
+    loading: 'bg-mesh-valid min-h-screen',
+  }[mode];
 
-    const renderUrl = "<?= e(BASE_URL . '/public/render-cert.php?token=' . $certificate['verify_token']) ?>&download=1";
-    iframe.src = renderUrl;
+  // Show/hide states
+  STATES.forEach(s => {
+    document.getElementById(`state-${s}`).classList.toggle('hidden', s !== mode);
+  });
 
-    window.onmessage = function(e) {
-        if (e.data === 'download_complete') {
-            btn.innerHTML = originalHTML;
-            btn.disabled = false;
-        }
-    };
-    <?php endif; ?>
+  // Search bar
+  const sb = document.getElementById('search-bar');
+  sb.classList.toggle('hidden', mode === 'loading');
+
+  // Timestamp
+  const now = new Date();
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const ts = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()+543} · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} น.`;
+  const el = document.getElementById('verify-time-valid');
+  if (el) el.textContent = ts;
+
+  // Scroll top
+  window.scrollTo({ top:0, behavior:'smooth' });
 }
+
+// ── INIT ──────────────────────────────────────────────────────────
+setMode('loading');
+setTimeout(() => setMode('valid'), 1600);
 </script>
+
+</body>
+</html>

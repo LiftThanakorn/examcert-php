@@ -142,8 +142,15 @@ class PublicExamController
     {
         $token = trim((string) ($_GET['token'] ?? ''));
         $certificate = $token !== '' ? getCertificateByToken($token) : null;
+        
+        $mode = 'invalid';
+        if ($certificate) {
+            $mode = (int)$certificate['is_revoked'] === 1 ? 'revoked' : 'valid';
+        }
+        
+        $bodyClass = "bg-mesh-{$mode} min-h-screen flex flex-col font-sans";
         $pageTitle = 'ตรวจสอบเกียรติบัตร';
-        $bodyClass = 'bg-mesh min-h-screen flex flex-col items-center justify-center p-6 font-sans';
+        
         require VIEWS_PATH . '/layout/header.php';
         require VIEWS_PATH . '/certificates/verify.php';
         require VIEWS_PATH . '/layout/footer.php';
