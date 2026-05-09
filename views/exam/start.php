@@ -193,6 +193,34 @@
 </form>
 
 <script>
+// ── PREVENT BACK NAVIGATION (Immediate) ───────────────────────────
+(function() {
+    // Push twice to create a buffer
+    history.pushState(null, null, location.href);
+    history.pushState(null, null, location.href);
+    
+    window.addEventListener('popstate', function() {
+        history.pushState(null, null, location.href);
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'คำเตือน!',
+                text: 'ไม่สามารถกดย้อนกลับได้ในขณะทำข้อสอบ หากต้องการออกกรุณาส่งข้อสอบ',
+                icon: 'warning',
+                confirmButtonText: 'รับทราบ',
+                customClass: { popup: 'rounded-xl font-sans text-sm' }
+            });
+        } else {
+            alert('ไม่สามารถกดย้อนกลับได้ในขณะทำข้อสอบ หากต้องการออกกรุณาส่งข้อสอบ');
+        }
+    });
+
+    window.addEventListener('beforeunload', function (e) {
+        if (window.isSubmitting) return;
+        e.preventDefault();
+        e.returnValue = '';
+    });
+})();
+
 // ── DATA FROM PHP ──────────────────────────────────────────────────
 const QUESTIONS = <?= json_encode(array_map(function($q) {
     return [
@@ -207,6 +235,7 @@ const QUESTIONS = <?= json_encode(array_map(function($q) {
 }, $questions)) ?>;
 
 // ── STATE ─────────────────────────────────────────────────────────
+window.isSubmitting = false;
 let current  = 0;                          
 let answers  = new Array(QUESTIONS.length).fill(null); 
 let totalSec = <?= (int)$secondsLeft ?>;                    
@@ -215,36 +244,12 @@ let direction = 'right';
 let sessionId = <?= (int)$session['id'] ?>;
 
 // ── INIT ──────────────────────────────────────────────────────────
-let isSubmitting = false;
-
 $(document).ready(() => {
     renderQuestion();
     renderPalette();
     renderDots();
     startTimer();
     updateProgress();
-
-    // Prevent Browser Back Button (Enhanced)
-    history.pushState(null, null, location.href);
-    window.addEventListener('popstate', function() {
-        history.pushState(null, null, location.href);
-        Swal.fire({
-            title: 'คำเตือน!',
-            text: 'ไม่สามารถกดย้อนกลับได้ในขณะทำข้อสอบ หากต้องการออกกรุณาส่งข้อสอบ',
-            icon: 'warning',
-            confirmButtonText: 'รับทราบ',
-            customClass: { popup: 'rounded-xl font-sans text-sm' }
-        });
-    });
-
-    // Prevent closing/leaving the page
-    window.addEventListener('beforeunload', function (e) {
-        if (isSubmitting) return;
-        // Cancel the event
-        e.preventDefault();
-        // Chrome requires returnValue to be set
-        e.returnValue = '';
-    });
 });
 
 function getBaseUrl() {
@@ -503,7 +508,7 @@ function confirmSubmit() {
 
 function submitExam() {
   clearInterval(timerInterval);
-  isSubmitting = true;
+  window.isSubmitting = true;
   
   Swal.fire({
     title: 'กำลังส่งข้อสอบ...',
@@ -516,7 +521,7 @@ function submitExam() {
 }
 
 function autoSubmit() {
-  isSubmitting = true;
+  window.isSubmitting = true;
   Swal.fire({
     icon: 'info',
     title: 'หมดเวลา!',
