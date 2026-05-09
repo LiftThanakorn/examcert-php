@@ -87,7 +87,7 @@ $timeUsedStr .= $diff->s . " วินาที";
     <!-- Icon + headline -->
     <div class="text-center mb-8 anim-scale-in">
       <div id="result-icon"
-        class="w-24 h-24 rounded-full mx-auto mb-5 flex items-center justify-center shadow-lg transition-all duration-700 <?= $isPass ? 'bg-gradient-to-br from-primary-400 to-primary-600' : 'bg-gradient-to-br from-red-400 to-red-600' ?>">
+        class="w-24 h-24 rounded-full mx-auto mb-5 flex items-center justify-center shadow-lg transition-all duration-700 <?= $isPass ? 'bg-primary-500' : 'bg-red-500' ?>">
         <i class="text-4xl text-white fas <?= $isPass ? 'fa-trophy' : 'fa-rotate-right' ?>"></i>
       </div>
       <h1 class="text-3xl font-bold mb-2 <?= $isPass ? 'text-gray-800' : 'text-gray-700' ?>">

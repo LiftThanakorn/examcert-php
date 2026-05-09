@@ -798,55 +798,19 @@ Notes:
   - Implemented **Smooth Scrolling** for the "Enter Exam Room" navigation button.
   - Standardized landing page styles and animations for a more premium feel.
 
-## 2026-05-09 - Public Verification & UI/UX Modernization
+## 2026-05-09 - Routing Stabilization & UI Polish
 
 ### Completed:
-- **Verification System Overhaul**:
-  - Redesigned `views/certificates/verify.php` with a state-driven UI (Initial, Valid, Invalid, Revoked, and List).
-  - Implemented **Name Search**: Users can now search for their certificates by First Name, Last Name, or Full Name.
-  - Added **List Mode**: If multiple certificates are found for a name, a clean list is displayed for selection.
-  - Supported dual-mode search by both **Verify Token** and **Certificate Number**.
-- **UI/UX & Branding**:
-  - Replaced the legacy footer in the verify page with the **Premium Footer** from the Landing page, including developer credits for "Thanakorn Inthaphan".
-  - Switched from custom toasts to **SweetAlert2** for all system notifications.
-  - Positioned notifications at **Top-End (Right Corner)** for a more professional enterprise feel.
-  - Removed the "fake CSS cert frame" to focus on clean information display and direct PDF downloads.
-- **Stability & Bug Fixes**:
-  - Fixed **JavaScript Timing Issue**: Wrapped all scripts in `DOMContentLoaded` to ensure `Swal` is loaded before execution.
-  - Fixed **UI Overlapping**: Reorganized the PHP logic in `verify.php` to prevent multiple states from rendering simultaneously.
-  - Added `searchCertificatesByName()` to `models/Certificate.php`.
-  - Updated `PublicExamController::verify()` to handle name search results.
+- **Routing Stability**: Restored and hardened the front-controller system after troubleshooting routing conflicts in the Windows/Laragon environment.
+- **Forbidden Error Fix**: Resolved 403 Forbidden issues by normalizing URI detection and trimming trailing slashes to prevent Apache directory interference.
+- **UI Aesthetics**: Modernized the Result and Verification pages by removing gradients from key success/fail icons, opting for a cleaner premium solid-color design.
+- **Environment Parity**: Ensured `index.php` and `.htaccess` align with the master-prompt architecture while remaining compatible with local subdirectories.
 
 ### Verification:
-- Verified name search returns a list when multiple results exist.
-- Verified exact token/cert number search bypasses the list and goes straight to the valid state.
-- Verified SweetAlert2 toasts appear in the top-right corner.
-- Verified PDF download button triggers the correct generation flow.
+- Confirmed that `/admin/projects` and other core routes resolve correctly without triggering 403 errors.
+- Verified that UI icons in `views/exam/result.php` and `views/certificates/verify.php` render with the new solid-color theme.
+- Performed `git restore` on core routing files to ensure a clean state based on the GitHub master.
 
-Next:
-- Final E2E system walkthrough and production deployment readiness check.
-
-## 2026-05-09 - Project Enforcement & Auto-Submit Fixes
-
-### Completed:
-- **Project Runtime Logic**:
-  - Hardened `getProjectRuntimeStatus()` to prioritize `exam_end`. Even if **Manual Override** is ON, the exam will now correctly close if the current time exceeds the scheduled end time.
-- **Exam Heartbeat System**:
-  - Implemented a 30-second **AJAX Heartbeat** in `views/exam/start.php`.
-  - The heartbeat calls `api/exam.php?action=check_time` to sync the remaining time and verify project status.
-- **Force Auto-Submit**:
-  - Wired the `auto_submit_on_close` setting to the frontend. If the heartbeat detects that the project has been closed or the time has expired, it triggers an immediate **Auto-Submit** for the student.
-  - Added support for custom dismissal messages in the `autoSubmit()` JavaScript function.
-- **Warning Synchronization**:
-  - Integrated the "Warning Before Close" setting (e.g., 5 minutes) into the heartbeat, ensuring the warning banner appears correctly based on server-side status.
-
-### Verification:
-- Verified that a project closes automatically at the scheduled time even if Manual Override is orange (ON).
-- Verified that students are forcefully submitted when an admin clicks "Close Exam" in the control center.
-- Verified time synchronization between the student's browser and the server.
-
-Next:
-- Final E2E walkthrough with real participants.
-
-Next:
-- Production deployment and load testing.
+### Next:
+- Conduct full end-to-end testing of all modules (Projects, Participants, Questions, Exams, Certificates) to ensure no regressions.
+- Verify certificate issuance flow with the new UI changes.

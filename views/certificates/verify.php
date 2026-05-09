@@ -144,7 +144,7 @@ body { transition: background-color 0.5s ease; min-height: 100vh; display: flex;
             <div class="ripple-ring"></div>
             <div class="ripple-ring"></div>
             <div class="ripple-ring"></div>
-            <div class="relative w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center shadow-cert z-10">
+            <div class="relative w-20 h-20 bg-primary-500 rounded-full flex items-center justify-center shadow-cert z-10">
               <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
                 <path d="M8 19 L16 27 L30 11" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
