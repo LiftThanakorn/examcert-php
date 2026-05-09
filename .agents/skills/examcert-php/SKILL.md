@@ -3,56 +3,64 @@ name: examcert-php
 description: Use when developing the ExamCert PHP/MySQL standalone exam and certificate system. Covers project exams, participant whitelists, question banks, timed exam sessions, scoring, certificate generation, public verification, admin workflows, security rules, Git checkpoint workflow, and future events-system integration notes.
 ---
 
-# ExamCert PHP
+# 🛡️ ExamCert PHP - Mandatory Rules & Enforcement
 
-Use this skill for work inside the ExamCert project.
+Use this skill for ALL work inside the ExamCert project. These rules are BINDING.
 
-## Core Workflow
+## 🚀 Mandatory Pre-Flight Check (AI MUST DO THIS)
+Before performing ANY code modification, the AI assistant MUST:
+1.  **Read this SKILL.md** to refresh current project rules.
+2.  **Summarize the relevant rules** for the current task in the response (e.g., "Design Rule: No gradients allowed", "Routing Rule: Do not leak absolute paths").
+3.  **Confirm Git Status**: If the directory is a Git repo, check for uncommitted changes.
 
-1. Read `master-prompt-examcert.md` before major architecture or feature changes.
-2. Inspect the relevant files before editing.
-3. Keep changes scoped to the requested ExamCert behavior.
-4. Follow the existing PHP/MySQL patterns in the repo once implementation files exist.
-5. Report changed files, verification commands, and remaining work at the end of each task.
+---
 
-## Work Checkpoints
+## 🎨 UI & Design Rules (Orange-White Premium)
+*   **Colors**: Use Primary Orange `#E87722` (primary-400/500). Backgrounds should be White or Gray-50.
+*   **NO GRADIENTS**: Do NOT use CSS gradients (`bg-gradient-to-...`). Use **Solid Colors** for all UI elements, icons, and buttons.
+*   **Premium Aesthetics**:
+    *   **Shadows**: Use `shadow-card` (0 1px 4px) or `shadow-card-lg` (0 8px 32px).
+    *   **Radius**: Cards `rounded-xl` (12px), Buttons/Inputs `rounded-lg` (8px).
+    *   **Typography**: Font 'Sarabun' or 'Noto Sans Thai'. Use `leading-relaxed`.
+*   **Components**: Use SweetAlert2 for all success/error notifications. Modals for errors, Toasts for success.
 
-Before large changes, inspect git status. Preserve user work. After each meaningful milestone, summarize changed files and propose a Git checkpoint commit. If a task is long, maintain `WORKLOG.md` with completed work, pending work, and resume notes. Never run destructive Git commands unless explicitly requested.
+---
 
-Use these checkpoint rules:
+## 🌐 Routing & Stability Rules
+*   **Front Controller**: All requests must go through `index.php`.
+*   **Forbidden (403) Prevention**: 
+    *   Do NOT allow Apache to resolve directories directly (Always disable `Options +Indexes` and `MultiViews`).
+    *   Handle trailing slashes carefully in the router to avoid 404/403 errors.
+*   **URL Safety**: Use `BASE_URL` for all links and assets. Never leak absolute server paths.
+*   **Environment**: Compatibility with Windows/Laragon subdirectories must be maintained in URI detection.
 
-- Run `git status --short` before large work when the directory is a Git repository.
-- Run `git diff --stat` after meaningful milestones when Git is available.
-- Do not auto-commit unless the user explicitly asks or approves.
-- Use commit messages in the form `checkpoint: <short description>`.
-- If the directory is not a Git repository, say so and use `WORKLOG.md` as the fallback resume note when needed.
-- Never use `git reset --hard`, `git checkout -- <file>`, or destructive cleanup commands unless the user explicitly requests them.
-- If existing changes are present, treat them as user work and avoid reverting them.
+---
 
-## Coding Direction
+## 🔐 Security & Data Integrity
+*   **Database**: Use PDO Prepared Statements ONLY. No string concatenation.
+*   **Validation**: Sanitize all inputs. Use `htmlspecialchars()` on all outputs.
+*   **CSRF**: Validate `csrf_token` on every POST/AJAX request.
+*   **Sessions**: Use `session_regenerate_id(true)` on login. Implement session fingerprinting (User-Agent).
+*   **Uploads**: Validate MIME types using `finfo`. Rename uploaded files to random strings.
 
-- Build ExamCert as a standalone v1 system for online exams and certificate issuance.
-- Use PHP 8.1+, MySQL, PDO, prepared statements, sessions, CSRF protection, and output escaping.
-- Use `password_hash()` / `password_verify()` for admin passwords.
-- Call `session_regenerate_id(true)` after successful login.
-- Validate uploads using MIME checks and safe renamed filenames.
-- Keep SQL injection, XSS, CSRF, file upload, and session fixation risks in scope for every feature.
-- Prefer clear, maintainable PHP modules over broad abstractions.
+---
 
-## V1 Scope
+## 🔄 Workflow & Git Checkpoints
+1.  **Git Restore**: Before starting a task that requires returning to a "clean state", use `git restore .`.
+2.  **Checkpoint Messages**: Use `checkpoint: <short description>`.
+3.  **WORKLOG.md**: Maintain a daily log. Each day should have its own header. Remove previous days' logs only when explicitly requested.
+4.  **No Automated Pushes**: Never push to GitHub unless the user explicitly orders "Update git/github" or "Push to origin".
 
-Focus on:
+---
 
-- Admin authentication
-- Exam project management
-- Participant whitelist management
-- Question bank management
-- Timed exam sessions
-- Answer logging and scoring
-- Certificate generation
-- Public certificate verification
-- Dashboard and basic reports
+## 📦 Project Scope (V1 Only)
+*   **Admin Auth**: Login/Logout/Dashboard.
+*   **Management**: Project CRUD, Participant Whitelist (Import/Export), Question Bank.
+*   **Exam Flow**: Entry (Search-based), Start (Timer/Auto-save), Result (Solid UI).
+*   **Certificates**: Designer Studio (Pixel-to-MM), Verification (Public), Download (Client-side PDF).
+*   **Reports**: Overall stats, CSV/Excel export (Client-side SheetJS).
 
-## Future Integration Note
+---
 
-Do not integrate with the separate `events` project in v1 unless the user explicitly asks. If requested, plan it first as a future integration where ExamCert reads event registrations and syncs them into participants without directly coupling runtime code.
+## ⚠️ Critical Reminder
+If the code looks simple, generic, or uses default browser styles, you have **FAILED**. Aim for a premium, custom, and alive interface.
