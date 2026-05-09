@@ -58,9 +58,9 @@ $template = array_merge(templateDefaults(), $template ?? []);
         </div>
     </div>
 <?php else: ?>
-    <!-- Fullscreen Studio (No-Scroll) -->
+    <!-- Fullscreen Studio -->
     <div id="designer-studio" class="h-[calc(100vh-140px)] flex flex-col gap-4 overflow-hidden relative opacity-0 transition-opacity duration-500">
-        <!-- Studio Header (Thai) -->
+        <!-- Studio Header -->
         <div class="flex items-center justify-between px-2 flex-shrink-0">
             <div class="flex items-center gap-4">
                 <a href="<?= e(BASE_URL) ?>/admin/certificates/templates.php" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-slate-600">
@@ -75,14 +75,14 @@ $template = array_merge(templateDefaults(), $template ?? []);
                 <button type="button" onclick="loadDefaultLayout()" class="px-4 py-2 text-xs font-black text-slate-400 hover:text-primary-500 transition-colors">
                     <i class="fas fa-undo mr-1.5 text-[10px]"></i> คืนค่าเริ่มต้น
                 </button>
-                <button type="submit" form="main-form" class="px-8 py-3 bg-slate-900 hover:bg-black text-white text-sm font-black rounded-xl transition-all shadow-xl active:scale-95">
+                <button type="submit" form="main-form" class="px-8 py-3 bg-slate-900 hover:bg-black text-white text-sm font-black rounded-xl transition-all shadow-xl">
                     บันทึกรูปแบบ
                 </button>
             </div>
         </div>
 
         <div class="flex-1 flex gap-4 min-h-0">
-            <!-- Sidebar: Config (Thai Labels) -->
+            <!-- Left Sidebar -->
             <aside class="w-72 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 flex-shrink-0">
                 <form id="main-form" method="post" action="<?= e($action) ?>" enctype="multipart/form-data" class="contents">
                     <?= csrfField() ?>
@@ -95,7 +95,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
                         <div>
                             <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">ภาพพื้นหลัง (A4)</label>
                             <div class="relative group">
-                                <div class="w-full aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative transition-all group-hover:border-primary-300">
+                                <div class="w-full aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative">
                                     <img id="sidebar-preview" src="<?= !empty($template['bg_image']) ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="w-full h-full object-cover <?= empty($template['bg_image']) ? 'hidden' : '' ?>">
                                     <div id="sidebar-placeholder" class="text-center <?= !empty($template['bg_image']) ? 'hidden' : '' ?>">
                                         <i class="fas fa-cloud-upload-alt text-2xl text-slate-200 mb-2"></i>
@@ -112,7 +112,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
                         <?php 
                         $opts = [
                             'show_name' => 'ชื่อผู้สอบ',
-                            'show_course' => 'ชื่อโครงการ / หลักสูตร',
+                            'show_course' => 'ชื่อหลักสูตร',
                             'show_certno' => 'เลขที่ใบเซอร์',
                             'show_qr' => 'QR Code',
                             'show_date' => 'วันที่ออก',
@@ -120,7 +120,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
                         ];
                         foreach($opts as $k => $v): ?>
                             <label class="flex items-center justify-between cursor-pointer group">
-                                <span class="text-xs font-bold text-slate-500 group-hover:text-slate-900 transition-colors"><?= $v ?></span>
+                                <span class="text-xs font-bold text-slate-500"><?= $v ?></span>
                                 <div class="relative inline-flex items-center">
                                     <input type="checkbox" name="<?= $k ?>" value="1" <?= !empty($template[$k]) ? 'checked' : '' ?> class="sr-only peer">
                                     <div class="w-8 h-4.5 bg-slate-100 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-primary-500"></div>
@@ -134,29 +134,28 @@ $template = array_merge(templateDefaults(), $template ?? []);
                 </form>
             </aside>
 
-            <!-- Main Canvas: Centralized & Accurate -->
+            <!-- Main Canvas -->
             <div class="flex-1 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center justify-center relative overflow-hidden p-10 shadow-inner">
-                <div id="designer-container" class="relative bg-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] transition-all overflow-hidden border border-slate-200" 
-                     style="width: <?= $template['orientation'] === 'L' ? '800px' : '566px' ?>; aspect-ratio: <?= $template['orientation'] === 'L' ? '1.414/1' : '1/1.414' ?>;">
-                    <img id="designer-bg" src="<?= !empty($template['bg_image']) ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="w-full h-full block select-none pointer-events-none <?= empty($template['bg_image']) ? 'hidden' : '' ?>">
+                <div id="designer-container" class="relative bg-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] transition-all overflow-hidden" 
+                     style="width: <?= $template['orientation'] === 'L' ? '1123px' : '794px' ?>; height: <?= $template['orientation'] === 'L' ? '794px' : '1123px' ?>; transform: scale(0.6);">
+                    <img id="designer-bg" src="<?= !empty($template['bg_image']) ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="absolute inset-0 w-full h-full block select-none pointer-events-none <?= empty($template['bg_image']) ? 'hidden' : '' ?>">
                     <div id="designer-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-200 border-4 border-double border-slate-50 <?= !empty($template['bg_image']) ? 'hidden' : '' ?>">
-                        <i class="fas fa-file-invoice text-5xl mb-4 opacity-20"></i>
                         <p class="font-black text-xs uppercase tracking-[0.3em] opacity-30">Certificate Canvas Area</p>
                     </div>
 
-                    <!-- Draggable Tags -->
+                    <!-- Draggable Elements -->
                     <div id="drag-name" class="designer-tag" data-id="name">ชื่อผู้เข้าสอบ</div>
                     <div id="drag-course" class="designer-tag tag-blue" data-id="course">ชื่อโครงการ / หลักสูตร</div>
                     <div id="drag-date" class="designer-tag tag-green" data-id="date">วันที่</div>
                     <div id="drag-certno" class="designer-tag tag-purple" data-id="certno">เลขที่ใบเซอร์</div>
-                    <div id="drag-qrcode" class="designer-tag tag-dark" data-id="qrcode" style="width: 50px; height: 50px;">QR</div>
+                    <div id="drag-qrcode" class="designer-tag tag-dark" data-id="qrcode" style="width: 100px; height: 100px;">QR</div>
                 </div>
             </div>
 
-            <!-- Properties Sidebar (Thai) -->
+            <!-- Properties Sidebar -->
             <aside class="w-72 flex flex-col gap-4 overflow-y-auto custom-scrollbar pl-1 flex-shrink-0">
                 <div id="properties-panel" class="bg-white rounded-3xl border border-slate-100 p-6 space-y-6 shadow-sm">
-                    <div class="text-[10px] font-black text-primary-500 uppercase tracking-[0.2em]">พารามิเตอร์การจัดวาง</div>
+                    <div class="text-[10px] font-black text-primary-500 uppercase tracking-[0.2em]">Properties</div>
                     
                     <?php 
                     $elements = [
@@ -184,7 +183,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
                             </div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="space-y-1">
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase"><?= $id==='qrcode'?'ขนาด (มม.)':'ขนาดอักษร' ?></label>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase"><?= $id==='qrcode'?'ขนาด (มม.)':'ขนาดอักษร (pt)' ?></label>
                                     <input type="number" id="input-<?= $id ?>-size" oninput="updateFromInputs('<?= $id ?>')" class="w-full bg-slate-50 border-none rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700">
                                 </div>
                                 <?php if($id!=='qrcode'): ?>
@@ -192,7 +191,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
                                     <label class="block text-[9px] font-black text-slate-400 uppercase">การจัดวาง</label>
                                     <select id="input-<?= $id ?>-align" onchange="updateFromInputs('<?= $id ?>')" class="w-full bg-slate-50 border-none rounded-xl px-2 py-2 text-[10px] font-bold text-slate-700 cursor-pointer">
                                         <option value="L">ชิดซ้าย</option>
-                                        <option value="C">กึ่งกลาง</option>
+                                        <option value="C" selected>กึ่งกลาง</option>
                                         <option value="R">ชิดขวา</option>
                                     </select>
                                 </div>
@@ -214,18 +213,15 @@ $template = array_merge(templateDefaults(), $template ?? []);
     <style>
         .designer-tag {
             position: absolute; z-index: 100; cursor: grab; user-select: none;
-            padding: 6px 12px; background: #E87722; color: white; border-radius: 8px;
-            font-size: 11px; font-weight: 800; border: 2px solid white; 
+            padding: 4px 8px; background: #E87722; color: white; border-radius: 4px;
+            font-weight: 800; border: 2px solid white; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.15); white-space: nowrap;
-            /* Anchoring Logic */
-            transform-origin: center center;
-            line-height: 1;
+            line-height: 1; text-align: center;
         }
         .designer-tag.tag-blue { background: #3B82F6; }
         .designer-tag.tag-green { background: #10B981; }
         .designer-tag.tag-purple { background: #8B5CF6; }
         .designer-tag.tag-dark { background: #1F2937; }
-        .designer-tag:active { cursor: grabbing; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
@@ -236,62 +232,71 @@ $template = array_merge(templateDefaults(), $template ?? []);
     const shield = document.getElementById('designer-shield');
     const container = document.getElementById('designer-container');
     const layoutText = document.getElementById('layout_json');
+    
+    // Scale Logic: 1mm = 3.78px (at 96dpi)
+    const MM_TO_PX = 3.7795275591;
     const A4_W = <?= $template['orientation'] === 'L' ? '297' : '210' ?>;
+    const PT_TO_PX = 1.333333; // 1pt = 1.33px
+
     let layout = {};
     try { layout = JSON.parse(layoutText.value || '{}'); } catch(e) { layout = {}; }
 
     function sync() {
-        const ratio = A4_W / container.offsetWidth;
         Object.keys(layout).forEach(id => {
             const el = document.getElementById('drag-' + id);
             if (!el) return;
             
-            let xOffset = 0, yOffset = el.offsetHeight / 2;
-            const align = layout[id].align || 'L';
-            if (align === 'C') xOffset = el.offsetWidth / 2;
-            else if (align === 'R') xOffset = el.offsetWidth;
-
-            layout[id].x = parseFloat(((parseFloat(el.style.left) + xOffset) * ratio).toFixed(2));
-            layout[id].y = parseFloat(((parseFloat(el.style.top) + yOffset) * ratio).toFixed(2));
-
-            // Sync with Inputs
-            ['x', 'y'].forEach(axis => {
-                const input = document.getElementById(`input-${id}-${axis}`);
-                if (input) input.value = layout[id][axis];
-            });
-            const sInput = document.getElementById(`input-${id}-size`);
-            if (sInput) sInput.value = layout[id].size || layout[id].w || 20;
-            const aInput = document.getElementById(`input-${id}-align`);
-            if (aInput) aInput.value = layout[id].align || 'L';
+            // Current input values (X, Y in mm)
+            layout[id].x = parseFloat(document.getElementById(`input-${id}-x`).value || 0);
+            layout[id].y = parseFloat(document.getElementById(`input-${id}-y`).value || 0);
+            
+            if (id === 'qrcode') {
+                layout[id].w = parseFloat(document.getElementById(`input-${id}-size`).value || 28);
+                layout[id].h = layout[id].w;
+            } else {
+                layout[id].size = parseFloat(document.getElementById(`input-${id}-size`).value || 20);
+                layout[id].align = document.getElementById(`input-${id}-align`).value;
+            }
         });
         layoutText.value = JSON.stringify(layout, null, 4);
     }
 
     function init() {
-        const ratio = container.offsetWidth / A4_W;
         Object.keys(layout).forEach(id => {
             const el = document.getElementById('drag-' + id);
             if (!el) return;
 
-            const align = layout[id].align || 'L';
+            const align = layout[id].align || 'C';
             if (align === 'C') el.style.transform = 'translate(-50%, -50%)';
             else if (align === 'R') el.style.transform = 'translate(-100%, -50%)';
             else el.style.transform = 'translate(0, -50%)';
 
-            el.style.left = (layout[id].x * ratio) + 'px';
-            el.style.top = (layout[id].y * ratio) + 'px';
+            // Position in PX
+            el.style.left = (layout[id].x * MM_TO_PX) + 'px';
+            el.style.top = (layout[id].y * MM_TO_PX) + 'px';
             
+            // Size
             if (id === 'qrcode') {
-                el.style.width = (layout[id].w * ratio) + 'px';
-                el.style.height = (layout[id].w * ratio) + 'px';
+                el.style.width = (layout[id].w * MM_TO_PX) + 'px';
+                el.style.height = (layout[id].w * MM_TO_PX) + 'px';
+            } else {
+                // Set font size in PX that matches PT
+                el.style.fontSize = (layout[id].size * PT_TO_PX) + 'px';
             }
-            drag(el);
+            
+            // Sync inputs
+            document.getElementById(`input-${id}-x`).value = layout[id].x;
+            document.getElementById(`input-${id}-y`).value = layout[id].y;
+            document.getElementById(`input-${id}-size`).value = layout[id].size || layout[id].w || 20;
+            if (document.getElementById(`input-${id}-align`)) 
+                document.getElementById(`input-${id}-align`).value = layout[id].align || 'C';
+                
+            drag(el, id);
         });
         sync();
         
-        // Hide Shield
         shield.style.opacity = '0';
-        setTimeout(() => { shield.style.display = 'none'; studio.style.opacity = '1'; }, 700);
+        setTimeout(() => { shield.style.display = 'none'; studio.style.opacity = '1'; }, 500);
     }
 
     function updateFromInputs(id) {
@@ -305,18 +310,43 @@ $template = array_merge(templateDefaults(), $template ?? []);
             layout[id].size = parseFloat(document.getElementById(`input-${id}-size`).value || 20);
             layout[id].align = document.getElementById(`input-${id}-align`).value;
         }
-        init(); 
+        
+        // Immediate Re-render for visual feedback
+        const el = document.getElementById('drag-' + id);
+        const align = layout[id].align || 'C';
+        if (align === 'C') el.style.transform = 'translate(-50%, -50%)';
+        else if (align === 'R') el.style.transform = 'translate(-100%, -50%)';
+        else el.style.transform = 'translate(0, -50%)';
+
+        el.style.left = (layout[id].x * MM_TO_PX) + 'px';
+        el.style.top = (layout[id].y * MM_TO_PX) + 'px';
+        if (id === 'qrcode') {
+            el.style.width = (layout[id].w * MM_TO_PX) + 'px';
+            el.style.height = (layout[id].w * MM_TO_PX) + 'px';
+        } else {
+            el.style.fontSize = (layout[id].size * PT_TO_PX) + 'px';
+        }
+        sync();
     }
 
-    function drag(el) {
+    function drag(el, id) {
         let x1=0, y1=0, x2=0, y2=0;
         el.onmousedown = (e) => {
             x2 = e.clientX; y2 = e.clientY;
             document.onmousemove = (e) => {
                 x1 = x2 - e.clientX; y1 = y2 - e.clientY;
                 x2 = e.clientX; y2 = e.clientY;
-                el.style.left = (el.offsetLeft - x1) + "px";
-                el.style.top = (el.offsetTop - y1) + "px";
+                
+                // New left/top in pixels
+                let newLeft = el.offsetLeft - x1;
+                let newTop = el.offsetTop - y1;
+                
+                el.style.left = newLeft + "px";
+                el.style.top = newTop + "px";
+                
+                // Convert back to MM for inputs
+                document.getElementById(`input-${id}-x`).value = (newLeft / MM_TO_PX).toFixed(1);
+                document.getElementById(`input-${id}-y`).value = (newTop / MM_TO_PX).toFixed(1);
                 sync();
             };
             document.onmouseup = () => { document.onmousemove = null; sync(); };
@@ -330,8 +360,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'ยืนยัน',
-            cancelButtonText: 'ยกเลิก',
-            customClass: { popup: 'rounded-3xl', confirmButton: 'bg-slate-900 px-6 py-2 rounded-xl text-white font-bold', cancelButton: 'text-slate-400 font-bold' }
+            cancelButtonText: 'ยกเลิก'
         }).then((result) => {
             if (result.isConfirmed) {
                 layout = {
@@ -353,8 +382,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'ลบข้อมูล',
-            cancelButtonText: 'ยกเลิก',
-            customClass: { popup: 'rounded-3xl', confirmButton: 'bg-red-500 px-6 py-2 rounded-xl text-white font-bold' }
+            cancelButtonText: 'ยกเลิก'
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');
