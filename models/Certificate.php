@@ -52,6 +52,26 @@ function getCertificateByNumber(string $number): ?array
     return $certificate ?: null;
 }
 
+function searchCertificatesByName(string $name): array
+{
+    $name = '%' . $name . '%';
+    $stmt = getDB()->prepare('
+        SELECT c.*, p.name AS project_name, p.organizer,
+               pt.title, pt.first_name, pt.last_name, pt.organization, pt.position,
+               es.percent, es.score, es.total_score
+        FROM certificates c
+        JOIN projects p ON p.id = c.project_id
+        JOIN participants pt ON pt.id = c.participant_id
+        JOIN exam_sessions es ON es.id = c.session_id
+        WHERE CONCAT(pt.first_name, " ", pt.last_name) LIKE ?
+           OR pt.first_name LIKE ?
+           OR pt.last_name LIKE ?
+        ORDER BY c.issued_date DESC
+    ');
+    $stmt->execute([$name, $name, $name]);
+    return $stmt->fetchAll();
+}
+
 function getCertificateBySession(int $sessionId): ?array
 {
     $stmt = getDB()->prepare('SELECT * FROM certificates WHERE session_id = ? LIMIT 1');

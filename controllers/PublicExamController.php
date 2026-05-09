@@ -142,20 +142,35 @@ class PublicExamController
     {
         $token = trim((string) ($_GET['token'] ?? ''));
         $certificate = null;
+        $results = [];
 
         if ($token !== '') {
-            // Try by token first
+            // 1. Try by token
             $certificate = getCertificateByToken($token);
             
-            // If not found, try by certificate number
+            // 2. Try by certificate number
             if (!$certificate) {
                 $certificate = getCertificateByNumber($token);
+            }
+
+            // 3. Try by name if still not found
+            if (!$certificate) {
+                $results = searchCertificatesByName($token);
+                if (count($results) === 1) {
+                    $certificate = $results[0];
+                }
             }
         }
         
         $mode = 'initial';
         if ($token !== '') {
-            $mode = ($certificate && (int)$certificate['is_revoked'] === 1) ? 'revoked' : ($certificate ? 'valid' : 'invalid');
+            if ($certificate) {
+                $mode = (int)$certificate['is_revoked'] === 1 ? 'revoked' : 'valid';
+            } elseif (count($results) > 1) {
+                $mode = 'list';
+            } else {
+                $mode = 'invalid';
+            }
         }
         
         $bodyClass = "bg-mesh-{$mode} min-h-screen flex flex-col font-sans";
