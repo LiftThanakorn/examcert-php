@@ -7,7 +7,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../src/helpers.php';
+require_once __DIR__ . '/../config/config.php';
 
 $db = getDB();
 
@@ -39,7 +39,7 @@ try {
 
     $questions = [
         ['2 + 2 = ?', 'multiple_choice', '[{"key":"a","text":"3"},{"key":"b","text":"4"},{"key":"c","text":"5"},{"key":"d","text":"6"}]', 'b'],
-        ['PHP ใช้ PDO เชื่อมฐานข้อมูลได้', 'true_false', '[{"key":"true","text":"ถูก"},{"key":"false","text":"ผิด"}]', 'true'],
+        ['PHP สามารถใช้ PDO เชื่อมต่อฐานข้อมูลได้', 'true_false', '[{"key":"true","text":"ถูก"},{"key":"false","text":"ผิด"}]', 'true'],
     ];
 
     foreach ($questions as $index => $q) {
@@ -62,4 +62,3 @@ try {
     echo "Seed sample failed.\n";
     exit(1);
 }
-

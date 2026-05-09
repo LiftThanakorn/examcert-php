@@ -8,7 +8,6 @@ if (PHP_SAPI !== 'cli') {
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../src/helpers.php';
 
 $schemaFile = __DIR__ . '/../database/schema.sql';
 if (!is_file($schemaFile)) {

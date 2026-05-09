@@ -1,34 +1,77 @@
 <?php
 $pageTitle = $pageTitle ?? APP_NAME;
+$bodyClass = $bodyClass ?? 'bg-[#F9F8F6] font-sans text-gray-900';
+$bodyAttrs = $bodyAttrs ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle) ?> | <?= e(APP_NAME) ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: { 50: '#FAEEDA', 100: '#FFF3E8', 600: '#E87722', 700: '#C4601A' },
-                        gray: {
-                            50: '#F9F8F6', 100: '#F1EFE8', 200: '#D3D1C7',
-                            400: '#888780', 600: '#5F5E5A', 900: '#1A1A1A'
-                        },
-                        success: { 50: '#EAF3DE', 600: '#3B6D11' },
-                        danger: { 50: '#FCEBEB', 600: '#A32D2D' },
-                        info: { 50: '#E6F1FB', 600: '#185FA5' }
-                    },
-                    fontFamily: { sans: ['Sarabun', 'Noto Sans Thai', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-</head>
-<body class="bg-gray-50 font-sans text-base leading-relaxed text-gray-900">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><?= e($pageTitle) ?> - <?= e(APP_NAME) ?></title>
+  <meta name="base-url" content="<?= e(BASE_URL) ?>">
+  <meta name="csrf-token" content="<?= e(generateCsrfToken()) ?>">
 
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#FFF3E8',
+              100: '#FAEEDA',
+              200: '#FAC775',
+              300: '#EF9F27',
+              400: '#E87722',
+              500: '#C4601A',
+              600: '#9E4A12',
+              700: '#7A360C',
+              800: '#633806',
+              900: '#412402'
+            },
+            sidebar: '#1A1A1A'
+          },
+          fontFamily: {
+            sans: ['Sarabun', 'Noto Sans Thai', 'Outfit', 'sans-serif'],
+            outfit: ['Outfit', 'sans-serif'],
+            sarabun: ['Sarabun', 'sans-serif']
+          },
+          fontSize: {
+            xxs: '0.65rem'
+          },
+          boxShadow: {
+            card: '0 1px 4px rgba(0,0,0,0.07)',
+            'card-hover': '0 4px 16px rgba(0,0,0,0.10)',
+            orange: '0 0 0 3px rgba(232,119,34,0.18)'
+          }
+        }
+      }
+    };
+    window.CSRF_TOKEN = '<?= generateCsrfToken() ?>';
+    window.BASE_URL = '<?= BASE_URL ?>';
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700;800&family=Kanit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Mitr:wght@300;400;500&family=Chakra+Petch:wght@300;400;500;600;700&family=Srisakdi:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <style>
+    @keyframes fadeUp { 
+      from { opacity: 0; transform: translateY(10px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
+    .fade-up { animation: fadeUp 0.4s ease-out both; }
+    .fade-up-1 { animation-delay: 0.05s; }
+    .fade-up-2 { animation-delay: 0.10s; }
+    .fade-up-3 { animation-delay: 0.15s; }
+    .fade-up-4 { animation-delay: 0.20s; }
+    .fade-up-5 { animation-delay: 0.25s; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/app.css?v=<?= time() ?>">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body class="<?= e($bodyClass) ?>" <?= $bodyAttrs ?>>

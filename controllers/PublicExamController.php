@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-require_once ROOT_PATH . '/src/Exam.php';
-require_once ROOT_PATH . '/src/Certificate.php';
+require_once ROOT_PATH . '/models/ExamSession.php';
+require_once ROOT_PATH . '/models/Certificate.php';
 
 class PublicExamController
 {
@@ -21,7 +21,7 @@ class PublicExamController
                 $participant = $project ? getParticipantByToken((int) $project['id'], trim((string) ($_POST['access_token'] ?? ''))) : null;
 
                 if (!$project || !$participant) {
-                    $error = 'ไม่พบโครงการหรือ token ไม่ถูกต้อง';
+                    $error = 'ไม่พบโครงการหรือ Token ไม่ถูกต้อง';
                 } else {
                     $result = startExamSession($project, $participant);
                     if ($result['success']) {
@@ -33,7 +33,7 @@ class PublicExamController
         }
 
         $pageTitle = 'เข้าสอบ';
-        require VIEWS_PATH . '/public/exam.php';
+        require VIEWS_PATH . '/exam/entry.php';
     }
 
     public function take(): void
@@ -47,14 +47,17 @@ class PublicExamController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!validateCsrfToken($_POST['csrf_token'] ?? null)) {
-                exit('Bad request.');
+                http_response_code(400);
+                echo 'Bad request.';
+                exit;
             }
 
             $result = submitExamSession($sessionId, $_POST['answers'] ?? []);
             if ($result['success']) {
                 redirect('public/result.php?session_id=' . $sessionId);
             }
-            exit(e($result['message']));
+            echo e($result['message']);
+            exit;
         }
 
         if ($session['status'] !== 'in_progress') {
@@ -62,11 +65,12 @@ class PublicExamController
         }
 
         $project = getProject((int) $session['project_id']);
+        $participant = getParticipant((int) $session['participant_id']);
         $questions = getSessionQuestions($session);
         $secondsLeft = max(0, strtotime((string) $session['expires_at']) - time());
         $pageTitle = 'ทำข้อสอบ';
 
-        require VIEWS_PATH . '/public/take-exam.php';
+        require VIEWS_PATH . '/exam/start.php';
     }
 
     public function result(): void
@@ -79,17 +83,19 @@ class PublicExamController
         }
 
         $project = getProject((int) $session['project_id']);
+        $participant = getParticipant((int) $session['participant_id']);
+        $certificate = $session['result'] === 'pass' ? getCertificateBySession($sessionId) : null;
         $pageTitle = 'ผลสอบ';
 
-        require VIEWS_PATH . '/public/result.php';
+        require VIEWS_PATH . '/exam/result.php';
     }
 
     public function verify(): void
     {
         $token = trim((string) ($_GET['token'] ?? ''));
         $certificate = $token !== '' ? getCertificateByToken($token) : null;
-        $pageTitle = 'Verify Certificate';
+        $pageTitle = 'ตรวจสอบเกียรติบัตร';
 
-        require VIEWS_PATH . '/public/verify.php';
+        require VIEWS_PATH . '/certificates/verify.php';
     }
 }

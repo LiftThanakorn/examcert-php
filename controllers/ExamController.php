@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-require_once ROOT_PATH . '/src/Auth.php';
-require_once ROOT_PATH . '/src/Exam.php';
+require_once ROOT_PATH . '/models/Admin.php';
+require_once ROOT_PATH . '/models/ExamSession.php';
 
 class ExamController
 {
@@ -11,7 +11,8 @@ class ExamController
         requireLogin();
 
         $sessions = getAdminExamSessions();
-        $pageTitle = 'Exam Sessions';
+        $pageTitle = 'ประวัติการเข้าสอบ';
+        $breadcrumb = ['Dashboard', 'ผลการสอบ'];
         $viewFile = VIEWS_PATH . '/exam-sessions/index.php';
 
         require VIEWS_PATH . '/layout/admin.php';

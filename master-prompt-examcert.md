@@ -1,4 +1,4 @@
-# Master Prompt — ระบบทำข้อสอบและออกใบเซอร์ (ExamCert Standalone v1)
+﻿# Master Prompt — ระบบทำข้อสอบและออกใบเซอร์ (ExamCert Standalone v1)
 
 ---
 
@@ -163,96 +163,198 @@ fontFamily: {
 - **Sidebar**: `bg-gray-900`, active item: `bg-primary-600 text-white`
 - **Page background**: `bg-gray-50`
 
+### Tailwind CDN Setup + Custom Config (from master-prompt 2)
+Use in `views/layout/header.php` when running Tailwind via CDN:
+
+```html
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: {
+            50: '#FFF3E8',
+            100: '#FAEEDA',
+            200: '#FAC775',
+            300: '#EF9F27',
+            400: '#E87722',
+            500: '#C4601A',
+            600: '#9E4A12',
+            700: '#7A360C',
+            800: '#633806',
+            900: '#412402',
+          },
+          sidebar: '#1A1A1A',
+        },
+        fontFamily: { sans: ['Sarabun', 'Noto Sans Thai', 'sans-serif'] },
+        fontSize: { xxs: '0.65rem' },
+        boxShadow: {
+          card: '0 1px 4px rgba(0,0,0,0.07)',
+          'card-hover': '0 4px 16px rgba(0,0,0,0.10)',
+          orange: '0 0 0 3px rgba(232,119,34,0.18)',
+        },
+      },
+    },
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/custom.css">
+```
+
+### Color Reference (Tailwind Classes)
+| Meaning | Tailwind Class |
+|---|---|
+| Primary orange | `bg-primary-400` / `text-primary-400` / `border-primary-400` |
+| Orange hover | `hover:bg-primary-500` |
+| Light orange background | `bg-primary-50` |
+| Orange tint | `bg-primary-100` |
+| Sidebar background | `bg-sidebar` |
+| Page background | `bg-[#F9F8F6]` |
+| Card background | `bg-white` |
+| Success | `bg-green-50 text-green-700` |
+| Danger | `bg-red-50 text-red-600` |
+| Info | `bg-blue-50 text-blue-700` |
+
+### Component Classes (Prompt 2 Pattern)
+```text
+Card:          bg-white rounded-xl border border-gray-100 shadow-card p-5
+Button primary: bg-primary-400 hover:bg-primary-500 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors
+Button outline: bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg px-4 py-2 text-sm
+Input:         border border-gray-200 rounded-xl h-10 px-3 text-sm focus:outline-none focus:border-primary-400 focus:ring-[3px] focus:ring-primary-400/20
+Badge green:   bg-green-50 text-green-700 text-xxs font-medium px-2.5 py-1 rounded-full
+Badge orange:  bg-primary-100 text-primary-800 text-xxs font-medium px-2.5 py-1 rounded-full
+Badge gray:    bg-gray-100 text-gray-500 text-xxs font-medium px-2.5 py-1 rounded-full
+Sidebar width: w-56  (224px)
+Content area:  ml-56 pt-14 min-h-screen bg-[#F9F8F6]
+```
+
+### Custom CSS Notes (`assets/css/custom.css`)
+```css
+body { font-family: 'Sarabun', 'Noto Sans Thai', sans-serif; -webkit-font-smoothing: antialiased; }
+input:focus, select:focus, textarea:focus { outline: none; }
+.swal2-confirm { background-color: #E87722 !important; }
+.swal2-popup { font-family: 'Sarabun', sans-serif !important; border-radius: 12px !important; }
+.exam-option input[type="radio"]:checked + label { border-color: #E87722; background-color: #FFF3E8; }
+.exam-option input[type="radio"]:checked + label .option-marker { background-color: #E87722; color: #fff; }
+@keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+.timer-danger { animation: timerPulse 1s ease-in-out infinite; }
+.progress-bar-fill { transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+.cert-preview-wrapper { aspect-ratio: 1.414/1; position: relative; overflow: hidden; }
+```
+
+> See additional component patterns in `frontend-guide-examcert.md`.
+
 ---
 
 ## 🏗️ โครงสร้างโฟลเดอร์ (ใช้โครงสร้างนี้เสมอ)
 
 ```
 examcert/
-├── index.php                    # Entry point / Router
-├── config/
-│   ├── database.php             # PDO connection
-│   ├── config.php               # App constants (BASE_URL, APP_NAME ฯลฯ)
-│   └── session.php              # Session management
-├── controllers/
-│   ├── AuthController.php
-│   ├── ProjectController.php
-│   ├── ParticipantController.php
-│   ├── QuestionController.php
-│   ├── ExamController.php
-│   ├── CertificateController.php
-│   ├── TemplateController.php
-│   └── ReportController.php
-├── models/
-│   ├── BaseModel.php            # PDO wrapper methods
-│   ├── Project.php
-│   ├── Participant.php
-│   ├── Question.php
-│   ├── ExamSession.php
-│   ├── AnswerLog.php
-│   ├── Certificate.php
-│   ├── CertTemplate.php
-│   └── Admin.php
-├── views/
-│   ├── layout/
-│   │   ├── header.php           # HTML head + CSS
-│   │   ├── sidebar.php          # Admin sidebar nav
-│   │   ├── topbar.php           # Top navigation bar
-│   │   └── footer.php           # JS includes + closing tags
-│   ├── auth/
-│   │   └── login.php
-│   ├── dashboard/
-│   │   └── index.php
-│   ├── projects/
-│   │   ├── index.php            # List
-│   │   ├── create.php           # Create/Edit form
-│   │   └── detail.php           # Project detail + stats
-│   ├── participants/
-│   │   ├── index.php            # Whitelist management
-│   │   └── import.php           # Import Excel
-│   ├── questions/
-│   │   ├── index.php            # Question bank
-│   │   └── form.php             # Add/Edit question
-│   ├── exam/
-│   │   ├── entry.php            # หน้ากรอกชื่อ (สำหรับผู้เข้าสอบ)
-│   │   ├── verify.php           # ตรวจ Whitelist
-│   │   ├── start.php            # หน้าทำข้อสอบ
-│   │   └── result.php           # ผลการสอบ
-│   ├── certificates/
-│   │   ├── index.php            # Certificate management
-│   │   ├── templates.php        # Template gallery
-│   │   └── verify.php           # Public verify page
-│   └── reports/
-│       └── index.php
-├── assets/
-│   ├── css/
-│   │   ├── globals.css          # CSS Variables + @tailwind directives
-│   │   └── custom.css           # Custom component classes & overrides
-│   ├── js/
-│   │   ├── app.js               # Global JS + AJAX helpers
-│   │   ├── exam.js              # Timer, question navigation
-│   │   └── admin.js             # Admin panel interactions
-│   └── img/
-│       ├── logo.png
-│       └── cert-templates/      # Template background images
-├── uploads/
-│   ├── certificates/            # Generated PDF files
-│   ├── templates/               # Template backgrounds
-│   └── signatures/              # Signature images
-├── lib/
-│   ├── tcpdf/                   # TCPDF library
-│   ├── phpqrcode/               # QR Code library
-│   └── PhpSpreadsheet/          # For Excel import
-├── api/
-│   ├── exam.php                 # AJAX endpoints สำหรับ exam
-│   ├── participant.php          # AJAX participant lookup
-│   └── certificate.php         # AJAX certificate actions
-├── database/
-│   └── schema.sql               # Full database schema
-├── tailwind.config.js           # Tailwind CSS configuration
-├── postcss.config.js            # PostCSS + Tailwind setup
-└── .htaccess                    # URL rewriting rules
+|-- index.php                    # Entry point / Router
+|-- config/
+|   |-- database.php             # PDO connection
+|   |-- config.php               # App constants, helpers, CSRF, flash, logging
+|   `-- session.php              # Session management + security headers
+|-- controllers/
+|   |-- AuthController.php
+|   |-- DashboardController.php
+|   |-- ProjectController.php
+|   |-- ParticipantController.php
+|   |-- QuestionController.php
+|   |-- ExamController.php
+|   |-- PublicExamController.php
+|   |-- CertificateController.php
+|   |-- TemplateController.php
+|   `-- ReportController.php
+|-- models/
+|   |-- BaseModel.php            # PDO wrapper methods
+|   |-- Project.php
+|   |-- Participant.php
+|   |-- Question.php
+|   |-- ExamSession.php
+|   |-- AnswerLog.php
+|   |-- Certificate.php
+|   |-- CertTemplate.php
+|   `-- Admin.php
+|-- views/
+|   |-- layout/
+|   |   |-- header.php           # HTML head + CSS
+|   |   |-- sidebar.php          # Admin sidebar nav
+|   |   |-- topbar.php           # Top navigation bar
+|   |   `-- footer.php           # JS includes + closing tags
+|   |-- auth/
+|   |   `-- login.php
+|   |-- dashboard/
+|   |   `-- index.php
+|   |-- projects/
+|   |   |-- index.php            # List
+|   |   |-- create.php           # Create/Edit form
+|   |   `-- detail.php           # Project detail + stats
+|   |-- participants/
+|   |   |-- index.php            # Whitelist management + create/edit form
+|   |   `-- import.php           # Import Excel
+|   |-- questions/
+|   |   |-- index.php            # Question bank
+|   |   `-- form.php             # Add/Edit question
+|   |-- exam-sessions/
+|   |   `-- index.php            # Admin session view & export
+|   |-- exam/
+|   |   |-- entry.php            # Public entry page
+|   |   |-- verify.php           # Whitelist verification state
+|   |   |-- start.php            # Exam interface
+|   |   `-- result.php           # Exam result
+|   |-- certificates/
+|   |   |-- index.php            # Certificate management
+|   |   |-- templates.php        # Template gallery
+|   |   `-- verify.php           # Public verify page
+|   `-- reports/
+|       `-- index.php
+|-- assets/
+|   |-- css/
+|   |   |-- globals.css          # CSS Variables + @tailwind directives
+|   |   |-- custom.css           # Custom component classes & overrides
+|   |   `-- input.css            # Tailwind build input when using CLI build
+|   |-- js/
+|   |   |-- app.js               # Global JS + AJAX helpers
+|   |   |-- exam.js              # Timer, question navigation
+|   |   `-- admin.js             # Admin panel interactions
+|   `-- img/
+|       |-- logo.png
+|       `-- cert-templates/      # Template background images
+|-- uploads/
+|   |-- certificates/            # Generated PDF/HTML certificate files
+|   |-- templates/               # Template backgrounds
+|   `-- signatures/              # Signature images
+|-- lib/
+|   |-- tcpdf/                   # TCPDF library
+|   |-- phpqrcode/               # QR Code library
+|   `-- PhpSpreadsheet/          # For Excel import
+|-- api/
+|   |-- exam.php                 # AJAX endpoints for exam
+|   |-- participant.php          # AJAX participant lookup
+|   `-- certificate.php          # AJAX certificate actions
+|-- database/
+|   `-- schema.sql               # Full database schema
+|-- setup/                       # Local/CLI setup and sample data scripts
+|   |-- install.php
+|   |-- create-admin.php
+|   `-- seed-sample.php
+|-- tailwind.config.js           # Tailwind CSS configuration
+|-- postcss.config.js            # PostCSS + Tailwind setup
+`-- .htaccess                    # URL rewriting rules
 ```
+
+### Architecture Note (Front Controller)
+ระบบใช้ `index.php` เป็น Front Controller เพื่อรักษา URL เดิม เช่น `/admin/login.php`, `/admin/projects/`, และ `/public/exam.php` โดยไม่ต้องมีไฟล์ wrapper จริงใน `admin/` หรือ `public/`.
+
+- ห้ามเขียน Business Logic หรือ HTML ใน route wrapper/entry point
+- ให้ใส่ logic ใน `controllers/` และ `models/`
+- ให้ใส่ rendering ใน `views/`
+- `setup/`, `.agents/`, `WORKLOG.md`, `SETUP-LOCAL.md`, และ prompt files เป็น development tooling/documentation นอก runtime หลัก
 
 ---
 
@@ -465,8 +567,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 ### Whitelist Verification (ผู้เข้าสอบ)
 ```
 1. ผู้สอบกรอก: คำนำหน้า + ชื่อ + นามสกุล + รหัสโครงการ
-2. Query: SELECT * FROM participants 
-          WHERE project_id = ? 
+2. Query: SELECT * FROM participants
+          WHERE project_id = ?
           AND LOWER(TRIM(first_name)) = LOWER(TRIM(?))
           AND LOWER(TRIM(last_name)) = LOWER(TRIM(?))
 3. ถ้าพบ → ตรวจสอบ max_attempts → สร้าง exam_session → set $_SESSION
@@ -552,20 +654,20 @@ function generateCertNumber($project) {
 class ProjectController {
     private $db;
     private $model;
-    
+
     public function __construct($db) {
         $this->db    = $db;
         $this->model = new Project($db);
         $this->requireAuth(); // ทุก admin controller
     }
-    
+
     private function requireAuth() {
         if (empty($_SESSION['admin_id'])) {
             header('Location: ' . BASE_URL . '/login');
             exit;
         }
     }
-    
+
     public function index() {
         $projects = $this->model->getAll();
         require_once VIEWS_PATH . '/projects/index.php';
@@ -578,15 +680,15 @@ class ProjectController {
 class BaseModel {
     protected $db;
     protected $table;
-    
+
     public function __construct($db) { $this->db = $db; }
-    
+
     public function find($id) {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
+
     public function findAll($where = '', $params = []) { ... }
     public function insert($data) { ... }
     public function update($id, $data) { ... }
@@ -625,6 +727,23 @@ function jsonResponse($success, $message = '', $data = []) {
     echo json_encode(['success' => $success, 'message' => $message, 'data' => $data]);
     exit;
 }
+```
+
+---
+
+### layout/footer.php - JS CDN Includes (from master-prompt 2)
+```html
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <?php if ($useCharts ?? false): ?>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <?php endif; ?>
+  <meta name="base-url" content="<?= BASE_URL ?>">
+  <meta name="csrf-token" content="<?= $_SESSION['csrf_token'] ?? '' ?>">
+  <script src="<?= BASE_URL ?>/assets/js/app.js"></script>
+  <?php if (!empty($pageScripts)) echo $pageScripts; ?>
+</body>
+</html>
 ```
 
 ---
@@ -705,20 +824,32 @@ Tech Stack: PHP PDO + MySQL + jQuery + SweetAlert2 + Tailwind CSS
 
 ---
 
+## 🛠️ Local Setup & Testing
+
+หากต้องการทดสอบระบบใน Local Environment ให้ดูคำแนะนำแบบละเอียดในไฟล์ `SETUP-LOCAL.md`
+คำสั่งพื้นฐานผ่าน CLI (ต้องใช้ PHP CLI):
+- **ติดตั้ง Database:** `php setup/install.php`
+- **สร้าง Super Admin:** `php setup/create-admin.php admin password123`
+- **เพิ่มข้อมูลตัวอย่าง:** `php setup/seed-sample.php` (จะได้โปรเจกต์และข้อสอบตัวอย่างทันที)
+
+---
+
 ## Development Milestones — Standalone v1
 
 ให้พัฒนา ExamCert ทีละ milestone และทำ Git checkpoint หลังจบแต่ละ milestone เมื่อผู้ใช้อนุญาต
 
-1. **Foundation**: config, database connection, session, helpers, CSRF, layout, routing, error logging
-2. **Admin Authentication**: login/logout, password hashing, session regeneration, protected admin pages
-3. **Project Management**: CRUD โครงการสอบ, schedule, pass score, attempts, time limit, certificate template binding
-4. **Participant Whitelist**: เพิ่ม/แก้ไข/ลบ/นำเข้าผู้มีสิทธิ์สอบ, access token, ตรวจสิทธิ์ก่อนเข้าสอบ
-5. **Question Bank**: CRUD ข้อสอบ, choices JSON, correct answer, category, difficulty, randomization
-6. **Exam Engine**: entry, verify, start session, timer, answer save/submit, server-side time validation
-7. **Scoring and Result**: answer logs, calculate score, percent, pass/fail result, attempt limits
-8. **Certificate Engine**: cert templates, cert number, PDF generation, QR code, file storage, download tracking
-9. **Public Verification**: verify token page, revoked certificate handling, safe public output
-10. **Dashboard and Reports**: project stats, pass rate, score distribution, export-ready summaries
+**สถานะปัจจุบัน (อัปเดตล่าสุด):** Milestone 1-10 ทำเสร็จแล้ว ✅ ปัจจุบันอยู่ในช่วง **"Local setup testing & Fixing runtime bugs"**
+
+- [x] 1. **Foundation**: config, database connection, session, helpers, CSRF, layout, routing, error logging
+- [x] 2. **Admin Authentication**: login/logout, password hashing, session regeneration, protected admin pages
+- [x] 3. **Project Management**: CRUD โครงการสอบ, schedule, pass score, attempts, time limit, certificate template binding
+- [x] 4. **Participant Whitelist**: เพิ่ม/แก้ไข/ลบ/นำเข้าผู้มีสิทธิ์สอบ, access token, ตรวจสิทธิ์ก่อนเข้าสอบ
+- [x] 5. **Question Bank**: CRUD ข้อสอบ, choices JSON, correct answer, category, difficulty, randomization
+- [x] 6. **Exam Engine**: entry, verify, start session, timer, answer save/submit, server-side time validation
+- [x] 7. **Scoring and Result**: answer logs, calculate score, percent, pass/fail result, attempt limits
+- [x] 8. **Certificate Engine**: cert templates, cert number, PDF generation, QR code, file storage, download tracking
+- [x] 9. **Public Verification**: verify token page, revoked certificate handling, safe public output
+- [x] 10. **Dashboard and Reports**: project stats, pass rate, score distribution, export-ready summaries
 
 ---
 
@@ -805,14 +936,14 @@ npm run watch:css
 
 <div class="min-h-screen bg-gray-50 p-6">
   <h1 class="text-3xl font-semibold text-gray-900 mb-6">Dashboard</h1>
-  
+
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     <div class="card">
       <p class="text-gray-600 text-sm">Total Projects</p>
       <p class="text-3xl font-bold text-primary-600">24</p>
     </div>
   </div>
-  
+
   <button class="btn-primary mt-6">สร้างโครงการใหม่</button>
 </div>
 ```
@@ -927,7 +1058,7 @@ class ExamScheduleHelper {
     public static function forceStatus(PDO $db, int $projectId, string $newStatus): bool {
         // newStatus: 'active' | 'closed'
         $stmt = $db->prepare("
-            UPDATE projects 
+            UPDATE projects
             SET status = ?, manual_override = 1, updated_at = NOW()
             WHERE id = ?
         ");
