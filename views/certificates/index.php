@@ -52,9 +52,12 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <a class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-primary-400 hover:border-primary-200 hover:bg-primary-50/50 transition-all" title="ดาวน์โหลด" href="<?= e(BASE_URL) ?>/admin/certificates/download.php?token=<?= e($cert['verify_token']) ?>">
+                                <button type="button" 
+                                        class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-primary-400 hover:border-primary-200 hover:bg-primary-50/50 transition-all btn-download-admin" 
+                                        title="ดาวน์โหลด" 
+                                        onclick="adminDownload('<?= e($cert['verify_token']) ?>', this)">
                                     <i class="fas fa-download text-xs"></i>
-                                </a>
+                                </button>
                                 <a class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-200 hover:bg-blue-50/50 transition-all" title="ตรวจสอบ" href="<?= e($cert['verify_url']) ?>" target="_blank">
                                     <i class="fas fa-external-link-alt text-xs"></i>
                                 </a>
@@ -89,3 +92,33 @@
         </table>
     </div>
 </div>
+
+<!-- Hidden Iframe for high-precision rendering -->
+<iframe id="admin-download-iframe" style="display:none;"></iframe>
+
+<script>
+    function adminDownload(token, btn) {
+        const iframe = document.getElementById('admin-download-iframe');
+        const originalHTML = btn.innerHTML;
+        
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
+        btn.disabled = true;
+
+        const renderUrl = "<?= e(BASE_URL) ?>/public/render-cert.php?token=" + token + "&download=1";
+        iframe.src = renderUrl;
+
+        // Reset button after 10 seconds (fail-safe)
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }, 10000);
+
+        // Listen for completion message from iframe
+        window.onmessage = function(e) {
+            if (e.data === 'download_complete') {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        };
+    }
+</script>
