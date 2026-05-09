@@ -125,6 +125,8 @@ class PublicExamController
         require VIEWS_PATH . '/layout/header.php';
         require VIEWS_PATH . '/certificates/verify.php';
         require VIEWS_PATH . '/layout/footer.php';
+    }
+
     public function downloadCertificate(): void
     {
         $token = trim((string) ($_GET['token'] ?? ''));

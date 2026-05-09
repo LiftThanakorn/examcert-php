@@ -670,7 +670,8 @@ Completed:
 - **Auto-Issuance**: Implemented automatic certificate generation upon passing an exam.
 - **Public Download**: Added a public endpoint and a button on the verification page to allow direct PDF downloads via tokens.
 - **UI Refactoring**: Cleaned up redundant HTML structures and standardized centering.
-- **Bug Fix**: Resolved Fatal Error "Call to undefined function getExamSession()" by adding missing `require_once` in `models/Certificate.php`.
+- **Bug Fix**: Resolved Fatal Error "Call to undefined function getExamSession()".
+- **Bug Fix**: Fixed syntax error in `PublicExamController.php` (missing closing brace).
 - **Question Logic**: Added the missing `is_active` toggle to the question management form.
 - **Workflow Documentation**: Created **`workflow.md`** to outline the complete operational lifecycle of the system.
 - **Branding & Alignment**: Fixed centering issues and background rendering on entry and result pages.
