@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Reusable Swal Toast function
     const swalToast = Swal.mixin({
       toast: true,
-      position: 'bottom',
+      position: 'top-end',
       showConfirmButton: false,
       timer: 2500,
       timerProgressBar: true,

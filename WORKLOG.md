@@ -798,5 +798,33 @@ Notes:
   - Implemented **Smooth Scrolling** for the "Enter Exam Room" navigation button.
   - Standardized landing page styles and animations for a more premium feel.
 
+## 2026-05-09 - Public Verification & UI/UX Modernization
+
+### Completed:
+- **Verification System Overhaul**:
+  - Redesigned `views/certificates/verify.php` with a state-driven UI (Initial, Valid, Invalid, Revoked, and List).
+  - Implemented **Name Search**: Users can now search for their certificates by First Name, Last Name, or Full Name.
+  - Added **List Mode**: If multiple certificates are found for a name, a clean list is displayed for selection.
+  - Supported dual-mode search by both **Verify Token** and **Certificate Number**.
+- **UI/UX & Branding**:
+  - Replaced the legacy footer in the verify page with the **Premium Footer** from the Landing page, including developer credits for "Thanakorn Inthaphan".
+  - Switched from custom toasts to **SweetAlert2** for all system notifications.
+  - Positioned notifications at **Top-End (Right Corner)** for a more professional enterprise feel.
+  - Removed the "fake CSS cert frame" to focus on clean information display and direct PDF downloads.
+- **Stability & Bug Fixes**:
+  - Fixed **JavaScript Timing Issue**: Wrapped all scripts in `DOMContentLoaded` to ensure `Swal` is loaded before execution.
+  - Fixed **UI Overlapping**: Reorganized the PHP logic in `verify.php` to prevent multiple states from rendering simultaneously.
+  - Added `searchCertificatesByName()` to `models/Certificate.php`.
+  - Updated `PublicExamController::verify()` to handle name search results.
+
+### Verification:
+- Verified name search returns a list when multiple results exist.
+- Verified exact token/cert number search bypasses the list and goes straight to the valid state.
+- Verified SweetAlert2 toasts appear in the top-right corner.
+- Verified PDF download button triggers the correct generation flow.
+
+Next:
+- Final E2E system walkthrough and production deployment readiness check.
+
 Next:
 - Production deployment and load testing.
