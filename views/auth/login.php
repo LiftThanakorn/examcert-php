@@ -23,7 +23,7 @@
     <main class="min-h-screen grid place-items-center px-4">
         <section class="w-full max-w-md bg-white border border-gray-200 rounded-lg shadow-sm p-8">
             <div class="mb-6">
-                <p class="text-sm font-medium text-primary-600">ExamCert Admin</p>
+                <p class="text-sm font-medium text-primary-600">ระบบสอบออนไลน์</p>
                 <h1 class="text-2xl font-semibold mt-1">เข้าสู่ระบบผู้ดูแล</h1>
             </div>
 
@@ -51,6 +51,13 @@
                 </button>
             </form>
         </section>
+
+        <!-- Developer Credits -->
+        <div class="mt-8 text-center text-xs text-gray-400">
+            <p class="font-semibold text-gray-500 mb-1">พัฒนาระบบโดย นายธนากร อินทพันธ์</p>
+            <p>ตำแหน่งบุคลากร สังกัดงานบริหารทรัพยากรบุคคลและนิติการ</p>
+            <p>มหาวิทยาลัยราชภัฏร้อยเอ็ด</p>
+        </div>
     </main>
 </body>
 </html>

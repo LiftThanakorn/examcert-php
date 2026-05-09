@@ -8,8 +8,8 @@
         <i class="fas fa-award"></i>
       </div>
       <div>
-        <p class="text-white font-semibold text-sm leading-tight">ExamCert</p>
-        <p class="text-white/40 text-xxs">Admin Panel</p>
+        <p class="text-white font-semibold text-[13px] leading-tight">ระบบสอบออนไลน์</p>
+        <p class="text-white/40 text-[10px]">ม.ราชภัฏร้อยเอ็ด</p>
       </div>
     </div>
   </div>

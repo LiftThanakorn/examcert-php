@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-define('APP_NAME', 'ExamCert');
+define('APP_NAME', 'ระบบสอบออนไลน์ มหาวิทยาลัยราชภัฏร้อยเอ็ด');
 define('BASE_URL', 'http://localhost/examcert-php');
 define('ROOT_PATH', dirname(__DIR__));
 define('VIEWS_PATH', ROOT_PATH . '/views');

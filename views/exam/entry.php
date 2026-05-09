@@ -43,7 +43,8 @@
         </div>
 
         <div class="text-center mt-8">
-            <p class="text-white/50 text-sm">Powered by ExamCert Standalone v1</p>
+            <p class="text-white/70 text-sm">ระบบสอบออนไลน์ มหาวิทยาลัยราชภัฏร้อยเอ็ด</p>
+            <p class="text-white/40 text-xs mt-1">พัฒนาระบบโดย นายธนากร อินทพันธ์</p>
         </div>
     </div>
 </div>
