@@ -43,7 +43,7 @@
         </div>
 
         <div class="text-center mt-8">
-            <p class="text-white/70 text-sm">ระบบสอบออนไลน์ มหาวิทยาลัยราชภัฏร้อยเอ็ด</p>
+            <p class="text-white/70 text-sm">ระบบสอบออนไลน์พร้อมออกใบเกียรติบัตร สำหรับบุคลากรมหาวิทยาลัยราชภัฏร้อยเอ็ด</p>
             <p class="text-white/40 text-xs mt-1">พัฒนาระบบโดย นายธนากร อินทพันธ์</p>
         </div>
     </div>

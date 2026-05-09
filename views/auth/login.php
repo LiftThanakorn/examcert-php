@@ -23,7 +23,7 @@
     <main class="min-h-screen grid place-items-center px-4">
         <section class="w-full max-w-md bg-white border border-gray-200 rounded-lg shadow-sm p-8">
             <div class="mb-6">
-                <p class="text-sm font-medium text-primary-600">ระบบสอบออนไลน์</p>
+                <p class="text-sm font-medium text-primary-600">ระบบสอบออนไลน์พร้อมออกใบเกียรติบัตร</p>
                 <h1 class="text-2xl font-semibold mt-1">เข้าสู่ระบบผู้ดูแล</h1>
             </div>
 
