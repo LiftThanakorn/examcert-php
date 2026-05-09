@@ -149,4 +149,3 @@ class ParticipantController
         require VIEWS_PATH . '/layout/admin.php';
     }
 }
-}
