@@ -128,6 +128,18 @@ class PublicExamController
         require VIEWS_PATH . '/layout/footer.php';
     }
 
+    public function renderCertificate(): void
+    {
+        $token = trim((string) ($_GET['token'] ?? ''));
+        $certificate = $token !== '' ? getCertificateByToken($token) : null;
+        if (!$certificate) {
+            http_response_code(404);
+            exit('Certificate not found.');
+        }
+        $template = getCertificateTemplate((int) ($certificate['template_id'] ?: 1));
+        require VIEWS_PATH . '/certificates/render.php';
+    }
+
     public function downloadCertificate(): void
     {
         $token = trim((string) ($_GET['token'] ?? ''));

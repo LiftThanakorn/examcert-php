@@ -14,7 +14,7 @@
         </div>
         
         <?php if ($certificate && (int) $certificate['is_revoked'] === 0): ?>
-            <button id="btn-download" onclick="downloadPDF()" class="flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl hover:bg-black transition-all hover:-translate-y-1 shadow-2xl active:scale-95 cursor-pointer border-none group">
+            <button id="btn-download" onclick="triggerDownload()" class="flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl hover:bg-black transition-all hover:-translate-y-1 shadow-2xl active:scale-95 cursor-pointer border-none group">
                 <i class="fas fa-file-pdf text-lg text-orange-400 group-hover:scale-110 transition-transform"></i>
                 <span class="text-sm font-bold tracking-wide">ดาวน์โหลดเกียรติบัตร (PDF)</span>
             </button>
@@ -43,6 +43,7 @@
                             <p class="text-orange-700/70 max-w-sm mx-auto">ขออภัย ใบเกียรติบัตรฉบับนี้ถูกยกเลิกการใช้งานโดยผู้ดูแลระบบแล้ว</p>
                         </div>
                     <?php else: ?>
+                        <!-- Standard Preview UI -->
                         <div class="absolute inset-0 bg-white flex flex-col p-16 justify-between border-[12px] border-double border-slate-100">
                             <div class="flex justify-between items-start">
                                 <div class="space-y-1">
@@ -100,12 +101,6 @@
                             <p class="text-[10px] font-black text-primary-500 uppercase tracking-widest mb-2">รหัสตรวจสอบ (Verify Token)</p>
                             <code class="text-[11px] font-mono text-slate-500 break-all leading-relaxed select-all cursor-copy"><?= e($certificate['verify_token']) ?></code>
                         </div>
-                        <div class="flex items-center gap-4 p-4 rounded-2xl bg-blue-50 border border-blue-100 text-blue-700">
-                            <i class="fas fa-info-circle text-xl"></i>
-                            <p class="text-[11px] font-bold leading-relaxed">
-                                ข้อมูลนี้ถูกรับรองโดยระบบบริหารจัดการเกียรติบัตรออนไลน์ มหาวิทยาลัยราชภัฏร้อยเอ็ด
-                            </p>
-                        </div>
                     </div>
                 </div>
                 <div class="mt-8 pt-8 border-t border-slate-100">
@@ -118,105 +113,29 @@
     </main>
 </div>
 
-<!-- Invisible PDF Template (Strict 1:1 Scale) -->
-<?php if ($certificate && (int) $certificate['is_revoked'] === 0): 
-    $template = getCertificateTemplate((int) ($certificate['template_id'] ?: 1));
-    $layout = json_decode((string) ($template['layout_json'] ?? ''), true) ?: [];
-    $isLandscape = ($template['orientation'] ?? 'L') === 'L';
-    
-    // Pixel Size for A4 at 96dpi (Matches MM_TO_PX 3.7795)
-    $w_px = $isLandscape ? 1123 : 794;
-    $h_px = $isLandscape ? 794 : 1123;
-    $mm_to_px = 3.7795275591;
-?>
-    <div id="pdf-render-box" style="position: absolute; top: 0; left: 0; width: <?= $w_px ?>px; height: <?= $h_px ?>px; z-index: -100; opacity: 0; pointer-events: none; overflow: hidden;">
-        <div id="pdf-area" style="width: <?= $w_px ?>px; height: <?= $h_px ?>px; position: relative; background-color: white; margin: 0; padding: 0;">
-            <?php if (!empty($template['bg_image'])): ?>
-                <img src="<?= e(BASE_URL . '/' . $template['bg_image']) ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill;">
-            <?php endif; ?>
-
-            <?php foreach ($layout as $field => $cfg): 
-                $text = ''; $show = true;
-                if ($field === 'name') { 
-                    $text = ($certificate['title'] ? $certificate['title'] : '') . $certificate['first_name'] . ' ' . $certificate['last_name']; 
-                    $show = !empty($template['show_name']); 
-                }
-                elseif ($field === 'course') { $text = $certificate['project_name']; $show = !empty($template['show_course']); }
-                elseif ($field === 'date') { $text = date('d/m/Y', strtotime($certificate['issued_date'])); $show = !empty($template['show_date']); }
-                elseif ($field === 'certno') { $text = $certificate['cert_number']; $show = !empty($template['show_certno']); }
-                
-                if (!$text || !$show) continue;
-
-                $style = "position: absolute; ";
-                $style .= "left: " . (($cfg['x'] ?? 0) * $mm_to_px) . "px; ";
-                $style .= "top: " . (($cfg['y'] ?? 0) * $mm_to_px) . "px; ";
-                // Font Size in PT translated to PX (1pt = 1.33px)
-                $style .= "font-size: " . (($cfg['size'] ?? 20) * 1.33333) . "px; ";
-                $style .= "color: " . ($template['color_primary'] ?? '#E87722') . "; ";
-                $style .= "font-family: 'Sarabun', sans-serif; ";
-                $style .= "line-height: 1; ";
-                if (!empty($cfg['bold'])) $style .= "font-weight: bold; ";
-                
-                $align = $cfg['align'] ?? 'C';
-                if ($align === 'C') $style .= "transform: translate(-50%, -50%); text-align: center;";
-                elseif ($align === 'R') $style .= "transform: translate(-100%, -50%); text-align: right;";
-                else $style .= "transform: translate(0, -50%);";
-            ?>
-                <div style="<?= $style ?> white-space: nowrap;"><?= e($text) ?></div>
-            <?php endforeach; ?>
-            
-            <?php if (!empty($template['show_qr'])): ?>
-                <div id="pdf-qr-box" style="position: absolute; left: <?= (240 * $mm_to_px) ?>px; top: <?= (140 * $mm_to_px) ?>px; transform: translate(-50%, -50%); width: <?= (28 * $mm_to_px) ?>px; height: <?= (28 * $mm_to_px) ?>px; background: white; padding: 2mm;"></div>
-            <?php endif; ?>
-        </div>
-    </div>
-<?php endif; ?>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Hidden Iframe for high-precision rendering -->
+<iframe id="download-iframe" name="cert_iframe" src="about:blank" style="display:none;"></iframe>
 
 <script>
-    function downloadPDF() {
-        const area = document.getElementById('pdf-area');
+    function triggerDownload() {
         const btn = document.getElementById('btn-download');
-        const orientation = '<?= ($template['orientation'] ?? 'L') === 'L' ? 'landscape' : 'portrait' ?>';
+        const iframe = document.getElementById('download-iframe');
         
-        if (!area || !btn) return;
         const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังสร้างไฟล์ PDF...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังเตรียมไฟล์ PDF...';
         btn.disabled = true;
 
-        const qrTarget = document.getElementById('pdf-qr-box');
-        if (qrTarget && qrTarget.innerHTML.trim() === "") {
-            new QRCode(qrTarget, {
-                text: window.location.href,
-                width: 100, height: 100,
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        }
+        // Load the new dedicated render page into the hidden iframe
+        const renderUrl = "<?= e(BASE_URL . '/public/render-cert.php?token=' . $certificate['verify_token']) ?>&download=1";
+        iframe.src = renderUrl;
 
-        const opt = {
-            margin: 0,
-            filename: '<?= e($certificate['cert_number']) ?>.pdf',
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true, 
-                logging: false, 
-                scrollX: 0, 
-                scrollY: 0,
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: orientation, compress: true }
+        // Listen for completion
+        window.onmessage = function(e) {
+            if (e.data === 'download_complete') {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
         };
-
-        html2pdf().set(opt).from(area).save().then(() => {
-            btn.innerHTML = originalHTML;
-            btn.disabled = false;
-        }).catch(err => {
-            console.error(err);
-            btn.innerHTML = originalHTML;
-            btn.disabled = false;
-        });
     }
 </script>
 

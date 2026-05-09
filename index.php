@@ -50,6 +50,7 @@ $route = match ($path) {
     '/public/take-exam.php' => [PublicExamController::class, 'take'],
     '/public/result.php' => [PublicExamController::class, 'result'],
     '/public/verify.php' => [PublicExamController::class, 'verify'],
+    '/public/render-cert.php' => [PublicExamController::class, 'renderCertificate'],
     '/public/download-cert.php' => [PublicExamController::class, 'downloadCertificate'],
     default => null,
 };
