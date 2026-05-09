@@ -145,11 +145,11 @@
     $w = ($template['orientation'] ?? 'L') === 'L' ? '297mm' : '210mm';
     $h = ($template['orientation'] ?? 'L') === 'L' ? '210mm' : '297mm';
 ?>
-    <div id="cert-pdf-template" style="position: absolute; left: -9999px; top: -9999px;">
-        <div style="width: <?= $w ?>; height: <?= $h ?>; position: relative; background-color: white; overflow: hidden;">
+    <div id="cert-pdf-template" style="position: absolute; top: 0; left: 0; z-index: -1; visibility: hidden;">
+        <div id="cert-capture-area" style="width: <?= $w ?>; height: <?= $h ?>; position: relative; background-color: white; overflow: hidden; margin: 0; padding: 0;">
             <!-- Background -->
             <?php if (!empty($template['bg_image'])): ?>
-                <img src="<?= e(BASE_URL . '/' . $template['bg_image']) ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                <img src="<?= e(BASE_URL . '/' . $template['bg_image']) ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; border: none; margin: 0; padding: 0;">
             <?php endif; ?>
 
             <!-- Dynamic Content based on Layout JSON -->
@@ -167,7 +167,8 @@
                 $style .= "top: " . ($cfg['y'] ?? 0) . "mm; ";
                 $style .= "font-size: " . ($cfg['size'] ?? 20) . "pt; ";
                 $style .= "color: " . ($template['color_primary'] ?? '#E87722') . "; ";
-                $style .= "font-family: 'Sarabun', sans-serif; ";
+                $style .= "font-family: 'Sarabun', 'Noto Sans Thai', sans-serif; ";
+                $style .= "line-height: 1; ";
                 if (!empty($cfg['bold'])) $style .= "font-weight: bold; ";
                 if (($cfg['align'] ?? 'L') === 'C') $style .= "transform: translateX(-50%); text-align: center;";
                 elseif (($cfg['align'] ?? 'L') === 'R') $style .= "transform: translateX(-100%); text-align: right;";
@@ -175,11 +176,9 @@
                 <div style="<?= $style ?> white-space: nowrap;"><?= e($text) ?></div>
             <?php endforeach; ?>
             
-            <!-- QR Code Placeholder (Rendered by JS if needed, or just text) -->
+            <!-- QR Code Placeholder -->
             <?php if (!empty($template['show_qr'])): ?>
-                <div id="pdf-qr-target" style="position: absolute; bottom: 20mm; right: 20mm; width: 30mm; height: 30mm; background: white; padding: 2mm; border: 1px solid #eee;">
-                    <!-- QR Code will be injected here by JS before capture -->
-                </div>
+                <div id="pdf-qr-target" style="position: absolute; bottom: 20mm; right: 20mm; width: 32mm; height: 32mm; background: white; padding: 2mm;"></div>
             <?php endif; ?>
         </div>
     </div>
@@ -190,23 +189,29 @@
 
 <script>
     function downloadPDF() {
-        const element = document.getElementById('cert-pdf-template');
+        const container = document.getElementById('cert-pdf-template');
+        const captureArea = document.getElementById('cert-capture-area');
         const btn = document.getElementById('btn-download');
         
-        if (!element) return;
+        if (!container || !captureArea) return;
 
         // Change button state
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xl"></i> กำลังสร้างไฟล์ตามเทมเพลต...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xl"></i> กำลังสร้างไฟล์...';
         btn.disabled = true;
 
-        // Inject QR Code into the hidden template
+        // Show temporarily for capture but keep it invisible
+        container.style.visibility = 'visible';
+        container.style.display = 'block';
+
+        // Inject QR Code if not already there
         const qrTarget = document.getElementById('pdf-qr-target');
         if (qrTarget && qrTarget.innerHTML.trim() === "") {
             new QRCode(qrTarget, {
                 text: window.location.href,
                 width: 120,
-                height: 120
+                height: 120,
+                correctLevel: QRCode.CorrectLevel.H
             });
         }
 
@@ -218,23 +223,30 @@
                 scale: 3, 
                 useCORS: true, 
                 logging: false,
-                letterRendering: true
+                letterRendering: true,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeight
             },
             jsPDF:        { 
                 unit: 'mm', 
                 format: 'a4', 
-                orientation: '<?= ($template['orientation'] ?? 'L') === 'L' ? 'landscape' : 'portrait' ?>' 
+                orientation: '<?= ($template['orientation'] ?? 'L') === 'L' ? 'landscape' : 'portrait' ?>',
+                compress: true
             }
         };
 
-        // Run html2pdf on the hidden template
-        html2pdf().set(opt).from(element.firstElementChild).save().then(() => {
+        // Run html2pdf
+        html2pdf().set(opt).from(captureArea).save().then(() => {
             btn.innerHTML = originalText;
             btn.disabled = false;
+            container.style.visibility = 'hidden';
         }).catch(err => {
             console.error('PDF Error:', err);
             btn.innerHTML = originalText;
             btn.disabled = false;
+            container.style.visibility = 'hidden';
         });
     }
 </script>
