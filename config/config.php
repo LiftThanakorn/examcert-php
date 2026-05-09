@@ -76,9 +76,14 @@ function logError(string $message, array $context = []): void
     file_put_contents(LOG_FILE, $line, FILE_APPEND | LOCK_EX);
 }
 
-function generateToken(int $bytes = 32): string
+function generateToken(int $length = 6): string
 {
-    return bin2hex(random_bytes($bytes));
+    $chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $token = '';
+    for ($i = 0; $i < $length; $i++) {
+        $token .= $chars[random_int(0, strlen($chars) - 1)];
+    }
+    return $token;
 }
 
 function jsonResponse(bool $success, string $message = '', array $data = [], int $statusCode = 200): never

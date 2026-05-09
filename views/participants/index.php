@@ -16,7 +16,7 @@ $errors = $errors ?? [];
                 <i class="fas fa-arrow-left mr-2 text-gray-400"></i> กลับโครงการ
             </a>
             <div class="flex items-center gap-2">
-                <button onclick="excel.export('participants-table', 'participants-list.xlsx')" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm">
+                <button onclick="exportParticipantsList()" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm">
                     <i class="fas fa-file-excel mr-2 text-green-600"></i> ส่งออก Excel
                 </button>
                 <a href="<?= e(BASE_URL) ?>/admin/participants/import.php?project_id=<?= (int) $projectId ?>" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm">
@@ -38,7 +38,7 @@ $errors = $errors ?? [];
                         <th class="px-6 py-4 font-medium">ชื่อ-นามสกุล</th>
                         <th class="px-6 py-4 font-medium">หน่วยงาน / ตำแหน่ง</th>
                         <th class="px-6 py-4 font-medium">อีเมล</th>
-                        <th class="px-6 py-4 font-medium">Access Token</th>
+                        <th class="px-6 py-4 font-medium">รหัสเข้าสอบ (Token)</th>
                         <th class="px-6 py-4 text-right font-medium">จัดการ</th>
                     </tr>
                 </thead>
@@ -55,8 +55,8 @@ $errors = $errors ?? [];
                         </td>
                         <td class="px-6 py-4 text-gray-600"><?= e($participant['email'] ?: '-') ?></td>
                         <td class="px-6 py-4">
-                            <code class="px-2 py-1 bg-gray-100 rounded text-xs font-mono text-gray-500 select-all cursor-pointer" title="<?= e($participant['access_token']) ?>">
-                                <?= e(substr($participant['access_token'], 0, 8)) ?>...
+                            <code class="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-bold font-mono select-all cursor-pointer border border-primary-100" title="คลิกเพื่อเลือกโค้ด">
+                                <?= e($participant['access_token']) ?>
                             </code>
                         </td>
                         <td class="px-6 py-4 text-right">
@@ -181,4 +181,28 @@ $errors = $errors ?? [];
             </form>
         </div>
     <?php endif; ?>
+
+<?php ob_start(); ?>
+<script>
+function exportParticipantsList() {
+    const participants = <?= json_encode($participants) ?>;
+    const projectTitle = <?= json_encode($project['name']) ?>;
+    
+    if (!participants || participants.length === 0) {
+        showAlert('แจ้งเตือน', 'ไม่มีข้อมูลผู้เข้าสอบให้ส่งออก', 'info');
+        return;
+    }
+
+    const exportData = participants.map((p, index) => ({
+        'ลำดับ': index + 1,
+        'ชื่อ-นามสกุล': ((p.title ? p.title + ' ' : '') + p.first_name + ' ' + p.last_name).trim(),
+        'ตำแหน่ง': p.position || '-',
+        'สังกัด': p.organization || '-',
+        'รหัสเข้าสอบ': p.access_token
+    }));
+    
+    excel.exportArray(exportData, `รายชื่อผู้เข้าสอบ-${projectTitle}.xlsx`, 'Participants');
+}
+</script>
+<?php $pageScripts = ob_get_clean(); ?>
 <?php endif; ?>
