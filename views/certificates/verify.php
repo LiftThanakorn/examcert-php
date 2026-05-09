@@ -155,6 +155,12 @@
     }
 </script>
 
+<div class="mt-12 text-center opacity-40 no-print">
+    <p class="text-[10px] font-bold text-slate-500 leading-relaxed">
+        ระบบออกข้อสอบพร้อมรับเกียรติบัตร พัฒนาโดยนายธนากร อินทพันธ์ บุคลากร งานบริหารทรัพยากรบุคคลและนิติการ มหาวิทยาลัยราชภัฏร้อยเอ็ด
+    </p>
+</div>
+
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700;800&display=swap');
     body { font-family: 'Sarabun', sans-serif; }

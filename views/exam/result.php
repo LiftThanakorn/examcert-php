@@ -227,6 +227,13 @@ $timeUsedStr .= $diff->s . " วินาที";
             <i class="fas fa-house"></i> กลับสู่หน้าหลัก
         </a>
     </div>
+
+    <div class="mt-8 text-center opacity-60">
+        <p class="text-[10px] font-bold text-slate-500 leading-relaxed">
+            <i class="fa-solid fa-code mr-1"></i>
+            ระบบออกข้อสอบพร้อมรับเกียรติบัตร พัฒนาโดยนายธนากร อินทพันธ์ บุคลากร งานบริหารทรัพยากรบุคคลและนิติการ มหาวิทยาลัยราชภัฏร้อยเอ็ด
+        </p>
+    </div>
 </div>
 
 <script>

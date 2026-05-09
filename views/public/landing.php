@@ -112,10 +112,10 @@ require VIEWS_PATH . '/layout/header.php';
                 </div>
                 <h1 class="text-5xl md:text-7xl font-extrabold text-gray-900 leading-[1.1] tracking-tighter">
                     ระบบทำข้อสอบ<br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-accent">พร้อมรับเกียรติบัตร</span>
+                    <span class="text-primary-500">พร้อมรับเกียรติบัตร</span>
                 </h1>
                 <p class="text-lg text-gray-500 font-medium max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                    ระบบสอบออนไลน์และออกใบประกาศนียบัตรอัตโนมัติ สำหรับบุคลากรมหาวิทยาลัยราชภัฏร้อยเอ็ด พัฒนามาเพื่อความแม่นยำ รวดเร็ว และเป็นสากล
+                    ระบบสอบออนไลน์และออกใบประกาศนียบัตรอัตโนมัติ สำหรับบุคลากรมหาวิทยาลัยราชภัฏร้อยเอ็ด
                 </p>
                 <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4">
                     <a href="#active-exams" class="btn-premium flex items-center gap-3 group">
@@ -200,8 +200,8 @@ require VIEWS_PATH . '/layout/header.php';
             <div class="space-y-4 md:text-right">
                 <p class="text-sm font-bold text-gray-900">&copy; <?= date('Y') ?> มหาวิทยาลัยราชภัฏร้อยเอ็ด</p>
                 <div class="text-xs text-gray-400 space-y-1">
-                    <p>พัฒนาระบบโดย นายธนากร อินทพันธ์</p>
-                    <p>บุคลากร สังกัดงานบริหารทรัพยากรบุคคลและนิติการ</p>
+                    <p>ระบบออกข้อสอบพร้อมรับเกียรติบัตร พัฒนาโดย นายธนากร อินทพันธ์</p>
+                    <p>บุคลากร งานบริหารทรัพยากรบุคคลและนิติการ มหาวิทยาลัยราชภัฏร้อยเอ็ด</p>
                 </div>
             </div>
         </div>

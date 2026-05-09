@@ -146,9 +146,9 @@
     </form>
 
     <div class="mt-10 pt-8 border-t border-slate-50 text-center">
-        <p class="text-slate-400 text-sm font-bold flex items-center justify-center gap-2">
-            <i class="fa-solid fa-lock text-slate-300"></i>
-            ระบบความปลอดภัยขั้นสูงโดย <?= e(APP_NAME) ?>
+        <p class="text-slate-400 text-[10px] font-bold leading-relaxed">
+            <i class="fa-solid fa-code text-slate-300 mr-1"></i>
+            ระบบออกข้อสอบพร้อมรับเกียรติบัตร พัฒนาโดยนายธนากร อินทพันธ์ บุคลากร งานบริหารทรัพยากรบุคคลและนิติการ มหาวิทยาลัยราชภัฏร้อยเอ็ด
         </p>
     </div>
 </div>
