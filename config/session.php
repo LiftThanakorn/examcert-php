@@ -16,8 +16,13 @@ $currentUserAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 if (!isset($_SESSION['user_agent'])) {
     $_SESSION['user_agent'] = $currentUserAgent;
 } elseif ($_SESSION['user_agent'] !== $currentUserAgent) {
+    $wasAdmin = !empty($_SESSION['admin_id']);
     session_destroy();
-    header('Location: ' . BASE_URL . '/admin/login.php');
+    if ($wasAdmin) {
+        header('Location: ' . BASE_URL . '/admin/login.php');
+    } else {
+        header('Location: ' . BASE_URL . '/');
+    }
     exit;
 }
 

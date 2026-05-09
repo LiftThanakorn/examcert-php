@@ -2,6 +2,22 @@
 
 
 
+## 2026-05-10 - Priority 2 Logic Bugfix Pass
+
+Completed:
+
+- Aligned project `warning_before` defaults and fallbacks to the schema value of 30 minutes.
+- Updated project runtime status logic so `manual_override` can force open draft or closed projects until `exam_end` has passed.
+- Reworked participant duplicate checks into separate name, email, and ID-card queries with reason-specific messages.
+- Fixed exam progress counting by converting the selector result to an array before filtering checked/filled answers.
+- Changed session fingerprint redirects so admin sessions go to admin login while public sessions return to the landing page.
+
+Verification:
+
+- Ran PHP lint on `models/Project.php`, `models/Participant.php`, and `config/session.php`: passed.
+- Ran `node --check assets/js/exam.js`: passed.
+- Ran `git diff --check`: passed; only existing Windows LF/CRLF conversion warnings remain.
+
 ## 2026-05-10 - Priority 1 Security Token and Certificate Race Hotfix
 
 Completed:

@@ -72,10 +72,11 @@ function updateTimerDisplay() {
 }
 
 function updateProgress() {
-    const answered = document.querySelectorAll('input:checked, textarea').filter(el => {
-        if (el.tagName === 'TEXTAREA' || el.type === 'text') return el.value.trim() !== '';
-        return el.checked;
-    }).length;
+    const answered = [...document.querySelectorAll('#exam-form input[type="radio"]:checked, #exam-form textarea, #exam-form input[type="text"]')]
+        .filter(el => {
+            if (el.tagName === 'TEXTAREA' || el.type === 'text') return el.value.trim() !== '';
+            return el.checked;
+        }).length;
     
     const progressPercent = Math.round((answered / totalQuestions) * 100);
     document.getElementById('progress-text').textContent = `${answered}/${totalQuestions} ข้อ (${progressPercent}%)`;

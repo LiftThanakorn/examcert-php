@@ -22,7 +22,7 @@ function projectDefaults(): array
         'randomize_questions' => '1',
         'randomize_choices' => '1',
         'show_result_immediately' => '1',
-        'warning_before' => '5',
+        'warning_before' => '30',
         'allow_early_login' => '0',
         'auto_submit_on_close' => '1',
         'manual_override' => '0',
@@ -93,7 +93,7 @@ function projectPayload(array $data, ?int $adminId): array
         'randomize_questions' => !empty($data['randomize_questions']) ? 1 : 0,
         'randomize_choices' => !empty($data['randomize_choices']) ? 1 : 0,
         'show_result_immediately' => !empty($data['show_result_immediately']) ? 1 : 0,
-        'warning_before' => max(0, (int) ($data['warning_before'] ?? 5)),
+        'warning_before' => max(0, (int) ($data['warning_before'] ?? 30)),
         'allow_early_login' => !empty($data['allow_early_login']) ? 1 : 0,
         'auto_submit_on_close' => !empty($data['auto_submit_on_close']) ? 1 : 0,
         'manual_override' => !empty($data['manual_override']) ? 1 : 0,
@@ -220,71 +220,80 @@ function deleteProject(int $id): bool
 
 function getProjectRuntimeStatus(array $project, ?DateTimeImmutable $now = null): array
 {
-    $now = $now ?? new DateTimeImmutable();
+    $now    = $now ?? new DateTimeImmutable();
     $status = (string) ($project['status'] ?? 'draft');
     $manual = (int) ($project['manual_override'] ?? 0) === 1;
 
-    // 1. Base Status Check
-    if ($status !== 'active') {
+    if ($manual) {
+        $secondsLeft = null;
+        if (!empty($project['exam_end'])) {
+            $end         = new DateTimeImmutable((string) $project['exam_end']);
+            $secondsLeft = $end->getTimestamp() - $now->getTimestamp();
+            if ($secondsLeft <= 0) {
+                return [
+                    'allowed'      => false,
+                    'status'       => 'closed',
+                    'message'      => 'หมดเวลาการสอบแล้ว (exam_end ผ่านมาแล้ว)',
+                    'seconds_left' => 0,
+                    'warning'      => false,
+                ];
+            }
+        }
+
         return [
-            'allowed' => false,
-            'status' => $status,
-            'message' => $status === 'closed' ? 'โครงการนี้ปิดการสอบแล้ว' : 'โครงการยังไม่เปิดใช้งาน',
-            'seconds_left' => null,
-            'warning' => false
+            'allowed'      => true,
+            'status'       => 'active',
+            'message'      => 'เปิดใช้งาน (Admin Override)',
+            'seconds_left' => $secondsLeft,
+            'warning'      => false,
         ];
     }
 
-    // 2. Exam End Time Check (Highest Priority - Even Manual Override shouldn't keep it open after end time)
+    if ($status !== 'active') {
+        return [
+            'allowed'      => false,
+            'status'       => $status,
+            'message'      => $status === 'closed' ? 'โครงการนี้ปิดการสอบแล้ว' : 'โครงการยังไม่เปิดใช้งาน',
+            'seconds_left' => null,
+            'warning'      => false,
+        ];
+    }
+
     $secondsLeft = null;
     if (!empty($project['exam_end'])) {
-        $end = new DateTimeImmutable((string) $project['exam_end']);
+        $end         = new DateTimeImmutable((string) $project['exam_end']);
         $secondsLeft = $end->getTimestamp() - $now->getTimestamp();
-        
         if ($secondsLeft <= 0) {
             return [
-                'allowed' => false, 
-                'status' => 'closed', 
-                'message' => 'หมดเวลาการสอบแล้ว', 
-                'seconds_left' => 0, 
-                'warning' => false
+                'allowed'      => false,
+                'status'       => 'closed',
+                'message'      => 'หมดเวลาการสอบแล้ว',
+                'seconds_left' => 0,
+                'warning'      => false,
             ];
         }
     }
 
-    // 3. Manual Override Check (For emergency closing or early opening)
-    if ($manual) {
-        return [
-            'allowed' => true,
-            'status' => 'active',
-            'message' => 'เปิดใช้งาน (Manual)',
-            'seconds_left' => $secondsLeft,
-            'warning' => false,
-        ];
-    }
-
-    // 4. Exam Start Time Check
     if (!empty($project['exam_start']) && (int) ($project['allow_early_login'] ?? 0) !== 1) {
         $start = new DateTimeImmutable((string) $project['exam_start']);
         if ($now < $start) {
             return [
-                'allowed' => false,
-                'status' => 'scheduled',
-                'message' => 'ยังไม่ถึงเวลาเปิดสอบ (เริ่ม ' . $start->format('H:i') . ')',
+                'allowed'      => false,
+                'status'       => 'scheduled',
+                'message'      => 'ยังไม่ถึงเวลาเปิดสอบ (เริ่ม ' . $start->format('d/m H:i') . ' น.)',
                 'seconds_left' => $start->getTimestamp() - $now->getTimestamp(),
-                'warning' => false,
+                'warning'      => false,
             ];
         }
     }
 
-    // 5. Warning Logic
-    $warningSeconds = max(0, (int) ($project['warning_before'] ?? 5)) * 60;
+    $warningSeconds = max(0, (int) ($project['warning_before'] ?? 30)) * 60;
     return [
-        'allowed' => true,
-        'status' => 'open',
-        'message' => '',
+        'allowed'      => true,
+        'status'       => 'open',
+        'message'      => '',
         'seconds_left' => $secondsLeft,
-        'warning' => $secondsLeft !== null && $warningSeconds > 0 && $secondsLeft <= $warningSeconds,
+        'warning'      => $secondsLeft !== null && $warningSeconds > 0 && $secondsLeft <= $warningSeconds,
     ];
 }
 
@@ -300,7 +309,7 @@ function updateProjectSchedule(int $id, array $data): bool
     return $stmt->execute([
         normalizeDateTime($data['exam_start'] ?? null),
         normalizeDateTime($data['exam_end'] ?? null),
-        max(0, (int) ($data['warning_before'] ?? 5)),
+        max(0, (int) ($data['warning_before'] ?? 30)),
         !empty($data['allow_early_login']) ? 1 : 0,
         !empty($data['auto_submit_on_close']) ? 1 : 0,
         !empty($data['manual_override']) ? 1 : 0,

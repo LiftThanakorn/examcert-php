@@ -142,7 +142,8 @@ function createParticipant(int $projectId, array $data, ?int $adminId): array
     try {
         $duplicate = findDuplicateParticipant($projectId, $payload);
         if ($duplicate) {
-            return ['success' => false, 'errors' => ['พบรายชื่อหรือข้อมูลอ้างอิงซ้ำในโครงการนี้']];
+            $reason = duplicateParticipantMessage($duplicate);
+            return ['success' => false, 'errors' => [$reason]];
         }
 
         $stmt = getDB()->prepare('
@@ -268,7 +269,8 @@ function updateParticipant(int $id, array $data): array
 
         $duplicate = findDuplicateParticipant((int) $participant['project_id'], $payload, $id);
         if ($duplicate) {
-            return ['success' => false, 'errors' => ['พบรายชื่อหรือข้อมูลอ้างอิงซ้ำในโครงการนี้']];
+            $reason = duplicateParticipantMessage($duplicate);
+            return ['success' => false, 'errors' => [$reason]];
         }
 
         $stmt = getDB()->prepare('
@@ -297,37 +299,75 @@ function updateParticipant(int $id, array $data): array
     }
 }
 
+function duplicateParticipantMessage(array $duplicate): string
+{
+    return match ($duplicate['reason'] ?? '') {
+        'email'   => 'อีเมลนี้ถูกใช้งานแล้วในโครงการนี้',
+        'id_card' => 'เลขบัตรประชาชนนี้ถูกใช้งานแล้วในโครงการนี้',
+        default   => 'พบชื่อ-นามสกุลซ้ำในโครงการนี้',
+    };
+}
+
 function findDuplicateParticipant(int $projectId, array $payload, ?int $excludeId = null): ?array
 {
-    $conditions = ['project_id = ?'];
-    $params = [$projectId];
-    $duplicateRules = [];
+    $db = getDB();
+    $excludeSql = $excludeId !== null ? ' AND id <> ?' : '';
 
-    // Always check name/lastname combination
-    $duplicateRules[] = '(first_name = ? AND last_name = ?)';
-    $params[] = $payload['first_name'];
-    $params[] = $payload['last_name'];
- 
-    if (!empty($payload['email'])) {
-        $duplicateRules[] = 'email = ?';
-        $params[] = $payload['email'];
-    }
-    if (!empty($payload['id_card'])) {
-        $duplicateRules[] = 'id_card = ?';
-        $params[] = $payload['id_card'];
-    }
- 
-    $conditions[] = '(' . implode(' OR ', $duplicateRules) . ')';
+    $params = [$projectId, $payload['first_name'], $payload['last_name']];
     if ($excludeId !== null) {
-        $conditions[] = 'id <> ?';
         $params[] = $excludeId;
     }
 
-    $stmt = getDB()->prepare('SELECT * FROM participants WHERE ' . implode(' AND ', $conditions) . ' LIMIT 1');
+    $stmt = $db->prepare("
+        SELECT id FROM participants
+        WHERE project_id = ?
+          AND first_name = ?
+          AND last_name = ?
+          {$excludeSql}
+        LIMIT 1
+    ");
     $stmt->execute($params);
-    $row = $stmt->fetch();
+    if ($stmt->fetch()) {
+        return ['reason' => 'name'];
+    }
 
-    return $row ?: null;
+    if (!empty($payload['email'])) {
+        $emailParams = [$projectId, $payload['email']];
+        if ($excludeId !== null) {
+            $emailParams[] = $excludeId;
+        }
+        $stmt = $db->prepare("
+            SELECT id FROM participants
+            WHERE project_id = ?
+              AND email = ?
+              {$excludeSql}
+            LIMIT 1
+        ");
+        $stmt->execute($emailParams);
+        if ($stmt->fetch()) {
+            return ['reason' => 'email'];
+        }
+    }
+
+    if (!empty($payload['id_card'])) {
+        $idParams = [$projectId, $payload['id_card']];
+        if ($excludeId !== null) {
+            $idParams[] = $excludeId;
+        }
+        $stmt = $db->prepare("
+            SELECT id FROM participants
+            WHERE project_id = ?
+              AND id_card = ?
+              {$excludeSql}
+            LIMIT 1
+        ");
+        $stmt->execute($idParams);
+        if ($stmt->fetch()) {
+            return ['reason' => 'id_card'];
+        }
+    }
+
+    return null;
 }
 
 function deleteParticipant(int $id): bool
