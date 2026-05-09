@@ -9,8 +9,8 @@
         <p class="text-sm text-gray-400 font-medium tracking-wide uppercase">Digital Achievement Verification System</p>
     </div>
 
-    <!-- Main Card -->
-    <main class="glass-card rounded-[3rem] overflow-hidden fade-up relative">
+    <!-- Main Card (This will be the PDF Content) -->
+    <main id="certificate-content" class="glass-card rounded-[3rem] overflow-hidden fade-up relative">
         <!-- Decorative Element -->
         <div class="absolute top-0 right-0 w-40 h-40 bg-primary-500/5 rounded-bl-[10rem] -mr-10 -mt-10"></div>
 
@@ -93,15 +93,6 @@
                             <p class="text-lg font-black text-primary-600 font-outfit"><?= e((string) $certificate['percent']) ?><span class="text-xs ml-0.5">%</span></p>
                         </div>
                     </div>
-
-                    <!-- Action Buttons -->
-                    <div class="pt-6">
-                        <a href="<?= e(BASE_URL) ?>/public/download-cert.php?token=<?= e($certificate['verify_token']) ?>" 
-                           class="inline-flex items-center justify-center gap-3 w-full h-16 bg-gray-900 hover:bg-black text-white font-black rounded-3xl transition-all shadow-xl active:scale-95 no-underline">
-                            <i class="fas fa-file-pdf text-xl"></i>
-                            ดาวน์โหลดใบประกาศนียบัตร (PDF)
-                        </a>
-                    </div>
                 </div>
 
                 <!-- Footer Info -->
@@ -120,6 +111,16 @@
         </div>
     </main>
 
+    <!-- Download Button (Outside of PDF Content) -->
+    <?php if ($certificate && (int) $certificate['is_revoked'] === 0): ?>
+        <div class="mt-8 pt-6 fade-up">
+            <button id="btn-download" onclick="downloadPDF()" class="inline-flex items-center justify-center gap-3 w-full h-16 bg-gray-900 hover:bg-black text-white font-black rounded-3xl transition-all shadow-xl active:scale-95 border-none cursor-pointer">
+                <i class="fas fa-file-pdf text-xl"></i>
+                ดาวน์โหลดใบประกาศนียบัตร (JS PDF)
+            </button>
+        </div>
+    <?php endif; ?>
+
     <!-- Footer -->
     <footer class="mt-12 text-center fade-up">
         <div class="flex items-center justify-center gap-4 mb-4 text-gray-300">
@@ -130,6 +131,39 @@
         <p class="text-[10px] text-gray-400 font-medium">Roi Et Rajabhat University | 2026</p>
     </footer>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    function downloadPDF() {
+        const element = document.getElementById('certificate-content');
+        const btn = document.getElementById('btn-download');
+        
+        // Change button state
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xl"></i> กำลังสร้างไฟล์ PDF...';
+        btn.disabled = true;
+
+        const opt = {
+            margin:       0.5,
+            filename:     '<?= e($certificate['cert_number'] ?? 'certificate') ?>.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        // Run html2pdf
+        html2pdf().set(opt).from(element).save().then(() => {
+            // Restore button state
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }).catch(err => {
+            console.error('PDF Generation Error:', err);
+            alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF กรุณาลองใหม่อีกครั้ง');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+</script>
 
 <style>
     .glass-card {

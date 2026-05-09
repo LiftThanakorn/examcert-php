@@ -667,8 +667,8 @@ Completed:
 - **Exam Engine Fix**: Resolved **404 Not Found** errors for `save_answer` AJAX calls by implementing dynamic `BASE_URL` resolution.
 - **JS Stability**: Fixed "Identifier 'BASE_URL' has already been declared" by moving global constants to `window` properties in `app.js`.
 - **Exam Session Management**: Added the ability for admins to delete individual exam sessions and their associated logs.
-- **Auto-Issuance**: Implemented automatic certificate generation upon passing an exam.
-- **Public Download**: Added a public endpoint and a button on the verification page to allow direct PDF downloads via tokens.
+- **Auto-Issuance**: Implemented automatic certificate generation logic.
+- **Client-Side PDF**: Transitioned from server-side TCPDF to client-side `html2pdf.js` for both score reports and certificates, ensuring premium UI fidelity and zero server dependencies.
 - **UI Refactoring**: Cleaned up redundant HTML structures and standardized centering.
 - **Bug Fix**: Resolved Fatal Error "Call to undefined function getExamSession()".
 - **Bug Fix**: Fixed syntax error in `PublicExamController.php` (missing closing brace).

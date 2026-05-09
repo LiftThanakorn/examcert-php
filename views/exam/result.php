@@ -1,6 +1,6 @@
 
 <div class="w-full max-w-2xl">
-    <div class="card-premium overflow-hidden fade-up">
+    <div id="result-content" class="card-premium overflow-hidden fade-up">
         <!-- Header Background based on result -->
         <?php if ($session['result'] === 'pass'): ?>
             <div class="bg-gradient-to-br from-green-500 to-green-600 p-12 text-center text-white relative">
@@ -54,23 +54,22 @@
                 </div>
             </div>
 
-            <!-- Actions -->
-            <div class="space-y-4 pt-4">
-                <?php if ($session['result'] === 'pass' && !empty($certificate['verify_token'])): ?>
-                    <a href="<?= e(BASE_URL) ?>/public/verify.php?token=<?= e($certificate['verify_token']) ?>" class="btn-premium">
-                        <i class="fas fa-certificate text-lg"></i> ดูใบประกาศนียบัตรของคุณ
+            <!-- Actions (Not included in PDF) -->
+            <div class="space-y-4 pt-4 no-print">
+                <?php if ($session['result'] === 'pass'): ?>
+                    <button id="btn-download" onclick="downloadResultPDF()" class="inline-flex items-center justify-center gap-3 w-full h-16 bg-primary-400 hover:bg-primary-500 text-white font-black rounded-[2rem] transition-all shadow-lg active:scale-95 border-none cursor-pointer">
+                        <i class="fas fa-file-pdf text-lg"></i> ดาวน์โหลดผลสอบ (PDF)
+                    </button>
+                    <a href="<?= e(BASE_URL) ?>/public/verify.php?token=<?= e($certificate['verify_token'] ?? '') ?>" class="w-full h-14 bg-white border-2 border-primary-100 text-primary-500 font-bold rounded-[2rem] hover:bg-primary-50 transition-all flex items-center justify-center gap-2 no-underline">
+                        <i class="fas fa-certificate"></i> ดูใบเกียรติบัตรออนไลน์
                     </a>
-                <?php elseif ($session['result'] === 'pass'): ?>
-                    <div class="p-4 bg-orange-50 text-orange-600 rounded-2xl text-sm font-bold flex items-center justify-center gap-2">
-                        <i class="fas fa-spinner fa-spin"></i> กำลังจัดเตรียมใบประกาศนียบัตร...
-                    </div>
                 <?php else: ?>
                     <a href="<?= e(BASE_URL) ?>/public/exam.php?project=<?= e($project['code']) ?>" class="btn-premium bg-gray-900 hover:bg-black">
                         <i class="fas fa-sync-alt"></i> พยายามอีกครั้ง
                     </a>
                 <?php endif; ?>
                 
-                <a href="<?= e(BASE_URL) ?>/" class="w-full h-16 bg-white border-2 border-gray-100 hover:border-primary-500 hover:text-primary-500 text-gray-500 font-bold rounded-[2rem] transition-all flex items-center justify-center gap-3 no-underline">
+                <a href="<?= e(BASE_URL) ?>/" class="w-full h-14 bg-white border-2 border-gray-100 hover:border-gray-300 text-gray-500 font-bold rounded-[2rem] transition-all flex items-center justify-center gap-2 no-underline">
                     <i class="fas fa-home"></i> กลับหน้าหลัก
                 </a>
             </div>
@@ -81,6 +80,30 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    function downloadResultPDF() {
+        const element = document.getElementById('result-content');
+        const actions = element.querySelector('.no-print');
+        const btn = document.getElementById('btn-download');
+        
+        // Hide actions before capture
+        actions.style.display = 'none';
+        
+        const opt = {
+            margin:       0.5,
+            filename:     'exam-result-<?= e($session['id']) ?>.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            actions.style.display = 'block';
+        });
+    }
+</script>
 
 <style>
     .card-premium {
