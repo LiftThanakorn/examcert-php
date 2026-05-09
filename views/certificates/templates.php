@@ -119,9 +119,9 @@ $template = array_merge(templateDefaults(), $template ?? []);
                             <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">รูปพื้นหลัง</label>
                             <div class="relative group">
                                 <div class="w-full aspect-video bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden relative">
-                                    <img id="sidebar-preview" src="<?= $template['bg_image'] ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="w-full h-full object-cover <?= !$template['bg_image'] ? 'hidden' : '' ?>">
-                                    <i id="sidebar-placeholder" class="fas fa-image text-xl text-gray-200 <?= $template['bg_image'] ? 'hidden' : '' ?>"></i>
-                                    <button type="button" id="remove-img-btn" onclick="clearImage()" class="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[9px] opacity-0 group-hover:opacity-100 transition-opacity shadow-lg <?= !$template['bg_image'] ? 'hidden' : '' ?>">
+                                    <img id="sidebar-preview" src="<?= !empty($template['bg_image']) ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="w-full h-full object-cover <?= empty($template['bg_image']) ? 'hidden' : '' ?>">
+                                    <i id="sidebar-placeholder" class="fas fa-image text-xl text-gray-200 <?= !empty($template['bg_image']) ? 'hidden' : '' ?>"></i>
+                                    <button type="button" id="remove-img-btn" onclick="clearImage()" class="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[9px] opacity-0 group-hover:opacity-100 transition-opacity shadow-lg <?= empty($template['bg_image']) ? 'hidden' : '' ?>">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
@@ -231,8 +231,8 @@ $template = array_merge(templateDefaults(), $template ?? []);
             <div class="flex-1 bg-gray-50 rounded-3xl border border-gray-200/50 flex items-center justify-center relative overflow-hidden p-6">
                 <div id="designer-container" class="relative bg-white shadow-xl transition-all" 
                      style="width: <?= $template['orientation'] === 'L' ? '700px' : '495px' ?>; aspect-ratio: <?= $template['orientation'] === 'L' ? '1.414/1' : '1/1.414' ?>;">
-                    <img id="designer-bg" src="<?= $template['bg_image'] ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="w-full h-full block select-none pointer-events-none rounded-sm <?= !$template['bg_image'] ? 'hidden' : '' ?>">
-                    <div id="designer-placeholder" class="w-full h-full flex items-center justify-center text-gray-200 border-2 border-dashed border-gray-100 <?= $template['bg_image'] ? 'hidden' : '' ?>">
+                    <img id="designer-bg" src="<?= !empty($template['bg_image']) ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="w-full h-full block select-none pointer-events-none rounded-sm <?= empty($template['bg_image']) ? 'hidden' : '' ?>">
+                    <div id="designer-placeholder" class="w-full h-full flex items-center justify-center text-gray-200 border-2 border-dashed border-gray-100 <?= !empty($template['bg_image']) ? 'hidden' : '' ?>">
                         <p class="font-bold text-xs uppercase tracking-widest">Canvas Area</p>
                     </div>
 

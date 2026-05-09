@@ -10,11 +10,15 @@ function templateDefaults(): array
         'description' => '',
         'orientation' => 'L',
         'font_name' => 'Sarabun',
-        'show_score' => '1',
-        'show_qr' => '1',
-        'show_date' => '1',
         'color_primary' => '#E87722',
-        'is_active' => '1',
+        'is_active' => 1,
+        'show_score' => 0,
+        'show_qr' => 1,
+        'show_date' => 1,
+        'layout_json' => '',
+        'bg_image' => null,
+        'logo_path' => null,
+        'signature_paths' => '[]',
     ];
 }
 
