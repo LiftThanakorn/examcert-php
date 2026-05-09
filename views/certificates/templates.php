@@ -7,43 +7,46 @@ $template = array_merge(templateDefaults(), $template ?? []);
 <?php if ($templateMode === 'list'): ?>
     <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 tracking-tight">คลังเทมเพลตเกียรติบัตร</h2>
-            <p class="text-sm text-gray-400 mt-1">จัดการเลย์เอาต์เกียรติบัตรสำหรับโครงการของคุณ</p>
+            <h2 class="text-2xl font-black text-slate-800 tracking-tight">คลังเทมเพลตเกียรติบัตร</h2>
+            <p class="text-sm text-slate-400 mt-1 font-medium">จัดการรูปแบบและองค์ประกอบของใบประกาศเกียรติบัตร</p>
         </div>
-        <a href="<?= e(BASE_URL) ?>/admin/certificates/template-create.php" class="inline-flex items-center px-6 py-3 bg-primary-400 hover:bg-primary-500 text-white text-sm font-bold rounded-2xl transition-all shadow-lg shadow-orange-100">
-            <i class="fas fa-plus mr-2"></i> สร้างเทมเพลตใหม่
+        <a href="<?= e(BASE_URL) ?>/admin/certificates/template-create.php" class="inline-flex items-center px-6 py-3 bg-slate-900 hover:bg-black text-white text-sm font-bold rounded-2xl transition-all shadow-xl">
+            <i class="fas fa-plus mr-2 text-orange-400"></i> สร้างเทมเพลตใหม่
         </a>
     </div>
 
-    <div class="bg-white rounded-3xl border border-gray-100 shadow-card overflow-hidden">
+    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-gray-50/50 border-b border-gray-100 text-[11px] font-bold text-gray-400 tracking-widest uppercase">
-                        <th class="px-8 py-5">ชื่อเทมเพลต</th>
-                        <th class="px-8 py-5">แนววาง</th>
-                        <th class="px-8 py-5 text-center">สถานะ</th>
-                        <th class="px-8 py-5 text-right">เครื่องมือ</th>
+                    <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-black text-slate-400 tracking-widest uppercase">
+                        <th class="px-8 py-6">ชื่อเทมเพลต</th>
+                        <th class="px-8 py-6">การวางแนว</th>
+                        <th class="px-8 py-6 text-center">สถานะ</th>
+                        <th class="px-8 py-6 text-right">เครื่องมือ</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50 text-sm">
+                <tbody class="divide-y divide-slate-50 text-sm">
                     <?php foreach ($templates as $item): ?>
-                        <tr class="group hover:bg-gray-50/50 transition-colors">
-                            <td class="px-8 py-5 font-bold text-gray-700"><?= e($item['name']) ?></td>
+                        <tr class="group hover:bg-slate-50/50 transition-colors">
+                            <td class="px-8 py-5 font-bold text-slate-700"><?= e($item['name']) ?></td>
                             <td class="px-8 py-5">
-                                <span class="text-xs text-gray-500"><?= $item['orientation'] === 'L' ? 'แนวนอน' : 'แนวตั้ง' ?></span>
+                                <span class="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase">
+                                    <?= $item['orientation'] === 'L' ? 'แนวนอน (A4)' : 'แนวตั้ง (A4)' ?>
+                                </span>
                             </td>
                             <td class="px-8 py-5 text-center">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold <?= (int)$item['is_active'] === 1 ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400' ?>">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black <?= (int)$item['is_active'] === 1 ? 'bg-green-50 text-green-600' : 'bg-slate-50 text-slate-300' ?>">
+                                    <span class="w-1.5 h-1.5 rounded-full <?= (int)$item['is_active'] === 1 ? 'bg-green-500' : 'bg-slate-300' ?>"></span>
                                     <?= (int)$item['is_active'] === 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน' ?>
                                 </span>
                             </td>
                             <td class="px-8 py-5 text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <a href="<?= e(BASE_URL) ?>/admin/certificates/template-edit.php?id=<?= (int)$item['id'] ?>" class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-100 shadow-sm text-gray-400 hover:text-primary-400 transition-all" title="แก้ไข">
+                                    <a href="<?= e(BASE_URL) ?>/admin/certificates/template-edit.php?id=<?= (int)$item['id'] ?>" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm text-slate-400 hover:text-primary-500 hover:border-primary-200 transition-all">
                                         <i class="fas fa-edit text-xs"></i>
                                     </a>
-                                    <button type="button" onclick="confirmDelete(<?= (int)$item['id'] ?>, '<?= e($item['name']) ?>')" class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-100 shadow-sm text-gray-400 hover:text-red-500 transition-all" title="ลบ">
+                                    <button type="button" onclick="confirmDelete(<?= (int)$item['id'] ?>, '<?= e($item['name']) ?>')" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm text-slate-400 hover:text-red-500 hover:border-red-200 transition-all">
                                         <i class="fas fa-trash-alt text-xs"></i>
                                     </button>
                                 </div>
@@ -55,66 +58,72 @@ $template = array_merge(templateDefaults(), $template ?? []);
         </div>
     </div>
 <?php else: ?>
-    <!-- Fullscreen Designer (No-Scroll) -->
-    <div class="h-[calc(100vh-140px)] flex flex-col gap-4 overflow-hidden">
-        <!-- Studio Header -->
+    <!-- Fullscreen Studio (No-Scroll) -->
+    <div id="designer-studio" class="h-[calc(100vh-140px)] flex flex-col gap-4 overflow-hidden relative opacity-0 transition-opacity duration-500">
+        <!-- Studio Header (Thai) -->
         <div class="flex items-center justify-between px-2 flex-shrink-0">
             <div class="flex items-center gap-4">
-                <a href="<?= e(BASE_URL) ?>/admin/certificates/templates.php" class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-100 text-gray-400 hover:text-gray-600">
+                <a href="<?= e(BASE_URL) ?>/admin/certificates/templates.php" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-slate-600">
                     <i class="fas fa-chevron-left text-xs"></i>
                 </a>
-                <h2 class="text-lg font-bold text-gray-800"><?= e($pageTitle) ?></h2>
+                <div>
+                    <h2 class="text-lg font-black text-slate-800 leading-none mb-1"><?= e($pageTitle) ?></h2>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Certificate Designer Studio</p>
+                </div>
             </div>
             <div class="flex items-center gap-2">
-                <button type="button" onclick="loadDefaultLayout()" class="px-4 py-2 text-xs font-bold text-gray-400 hover:text-primary-400 transition-colors">
-                    <i class="fas fa-undo mr-1.5"></i> คืนค่าเริ่มต้น
+                <button type="button" onclick="loadDefaultLayout()" class="px-4 py-2 text-xs font-black text-slate-400 hover:text-primary-500 transition-colors">
+                    <i class="fas fa-undo mr-1.5 text-[10px]"></i> คืนค่าเริ่มต้น
                 </button>
-                <button type="submit" form="main-form" class="px-6 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-bold rounded-xl transition-all shadow-xl">
-                    บันทึกเทมเพลต
+                <button type="submit" form="main-form" class="px-8 py-3 bg-slate-900 hover:bg-black text-white text-sm font-black rounded-xl transition-all shadow-xl active:scale-95">
+                    บันทึกรูปแบบ
                 </button>
             </div>
         </div>
 
         <div class="flex-1 flex gap-4 min-h-0">
-            <!-- Left Sidebar -->
-            <aside class="w-64 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 flex-shrink-0">
+            <!-- Sidebar: Config (Thai Labels) -->
+            <aside class="w-72 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 flex-shrink-0">
                 <form id="main-form" method="post" action="<?= e($action) ?>" enctype="multipart/form-data" class="contents">
                     <?= csrfField() ?>
-                    <div class="bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-sm">
-                        <div class="text-[10px] font-bold text-primary-400 uppercase tracking-widest">การตั้งค่าหลัก</div>
+                    <div class="bg-white rounded-3xl border border-slate-100 p-6 space-y-5 shadow-sm">
+                        <div class="text-[10px] font-black text-primary-500 uppercase tracking-[0.2em] mb-2">ข้อมูลพื้นฐาน</div>
                         <div>
-                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">ชื่อเทมเพลต</label>
-                            <input name="name" required value="<?= e($template['name']) ?>" class="w-full bg-gray-50 border-none rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-400/20" placeholder="Template Name">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">ชื่อเทมเพลต</label>
+                            <input name="name" required value="<?= e($template['name']) ?>" class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary-500/20" placeholder="ระบุชื่อเทมเพลต...">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">รูปพื้นหลัง</label>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">ภาพพื้นหลัง (A4)</label>
                             <div class="relative group">
-                                <div class="w-full aspect-video bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden relative">
+                                <div class="w-full aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative transition-all group-hover:border-primary-300">
                                     <img id="sidebar-preview" src="<?= !empty($template['bg_image']) ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="w-full h-full object-cover <?= empty($template['bg_image']) ? 'hidden' : '' ?>">
-                                    <i id="sidebar-placeholder" class="fas fa-image text-xl text-gray-200 <?= !empty($template['bg_image']) ? 'hidden' : '' ?>"></i>
+                                    <div id="sidebar-placeholder" class="text-center <?= !empty($template['bg_image']) ? 'hidden' : '' ?>">
+                                        <i class="fas fa-cloud-upload-alt text-2xl text-slate-200 mb-2"></i>
+                                        <p class="text-[9px] font-black text-slate-300 uppercase">Click to Upload</p>
+                                    </div>
                                 </div>
                                 <input type="file" name="bg_image" id="bg-input" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*">
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl border border-gray-100 p-5 space-y-3 shadow-sm">
-                        <div class="text-[10px] font-bold text-primary-400 uppercase tracking-widest">Visibility</div>
+                    <div class="bg-white rounded-3xl border border-slate-100 p-6 space-y-4 shadow-sm">
+                        <div class="text-[10px] font-black text-primary-500 uppercase tracking-[0.2em] mb-2">การแสดงผล</div>
                         <?php 
                         $opts = [
-                            'show_name' => ['label' => 'ชื่อผู้สอบ'],
-                            'show_course' => ['label' => 'ชื่อหลักสูตร'],
-                            'show_certno' => ['label' => 'เลขที่ใบเซอร์'],
-                            'show_qr' => ['label' => 'QR Code'],
-                            'show_date' => ['label' => 'วันที่'],
-                            'is_active' => ['label' => 'เปิดใช้งาน']
+                            'show_name' => 'ชื่อผู้สอบ',
+                            'show_course' => 'ชื่อโครงการ / หลักสูตร',
+                            'show_certno' => 'เลขที่ใบเซอร์',
+                            'show_qr' => 'QR Code',
+                            'show_date' => 'วันที่ออก',
+                            'is_active' => 'เปิดใช้งาน'
                         ];
                         foreach($opts as $k => $v): ?>
-                            <label class="flex items-center justify-between cursor-pointer">
-                                <span class="text-xs font-bold text-gray-400"><?= $v['label'] ?></span>
+                            <label class="flex items-center justify-between cursor-pointer group">
+                                <span class="text-xs font-bold text-slate-500 group-hover:text-slate-900 transition-colors"><?= $v ?></span>
                                 <div class="relative inline-flex items-center">
                                     <input type="checkbox" name="<?= $k ?>" value="1" <?= !empty($template[$k]) ? 'checked' : '' ?> class="sr-only peer">
-                                    <div class="w-7 h-4 bg-gray-100 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary-400"></div>
+                                    <div class="w-8 h-4.5 bg-slate-100 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-primary-500"></div>
                                 </div>
                             </label>
                         <?php endforeach; ?>
@@ -125,16 +134,17 @@ $template = array_merge(templateDefaults(), $template ?? []);
                 </form>
             </aside>
 
-            <!-- Center Canvas (Responsive and No-Scroll) -->
-            <div class="flex-1 bg-gray-50 rounded-3xl border border-gray-100 flex items-center justify-center relative overflow-hidden p-8 shadow-inner">
-                <div id="designer-container" class="relative bg-white shadow-2xl transition-all" 
-                     style="width: <?= $template['orientation'] === 'L' ? '800px' : '566px' ?>; aspect-ratio: <?= $template['orientation'] === 'L' ? '1.414/1' : '1/1.414' ?>; max-width: 100%; max-height: 100%;">
+            <!-- Main Canvas: Centralized & Accurate -->
+            <div class="flex-1 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center justify-center relative overflow-hidden p-10 shadow-inner">
+                <div id="designer-container" class="relative bg-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] transition-all overflow-hidden border border-slate-200" 
+                     style="width: <?= $template['orientation'] === 'L' ? '800px' : '566px' ?>; aspect-ratio: <?= $template['orientation'] === 'L' ? '1.414/1' : '1/1.414' ?>;">
                     <img id="designer-bg" src="<?= !empty($template['bg_image']) ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="w-full h-full block select-none pointer-events-none <?= empty($template['bg_image']) ? 'hidden' : '' ?>">
-                    <div id="designer-placeholder" class="w-full h-full flex items-center justify-center text-gray-200 border-2 border-dashed border-gray-100 <?= !empty($template['bg_image']) ? 'hidden' : '' ?>">
-                        <p class="font-bold text-xs uppercase tracking-widest italic">Template Background</p>
+                    <div id="designer-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-200 border-4 border-double border-slate-50 <?= !empty($template['bg_image']) ? 'hidden' : '' ?>">
+                        <i class="fas fa-file-invoice text-5xl mb-4 opacity-20"></i>
+                        <p class="font-black text-xs uppercase tracking-[0.3em] opacity-30">Certificate Canvas Area</p>
                     </div>
 
-                    <!-- Draggable Elements -->
+                    <!-- Draggable Tags -->
                     <div id="drag-name" class="designer-tag" data-id="name">ชื่อผู้เข้าสอบ</div>
                     <div id="drag-course" class="designer-tag tag-blue" data-id="course">ชื่อโครงการ / หลักสูตร</div>
                     <div id="drag-date" class="designer-tag tag-green" data-id="date">วันที่</div>
@@ -143,56 +153,51 @@ $template = array_merge(templateDefaults(), $template ?? []);
                 </div>
             </div>
 
-            <!-- Right Sidebar: Properties -->
-            <aside class="w-64 flex flex-col gap-4 overflow-y-auto custom-scrollbar pl-1 flex-shrink-0">
-                <div id="properties-panel" class="bg-white rounded-2xl border border-gray-100 p-5 space-y-6 shadow-sm">
-                    <div class="text-[10px] font-bold text-primary-400 uppercase tracking-widest">Properties</div>
+            <!-- Properties Sidebar (Thai) -->
+            <aside class="w-72 flex flex-col gap-4 overflow-y-auto custom-scrollbar pl-1 flex-shrink-0">
+                <div id="properties-panel" class="bg-white rounded-3xl border border-slate-100 p-6 space-y-6 shadow-sm">
+                    <div class="text-[10px] font-black text-primary-500 uppercase tracking-[0.2em]">พารามิเตอร์การจัดวาง</div>
                     
                     <?php 
                     $elements = [
-                        'name' => ['label' => 'ชื่อผู้สอบ', 'color' => 'bg-primary-400'],
-                        'course' => ['label' => 'ชื่อโครงการ', 'color' => 'bg-blue-400'],
-                        'date' => ['label' => 'วันที่', 'color' => 'bg-green-400'],
-                        'certno' => ['label' => 'เลขที่', 'color' => 'bg-purple-400'],
-                        'qrcode' => ['label' => 'QR Code', 'color' => 'bg-gray-800'],
+                        'name' => ['label' => 'ชื่อผู้สอบ', 'color' => 'bg-primary-500'],
+                        'course' => ['label' => 'ชื่อหลักสูตร', 'color' => 'bg-blue-500'],
+                        'date' => ['label' => 'วันที่ออก', 'color' => 'bg-green-500'],
+                        'certno' => ['label' => 'เลขที่ใบเซอร์', 'color' => 'bg-purple-500'],
+                        'qrcode' => ['label' => 'QR Code', 'color' => 'bg-slate-800'],
                     ];
                     foreach($elements as $id => $meta): ?>
-                        <div class="space-y-3 pb-5 border-b border-gray-50 last:border-0 last:pb-0">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="w-2 h-2 rounded-full <?= $meta['color'] ?>"></span>
-                                <span class="text-[10px] font-black text-gray-600 uppercase tracking-wide"><?= $meta['label'] ?></span>
+                        <div class="space-y-4 pb-6 border-b border-slate-50 last:border-0 last:pb-0">
+                            <div class="flex items-center gap-3">
+                                <span class="w-3 h-3 rounded-md <?= $meta['color'] ?> shadow-sm"></span>
+                                <span class="text-xs font-black text-slate-700 uppercase"><?= $meta['label'] ?></span>
                             </div>
                             <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[8px] font-bold text-gray-400 uppercase mb-1">X Pos (mm)</label>
-                                    <input type="number" step="0.1" id="input-<?= $id ?>-x" oninput="updateFromInputs('<?= $id ?>')" class="w-full bg-gray-50 border-none rounded-lg px-2 py-2 text-[10px] font-mono">
+                                <div class="space-y-1">
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase">พิกัด X (มม.)</label>
+                                    <input type="number" step="0.1" id="input-<?= $id ?>-x" oninput="updateFromInputs('<?= $id ?>')" class="w-full bg-slate-50 border-none rounded-xl px-3 py-2 text-[11px] font-mono font-bold text-slate-700">
                                 </div>
-                                <div>
-                                    <label class="block text-[8px] font-bold text-gray-400 uppercase mb-1">Y Pos (mm)</label>
-                                    <input type="number" step="0.1" id="input-<?= $id ?>-y" oninput="updateFromInputs('<?= $id ?>')" class="w-full bg-gray-50 border-none rounded-lg px-2 py-2 text-[10px] font-mono">
+                                <div class="space-y-1">
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase">พิกัด Y (มม.)</label>
+                                    <input type="number" step="0.1" id="input-<?= $id ?>-y" oninput="updateFromInputs('<?= $id ?>')" class="w-full bg-slate-50 border-none rounded-xl px-3 py-2 text-[11px] font-mono font-bold text-slate-700">
                                 </div>
                             </div>
-                            <?php if ($id !== 'qrcode'): ?>
                             <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[8px] font-bold text-gray-400 uppercase mb-1">Font Size</label>
-                                    <input type="number" id="input-<?= $id ?>-size" oninput="updateFromInputs('<?= $id ?>')" class="w-full bg-gray-50 border-none rounded-lg px-2 py-2 text-[10px]">
+                                <div class="space-y-1">
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase"><?= $id==='qrcode'?'ขนาด (มม.)':'ขนาดอักษร' ?></label>
+                                    <input type="number" id="input-<?= $id ?>-size" oninput="updateFromInputs('<?= $id ?>')" class="w-full bg-slate-50 border-none rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700">
                                 </div>
-                                <div>
-                                    <label class="block text-[8px] font-bold text-gray-400 uppercase mb-1">Align</label>
-                                    <select id="input-<?= $id ?>-align" onchange="updateFromInputs('<?= $id ?>')" class="w-full bg-gray-50 border-none rounded-lg px-1 py-2 text-[10px]">
+                                <?php if($id!=='qrcode'): ?>
+                                <div class="space-y-1">
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase">การจัดวาง</label>
+                                    <select id="input-<?= $id ?>-align" onchange="updateFromInputs('<?= $id ?>')" class="w-full bg-slate-50 border-none rounded-xl px-2 py-2 text-[10px] font-bold text-slate-700 cursor-pointer">
                                         <option value="L">ชิดซ้าย</option>
                                         <option value="C">กึ่งกลาง</option>
                                         <option value="R">ชิดขวา</option>
                                     </select>
                                 </div>
+                                <?php endif; ?>
                             </div>
-                            <?php else: ?>
-                                <div>
-                                    <label class="block text-[8px] font-bold text-gray-400 uppercase mb-1">QR Width (mm)</label>
-                                    <input type="number" id="input-<?= $id ?>-size" oninput="updateFromInputs('<?= $id ?>')" class="w-full bg-gray-50 border-none rounded-lg px-2 py-2 text-[10px]">
-                                </div>
-                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -200,25 +205,35 @@ $template = array_merge(templateDefaults(), $template ?? []);
         </div>
     </div>
 
+    <!-- Designer Loading Shield -->
+    <div id="designer-shield" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-opacity duration-700">
+        <div class="w-16 h-16 border-4 border-slate-100 border-t-primary-500 rounded-full animate-spin mb-6"></div>
+        <p class="text-sm font-black text-slate-400 uppercase tracking-[0.3em]">กำลังโหลด Designer...</p>
+    </div>
+
     <style>
         .designer-tag {
             position: absolute; z-index: 100; cursor: grab; user-select: none;
-            padding: 4px 8px; background: #E87722; color: white; border-radius: 4px;
-            font-size: 10px; font-weight: bold; border: 1px solid rgba(255,255,255,0.5); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); white-space: nowrap;
-            /* Key fix: Transform for accurate anchoring */
+            padding: 6px 12px; background: #E87722; color: white; border-radius: 8px;
+            font-size: 11px; font-weight: 800; border: 2px solid white; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); white-space: nowrap;
+            /* Anchoring Logic */
             transform-origin: center center;
+            line-height: 1;
         }
         .designer-tag.tag-blue { background: #3B82F6; }
         .designer-tag.tag-green { background: #10B981; }
         .designer-tag.tag-purple { background: #8B5CF6; }
         .designer-tag.tag-dark { background: #1F2937; }
+        .designer-tag:active { cursor: grabbing; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 
     <script>
+    const studio = document.getElementById('designer-studio');
+    const shield = document.getElementById('designer-shield');
     const container = document.getElementById('designer-container');
     const layoutText = document.getElementById('layout_json');
     const A4_W = <?= $template['orientation'] === 'L' ? '297' : '210' ?>;
@@ -231,7 +246,6 @@ $template = array_merge(templateDefaults(), $template ?? []);
             const el = document.getElementById('drag-' + id);
             if (!el) return;
             
-            // X and Y based on anchor point (Center of the element if 'C')
             let xOffset = 0, yOffset = el.offsetHeight / 2;
             const align = layout[id].align || 'L';
             if (align === 'C') xOffset = el.offsetWidth / 2;
@@ -240,14 +254,15 @@ $template = array_merge(templateDefaults(), $template ?? []);
             layout[id].x = parseFloat(((parseFloat(el.style.left) + xOffset) * ratio).toFixed(2));
             layout[id].y = parseFloat(((parseFloat(el.style.top) + yOffset) * ratio).toFixed(2));
 
-            // Update inputs
-            if (document.getElementById(`input-${id}-x`)) {
-                document.getElementById(`input-${id}-x`).value = layout[id].x;
-                document.getElementById(`input-${id}-y`).value = layout[id].y;
-                document.getElementById(`input-${id}-size`).value = layout[id].size || layout[id].w || 20;
-                if (document.getElementById(`input-${id}-align`)) 
-                    document.getElementById(`input-${id}-align`).value = layout[id].align || 'L';
-            }
+            // Sync with Inputs
+            ['x', 'y'].forEach(axis => {
+                const input = document.getElementById(`input-${id}-${axis}`);
+                if (input) input.value = layout[id][axis];
+            });
+            const sInput = document.getElementById(`input-${id}-size`);
+            if (sInput) sInput.value = layout[id].size || layout[id].w || 20;
+            const aInput = document.getElementById(`input-${id}-align`);
+            if (aInput) aInput.value = layout[id].align || 'L';
         });
         layoutText.value = JSON.stringify(layout, null, 4);
     }
@@ -258,7 +273,6 @@ $template = array_merge(templateDefaults(), $template ?? []);
             const el = document.getElementById('drag-' + id);
             if (!el) return;
 
-            // Apply transformations
             const align = layout[id].align || 'L';
             if (align === 'C') el.style.transform = 'translate(-50%, -50%)';
             else if (align === 'R') el.style.transform = 'translate(-100%, -50%)';
@@ -274,6 +288,10 @@ $template = array_merge(templateDefaults(), $template ?? []);
             drag(el);
         });
         sync();
+        
+        // Hide Shield
+        shield.style.opacity = '0';
+        setTimeout(() => { shield.style.display = 'none'; studio.style.opacity = '1'; }, 700);
     }
 
     function updateFromInputs(id) {
@@ -287,7 +305,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
             layout[id].size = parseFloat(document.getElementById(`input-${id}-size`).value || 20);
             layout[id].align = document.getElementById(`input-${id}-align`).value;
         }
-        init(); // Re-render
+        init(); 
     }
 
     function drag(el) {
@@ -305,6 +323,50 @@ $template = array_merge(templateDefaults(), $template ?? []);
         };
     }
 
-    window.onload = () => setTimeout(init, 300);
+    function loadDefaultLayout() {
+        Swal.fire({
+            title: 'คืนค่าเริ่มต้น?',
+            text: 'ตำแหน่งและขนาดทั้งหมดจะถูกรีเซ็ต',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยัน',
+            cancelButtonText: 'ยกเลิก',
+            customClass: { popup: 'rounded-3xl', confirmButton: 'bg-slate-900 px-6 py-2 rounded-xl text-white font-bold', cancelButton: 'text-slate-400 font-bold' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                layout = {
+                    "name":   { "x": 148.5, "y": 80,  "align": "C", "size": 38 },
+                    "course": { "x": 148.5, "y": 110, "align": "C", "size": 22 },
+                    "date":   { "x": 148.5, "y": 130, "align": "C", "size": 16 },
+                    "certno": { "x": 230,   "y": 170, "align": "R", "size": 11 },
+                    "qrcode": { "x": 240,   "y": 140, "w": 28 }
+                };
+                init();
+            }
+        });
+    }
+
+    function confirmDelete(id, name) {
+        Swal.fire({
+            title: 'ลบเทมเพลต?',
+            text: `คุณต้องการลบ "${name}" ใช่หรือไม่?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ลบข้อมูล',
+            cancelButtonText: 'ยกเลิก',
+            customClass: { popup: 'rounded-3xl', confirmButton: 'bg-red-500 px-6 py-2 rounded-xl text-white font-bold' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '<?= e(BASE_URL) ?>/admin/certificates/template-delete.php';
+                form.innerHTML = `<?= csrfField() ?><input type="hidden" name="id" value="${id}">`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+
+    window.onload = () => setTimeout(init, 500);
     </script>
 <?php endif; ?>
