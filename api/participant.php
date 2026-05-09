@@ -9,8 +9,15 @@ require_once ROOT_PATH . '/models/ExamSession.php';
 
 $action = (string) ($_GET['action'] ?? $_POST['action'] ?? '');
 
+function requireParticipantApiLogin(): void
+{
+    if (!isLoggedIn()) {
+        jsonResponse(false, 'Authentication required.', [], 401);
+    }
+}
+
 if ($action === 'import') {
-    requireLogin();
+    requireParticipantApiLogin();
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         jsonResponse(false, 'Method not allowed.', [], 405);
     }
@@ -27,6 +34,8 @@ if ($action === 'import') {
 }
 
 if ($action === 'list') {
+    requireParticipantApiLogin();
+
     $projectId = (int) ($_GET['project_id'] ?? 0);
     if ($projectId <= 0) {
         jsonResponse(false, 'Invalid project ID.', [], 400);
@@ -41,6 +50,25 @@ if ($action === 'list') {
         ];
     }, $participants);
     
+    jsonResponse(true, 'OK', $data);
+}
+
+if ($action === 'search') {
+    $projectId = (int) ($_GET['project_id'] ?? 0);
+    $term = trim((string) ($_GET['term'] ?? ''));
+    if ($projectId <= 0) {
+        jsonResponse(false, 'Invalid project ID.', [], 400);
+    }
+
+    $participants = searchParticipantsByName($projectId, $term, 10);
+    $data = array_map(function($p) {
+        return [
+            'full_name' => trim(($p['title'] ? $p['title'] . ' ' : '') . $p['first_name'] . ' ' . $p['last_name']),
+            'first_name' => $p['first_name'],
+            'last_name' => $p['last_name']
+        ];
+    }, $participants);
+
     jsonResponse(true, 'OK', $data);
 }
 

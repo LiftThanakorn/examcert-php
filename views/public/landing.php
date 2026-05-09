@@ -1,90 +1,85 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle ?? 'ระบบสอบออนไลน์ มรภ.ร้อยเอ็ด') ?></title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/globals.css">
-    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/custom.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'Noto Sans Thai', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: {
-                            50: '#FFF3EB', 100: '#FFE4D1', 200: '#FFC8A3', 300: '#FFA56E',
-                            400: '#FF813A', 500: '#E87722', 600: '#C76118', 700: '#A34D10',
-                        },
-                        danger: '#EF4444',
-                        accent: '#FF813A',
-                    }
-                }
-            }
-        }
-    </script>
-    <style type="text/tailwindcss">
-        @layer components {
-            .bg-mesh {
-                background-color: #ffffff;
-                background-image: 
-                    radial-gradient(at 0% 0%, hsla(25,100%,93%,1) 0, transparent 50%), 
-                    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
-                    radial-gradient(at 100% 0%, hsla(25,100%,93%,1) 0, transparent 50%);
-            }
-            .glass {
-                @apply bg-white/80 backdrop-blur-xl border border-white/20;
-            }
-            .shadow-soft {
-                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-            }
-            .shadow-premium {
-                box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.1);
-            }
-            .hover-lift {
-                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-            }
-            .hover-lift:hover {
-                @apply -translate-y-2;
-                box-shadow: 0 20px 40px -15px rgba(232, 119, 34, 0.2);
-            }
-            .btn-premium {
-                @apply relative overflow-hidden px-8 py-4 bg-primary-500 text-white font-bold rounded-2xl transition-all duration-300 shadow-soft hover:shadow-premium hover:bg-primary-600 active:scale-95 flex items-center justify-center gap-3;
-            }
-            .btn-premium::after {
-                content: '';
-                @apply absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full transition-transform duration-500;
-            }
-            .btn-premium:hover::after {
-                @apply translate-x-full;
-            }
-            .card-premium {
-                @apply bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-soft hover-lift;
-            }
-            .animate-float {
-                animation: float 6s ease-in-out infinite;
-            }
-            @keyframes float {
-                0% { transform: translateY(0px); }
-                50% { transform: translateY(-15px); }
-                100% { transform: translateY(0px); }
-            }
-        }
-    </style>
-</head>
-<body class="bg-mesh min-h-screen font-sans antialiased">
+<?php
+$pageTitle = 'ระบบสอบออนไลน์ มรภ.ร้อยเอ็ด';
+require VIEWS_PATH . '/layout/header.php';
+?>
 
+<style>
+    .bg-mesh {
+        background-color: #ffffff;
+        background-image: 
+            radial-gradient(at 0% 0%, hsla(25,100%,93%,1) 0, transparent 50%), 
+            radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
+            radial-gradient(at 100% 0%, hsla(25,100%,93%,1) 0, transparent 50%);
+    }
+    .glass {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .shadow-soft {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    }
+    .shadow-premium {
+        box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.1);
+    }
+    .hover-lift {
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px -15px rgba(232, 119, 34, 0.2);
+    }
+    .btn-premium {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 1rem 2rem;
+        background-color: #E87722;
+        color: white;
+        font-weight: 700;
+        border-radius: 1rem;
+        transition: all 0.3s;
+        box-shadow: 0 10px 25px -5px rgba(232, 119, 34, 0.2);
+    }
+    .btn-premium:hover {
+        background-color: #C76118;
+        box-shadow: 0 20px 50px -12px rgba(232, 119, 34, 0.3);
+    }
+    .btn-premium::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.5s;
+    }
+    .btn-premium:hover::after {
+        transform: translateX(100%);
+    }
+    .card-premium {
+        background: white;
+        border-radius: 2.5rem;
+        padding: 2rem;
+        border: 1px solid #F3F4F6;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+    }
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+</style>
+
+<div class="min-h-screen">
     <!-- Navigation -->
     <nav class="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-7xl">
         <div class="glass shadow-soft rounded-[2rem] px-8 py-4 flex justify-between items-center border border-white/50">
@@ -153,7 +148,7 @@
             <?php if (!empty($projects)): ?>
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <?php foreach ($projects as $proj): ?>
-                <a href="<?= e(BASE_URL) ?>/public/exam.php?project=<?= e($proj['code']) ?>" class="card-premium group relative overflow-hidden">
+                <a href="<?= e(BASE_URL) ?>/public/entry.php?project=<?= e($proj['code']) ?>" class="card-premium group relative overflow-hidden hover-lift">
                     <div class="absolute top-0 right-0 w-24 h-24 bg-primary-50 rounded-bl-[4rem] flex items-start justify-end p-4 group-hover:bg-primary-500 transition-colors duration-300">
                         <i class="fas fa-arrow-up-right-from-square text-primary-500 group-hover:text-white transition-colors"></i>
                     </div>
@@ -173,7 +168,7 @@
                 <?php endforeach; ?>
             </div>
             <?php else: ?>
-            <div class="card-premium text-center py-20 space-y-4 border-dashed bg-transparent">
+            <div class="card-premium text-center py-20 space-y-4 border-dashed bg-transparent shadow-none border-gray-200">
                 <div class="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto text-gray-300 text-3xl">
                     <i class="fas fa-calendar-times"></i>
                 </div>
@@ -184,7 +179,7 @@
         </div>
     </section>
 
-    <!-- Footer -->
+    <!-- Footer Area -->
     <footer class="py-20 px-6 border-t border-gray-100 bg-white/50">
         <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
             <div>
@@ -208,9 +203,6 @@
             </div>
         </div>
     </footer>
+</div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="<?= e(BASE_URL) ?>/assets/js/app.js"></script>
-</body>
-</html>
+<?php require VIEWS_PATH . '/layout/footer.php'; ?>

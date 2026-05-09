@@ -51,6 +51,16 @@ function startExamSession(array $project, array $participant): array
     }
 
     $submitted = countSubmittedAttempts((int) $participant['id'], (int) $project['id']);
+    
+    // Check for existing in-progress session to resume
+    $stmt = getDB()->prepare("SELECT id FROM exam_sessions WHERE participant_id = ? AND project_id = ? AND status = 'in_progress' LIMIT 1");
+    $stmt->execute([(int) $participant['id'], (int) $project['id']]);
+    $existing = $stmt->fetch();
+    
+    if ($existing) {
+        return ['success' => true, 'session_id' => (int) $existing['id'], 'resumed' => true];
+    }
+
     if ($submitted >= (int) $project['max_attempts']) {
         return ['success' => false, 'message' => 'คุณใช้สิทธิ์สอบครบแล้ว'];
     }
@@ -69,7 +79,20 @@ function startExamSession(array $project, array $participant): array
 
     $questionIds = array_map(static fn(array $q): int => (int) $q['id'], $questions);
     $attemptNo = $submitted + 1;
-    $expiresAt = (new DateTimeImmutable())->modify('+' . (int) $project['time_limit_min'] . ' minutes')->format('Y-m-d H:i:s');
+    
+    // Calculate session expiration based on time limit
+    $now = new DateTimeImmutable();
+    $sessionExpire = $now->modify('+' . (int) $project['time_limit_min'] . ' minutes');
+    
+    // If project has a hard end time, cap the session expiration
+    if (!empty($project['exam_end'])) {
+        $projectEnd = new DateTimeImmutable((string) $project['exam_end']);
+        if ($sessionExpire > $projectEnd) {
+            $sessionExpire = $projectEnd;
+        }
+    }
+    
+    $expiresAt = $sessionExpire->format('Y-m-d H:i:s');
 
     $stmt = getDB()->prepare('
         INSERT INTO exam_sessions (participant_id, project_id, attempt_no, question_order, expires_at, ip_address, user_agent)
@@ -134,6 +157,16 @@ function getSessionQuestions(array $session): array
     }
 
     return $ordered;
+}
+
+function sessionHasQuestion(array $session, int $questionId): bool
+{
+    $ids = json_decode((string) $session['question_order'], true);
+    if (!is_array($ids)) {
+        return false;
+    }
+
+    return in_array($questionId, array_map('intval', $ids), true);
 }
 
 function isAnswerCorrect(array $question, string $answer): bool

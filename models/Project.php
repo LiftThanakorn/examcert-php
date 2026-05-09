@@ -224,43 +224,61 @@ function getProjectRuntimeStatus(array $project, ?DateTimeImmutable $now = null)
     $status = (string) ($project['status'] ?? 'draft');
     $manual = (int) ($project['manual_override'] ?? 0) === 1;
 
+    // 1. Manual Override Check (Highest Priority)
     if ($manual) {
         $allowed = $status === 'active';
         return [
             'allowed' => $allowed,
             'status' => $status,
-            'message' => $allowed ? 'เปิดใช้งานแบบกำหนดเอง' : 'ปิดการสอบแบบกำหนดเอง',
+            'message' => $allowed ? 'เปิดใช้งาน (Manual)' : 'ปิดการเข้าสอบชั่วคราว',
             'seconds_left' => null,
             'warning' => false,
         ];
     }
 
+    // 2. Base Status Check
     if ($status !== 'active') {
-        return ['allowed' => false, 'status' => $status, 'message' => 'โครงการยังไม่เปิดใช้งาน', 'seconds_left' => null, 'warning' => false];
+        return [
+            'allowed' => false,
+            'status' => $status,
+            'message' => $status === 'closed' ? 'โครงการนี้ปิดการสอบแล้ว' : 'โครงการยังไม่เปิดใช้งาน',
+            'seconds_left' => null,
+            'warning' => false
+        ];
     }
 
+    // 3. Exam Start Time Check
     if (!empty($project['exam_start']) && (int) ($project['allow_early_login'] ?? 0) !== 1) {
         $start = new DateTimeImmutable((string) $project['exam_start']);
         if ($now < $start) {
             return [
                 'allowed' => false,
                 'status' => 'scheduled',
-                'message' => 'ยังไม่ถึงเวลาเปิดสอบ',
+                'message' => 'ยังไม่ถึงเวลาเปิดสอบ (เริ่ม ' . $start->format('H:i') . ')',
                 'seconds_left' => $start->getTimestamp() - $now->getTimestamp(),
                 'warning' => false,
             ];
         }
     }
 
+    // 4. Exam End Time Check
     $secondsLeft = null;
     if (!empty($project['exam_end'])) {
         $end = new DateTimeImmutable((string) $project['exam_end']);
         $secondsLeft = $end->getTimestamp() - $now->getTimestamp();
-        if ($secondsLeft < 0) {
-            return ['allowed' => false, 'status' => 'closed', 'message' => 'หมดเวลาเข้าสอบแล้ว', 'seconds_left' => 0, 'warning' => false];
+        
+        if ($secondsLeft <= 0) {
+            return [
+                'allowed' => false, 
+                'status' => 'closed', 
+                'message' => 'หมดเวลาเข้าสอบแล้ว', 
+                'seconds_left' => 0, 
+                'warning' => false
+            ];
         }
     }
 
+    // 5. Warning Logic
     $warningSeconds = max(0, (int) ($project['warning_before'] ?? 5)) * 60;
     return [
         'allowed' => true,
@@ -304,12 +322,36 @@ function forceProjectStatus(int $id, string $status): bool
 function extendProjectExamEnd(int $id, int $minutes): bool
 {
     $minutes = max(1, min(1440, $minutes));
-    $stmt = getDB()->prepare('
-        UPDATE projects
-        SET exam_end = DATE_ADD(COALESCE(exam_end, NOW()), INTERVAL ? MINUTE), updated_at = NOW()
-        WHERE id = ?
-    ');
-    return $stmt->execute([$minutes, $id]);
+    $db = getDB();
+    
+    try {
+        $db->beginTransaction();
+        
+        // 1. Update Project End Time
+        $stmt = $db->prepare('
+            UPDATE projects 
+            SET exam_end = DATE_ADD(COALESCE(exam_end, NOW()), INTERVAL ? MINUTE), 
+                updated_at = NOW() 
+            WHERE id = ?
+        ');
+        $stmt->execute([$minutes, $id]);
+
+        // 2. Update all active sessions for this project
+        // This ensures students currently taking the exam get the extra time immediately
+        $stmtSession = $db->prepare('
+            UPDATE exam_sessions 
+            SET expires_at = DATE_ADD(expires_at, INTERVAL ? MINUTE) 
+            WHERE project_id = ? AND status = "in_progress"
+        ');
+        $stmtSession->execute([$minutes, $id]);
+
+        $db->commit();
+        return true;
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        logError('Extend project failed', ['id' => $id, 'error' => $e->getMessage()]);
+        return false;
+    }
 }
 
 class Project extends BaseModel

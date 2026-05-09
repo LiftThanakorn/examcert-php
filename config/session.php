@@ -12,9 +12,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Basic Session Fingerprinting
+$currentUserAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 if (!isset($_SESSION['user_agent'])) {
-    $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
-} elseif ($_SESSION['user_agent'] !== $_SERVER['HTTP_USER_AGENT']) {
+    $_SESSION['user_agent'] = $currentUserAgent;
+} elseif ($_SESSION['user_agent'] !== $currentUserAgent) {
     session_destroy();
     header('Location: ' . BASE_URL . '/admin/login.php');
     exit;

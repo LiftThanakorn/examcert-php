@@ -1,43 +1,4 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ห้องสอบออนไลน์ | <?= e($project['name']) ?></title>
-<meta name="base-url" content="<?= e(BASE_URL) ?>">
-
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        primary: {
-          50:'#FFF3E8', 100:'#FAEEDA', 200:'#FAC775',
-          300:'#EF9F27', 400:'#E87722', 500:'#C4601A',
-          600:'#9E4A12', 700:'#7A360C', 800:'#633806', 900:'#412402',
-        },
-      },
-      fontFamily: { sans: ['Sarabun','Noto Sans Thai','sans-serif'] },
-      fontSize:   { xxs: '0.65rem' },
-      boxShadow: {
-        card:     '0 1px 4px rgba(0,0,0,0.07)',
-        'card-md':'0 4px 16px rgba(0,0,0,0.10)',
-        orange:   '0 0 0 3px rgba(232,119,34,0.20)',
-      },
-    },
-  },
-}
-</script>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <style>
-  body { font-family:'Sarabun','Noto Sans Thai',sans-serif; -webkit-font-smoothing:antialiased; }
-
   /* Option selected state */
   .option-item input[type="radio"]:checked ~ .option-label {
     border-color: #E87722;
@@ -85,9 +46,6 @@ tailwind.config = {
   }
   .warning-banner { animation: slideDown 0.3s ease both; }
 </style>
-</head>
-
-<body class="bg-[#F9F8F6] min-h-screen">
 
 <!-- ===================== WARNING BANNER (hidden by default) ===================== -->
 <div id="warning-banner" class="hidden fixed top-0 inset-x-0 z-50 warning-banner">
@@ -234,8 +192,6 @@ tailwind.config = {
     <input type="hidden" name="action" value="submit">
 </form>
 
-<!-- ===================== JS ===================== -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
 // ── DATA FROM PHP ──────────────────────────────────────────────────
 const QUESTIONS = <?= json_encode(array_map(function($q) {
@@ -259,16 +215,40 @@ let direction = 'right';
 let sessionId = <?= (int)$session['id'] ?>;
 
 // ── INIT ──────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+let isSubmitting = false;
+
+$(document).ready(() => {
     renderQuestion();
     renderPalette();
     renderDots();
     startTimer();
     updateProgress();
+
+    // Prevent Browser Back Button (Enhanced)
+    history.pushState(null, null, location.href);
+    window.addEventListener('popstate', function() {
+        history.pushState(null, null, location.href);
+        Swal.fire({
+            title: 'คำเตือน!',
+            text: 'ไม่สามารถกดย้อนกลับได้ในขณะทำข้อสอบ หากต้องการออกกรุณาส่งข้อสอบ',
+            icon: 'warning',
+            confirmButtonText: 'รับทราบ',
+            customClass: { popup: 'rounded-xl font-sans text-sm' }
+        });
+    });
+
+    // Prevent closing/leaving the page
+    window.addEventListener('beforeunload', function (e) {
+        if (isSubmitting) return;
+        // Cancel the event
+        e.preventDefault();
+        // Chrome requires returnValue to be set
+        e.returnValue = '';
+    });
 });
 
 function getBaseUrl() {
-    return document.querySelector('meta[name="base-url"]')?.content || '';
+    return $('meta[name="base-url"]').attr('content') || '';
 }
 
 function saveAnswer(questionId, answer) {
@@ -279,7 +259,7 @@ function saveAnswer(questionId, answer) {
             session_id: sessionId,
             question_id: questionId,
             answer: answer,
-            csrf_token: document.querySelector('input[name="csrf_token"]')?.value
+            csrf_token: $('meta[name="csrf-token"]').attr('content')
         },
         dataType: 'json',
         success: function(res) {
@@ -297,9 +277,9 @@ function startTimer() {
     if (totalSec === 600) showWarningBanner(10);
 
     if (totalSec === 300) {
-      document.getElementById('timer-display').classList.add('timer-danger','text-red-600');
-      document.getElementById('timer-box').classList.add('border-red-200','bg-red-50');
-      document.getElementById('timer-icon').classList.replace('text-primary-400','text-red-500');
+      $('#timer-display').addClass('timer-danger text-red-600');
+      $('#timer-box').addClass('border-red-200 bg-red-50');
+      $('#timer-icon').removeClass('text-primary-400').addClass('text-red-500');
       showWarningBanner(5);
     }
 
@@ -313,44 +293,41 @@ function startTimer() {
 function updateTimerDisplay() {
   const m = String(Math.floor(totalSec / 60)).padStart(2,'0');
   const s = String(totalSec % 60).padStart(2,'0');
-  document.getElementById('timer-display').textContent = `${m}:${s}`;
+  $('#timer-display').text(`${m}:${s}`);
 }
 
 function showWarningBanner(minutes) {
-  const banner = document.getElementById('warning-banner');
-  const warnTime = document.getElementById('warn-time');
-  if(warnTime) warnTime.textContent = `${minutes} นาที`;
-  banner.classList.remove('hidden');
-  setTimeout(() => banner.classList.add('hidden'), 8000);
+  const $banner = $('#warning-banner');
+  $('#warn-time').text(`${minutes} นาที`);
+  $banner.removeClass('hidden');
+  setTimeout(() => $banner.addClass('hidden'), 8000);
 }
 
 // ── RENDER QUESTION ───────────────────────────────────────────────
 function renderQuestion(dir = 'right') {
   if (!QUESTIONS || QUESTIONS.length === 0) {
-      document.getElementById('q-text').innerHTML = '<div class="text-center py-10 text-gray-400"><i class="fas fa-exclamation-circle mb-2 text-2xl block"></i>ไม่พบข้อมูลข้อสอบในระบบ</div>';
+      $('#q-text').html('<div class="text-center py-10 text-gray-400"><i class="fas fa-exclamation-circle mb-2 text-2xl block"></i>ไม่พบข้อมูลข้อสอบในระบบ</div>');
       return;
   }
   
   const q    = QUESTIONS[current];
-  const card = document.getElementById('question-card');
+  const $card = $('#question-card');
 
   // Animate
-  card.classList.remove('slide-right','slide-left');
-  void card.offsetWidth; // reflow
-  card.classList.add(dir === 'right' ? 'slide-right' : 'slide-left');
+  $card.removeClass('slide-right slide-left');
+  void $card[0].offsetWidth; // reflow
+  $card.addClass(dir === 'right' ? 'slide-right' : 'slide-left');
 
-  document.getElementById('q-num').textContent        = current + 1;
-  document.getElementById('q-text').textContent       = q.text;
-  document.getElementById('q-category').textContent   = q.category;
-  document.getElementById('q-difficulty').textContent = q.difficulty;
-  document.getElementById('q-difficulty').className   = `text-xxs ${q.diffColor}`;
+  $('#q-num').text(current + 1);
+  $('#q-text').text(q.text);
+  $('#q-category').text(q.category);
+  $('#q-difficulty').text(q.difficulty).attr('class', `text-xxs ${q.diffColor}`);
 
   // Options
-  const container = document.getElementById('options-container');
-  container.innerHTML = '';
+  const $container = $('#options-container').empty();
   
   if (q.type === 'fill_blank') {
-      container.innerHTML = `
+      $container.append(`
         <div class="mt-4">
             <input type="text" 
                 class="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl bg-gray-50/50 
@@ -360,11 +337,11 @@ function renderQuestion(dir = 'right') {
                 value="${answers[current] || ''}"
                 oninput="selectAnswer(this.value)">
         </div>
-      `;
+      `);
   } else {
       q.choices.forEach(choice => {
         const checked = answers[current] === choice.key;
-        container.insertAdjacentHTML('beforeend', `
+        $container.append(`
           <label class="option-item block cursor-pointer select-none">
             <input type="radio" name="q${q.id}" value="${choice.key}"
               class="sr-only" ${checked ? 'checked' : ''}
@@ -388,24 +365,23 @@ function renderQuestion(dir = 'right') {
   }
 
   // Nav buttons state
-  document.getElementById('btn-prev').disabled = current === 0;
-  document.getElementById('btn-prev').style.opacity = current === 0 ? '0.35' : '1';
+  $('#btn-prev').prop('disabled', current === 0).css('opacity', current === 0 ? '0.35' : '1');
 
   const isLast = current === QUESTIONS.length - 1;
-  const btnNext = document.getElementById('btn-next');
+  const $btnNext = $('#btn-next');
   if (isLast) {
-    btnNext.innerHTML = '<i class="fas fa-paper-plane text-xs"></i> ส่งข้อสอบ';
-    btnNext.onclick   = confirmSubmit;
-    btnNext.className = btnNext.className.replace('bg-primary-400 hover:bg-primary-500','bg-green-600 hover:bg-green-700');
+    $btnNext.html('<i class="fas fa-paper-plane text-xs"></i> ส่งข้อสอบ')
+            .attr('onclick', 'confirmSubmit()')
+            .removeClass('bg-primary-400 hover:bg-primary-500').addClass('bg-green-600 hover:bg-green-700');
   } else {
-    btnNext.innerHTML = 'ถัดไป <i class="fas fa-chevron-right text-xs"></i>';
-    btnNext.onclick   = () => navigate(1);
-    btnNext.className = btnNext.className.replace('bg-green-600 hover:bg-green-700','bg-primary-400 hover:bg-primary-500');
+    $btnNext.html('ถัดไป <i class="fas fa-chevron-right text-xs"></i>')
+            .attr('onclick', 'navigate(1)')
+            .removeClass('bg-green-600 hover:bg-green-700').addClass('bg-primary-400 hover:bg-primary-500');
   }
 
   updateProgress();
   renderDots();
-  highlightPalette();
+  renderPalette();
 }
 
 // ── SELECT ANSWER ─────────────────────────────────────────────────
@@ -415,25 +391,16 @@ function selectAnswer(key) {
   renderPalette();
   renderDots();
   
-  // Call Auto-save from exam.js
-  if (typeof saveAnswer === 'function') {
-      saveAnswer(QUESTIONS[current].id, key);
-  }
+  saveAnswer(QUESTIONS[current].id, key);
 
   // Update UI for radio items
   if (QUESTIONS[current].type !== 'fill_blank') {
-      document.querySelectorAll('.option-label').forEach(el => {
-        const input = el.closest('label').querySelector('input');
+      $('.option-label').each(function() {
+        const input = $(this).closest('label').find('input')[0];
         const chosen = input.value === key;
-        el.classList.toggle('border-primary-400', chosen);
-        el.classList.toggle('bg-primary-50', chosen);
-        el.classList.toggle('border-gray-100', !chosen);
-        el.querySelector('.option-key').classList.toggle('bg-primary-400', chosen);
-        el.querySelector('.option-key').classList.toggle('border-primary-400', chosen);
-        el.querySelector('.option-key').classList.toggle('text-white', chosen);
-        el.querySelector('.option-key').classList.toggle('text-gray-400', !chosen);
-        el.querySelector('.option-text').classList.toggle('text-primary-800', chosen);
-        el.querySelector('.option-text').classList.toggle('font-medium', chosen);
+        $(this).toggleClass('border-primary-400 bg-primary-50', chosen).toggleClass('border-gray-100', !chosen);
+        $(this).find('.option-key').toggleClass('bg-primary-400 border-primary-400 text-white', chosen).toggleClass('text-gray-400', !chosen);
+        $(this).find('.option-text').toggleClass('text-primary-800 font-medium', chosen);
       });
   }
 }
@@ -459,18 +426,13 @@ function goToQuestion(idx) {
 function updateProgress() {
   const done = answers.filter(a => a !== null && a !== '').length;
   const pct  = (done / QUESTIONS.length) * 100;
-  const answeredCountEl = document.getElementById('answered-count');
-  const progressBarEl   = document.getElementById('progress-bar');
-  
-  if(answeredCountEl) answeredCountEl.textContent = done;
-  if(progressBarEl) progressBarEl.style.width = pct + '%';
+  $('#answered-count').text(done);
+  $('#progress-bar').css('width', pct + '%');
 }
 
 // ── PALETTE ───────────────────────────────────────────────────────
 function renderPalette() {
-  const grid = document.getElementById('palette-grid');
-  if(!grid) return;
-  grid.innerHTML = '';
+  const $grid = $('#palette-grid').empty();
   QUESTIONS.forEach((q, i) => {
     const answered = answers[i] !== null && answers[i] !== '';
     const isCurrent = i === current;
@@ -478,33 +440,25 @@ function renderPalette() {
     if (isCurrent)   cls += 'bg-primary-400 text-white shadow-orange scale-105';
     else if (answered) cls += 'bg-green-100 text-green-700 border border-green-200';
     else               cls += 'bg-gray-100 text-gray-500 border border-gray-200 hover:border-primary-200 hover:bg-primary-50';
-    grid.insertAdjacentHTML('beforeend',
-      `<button class="${cls}" onclick="goToQuestion(${i})">${i + 1}</button>`
-    );
+    $grid.append(`<button class="${cls}" onclick="goToQuestion(${i})">${i + 1}</button>`);
   });
 }
 
-function highlightPalette() { renderPalette(); }
-
 function togglePalette() {
-  const grid    = document.getElementById('palette-grid');
-  const chevron = document.getElementById('palette-chevron');
-  if(grid) grid.classList.toggle('hidden');
-  if(chevron) chevron.classList.toggle('rotate-180');
+  $('#palette-grid').toggleClass('hidden');
+  $('#palette-chevron').toggleClass('rotate-180');
 }
 
 // ── DOT NAV (bottom bar) ──────────────────────────────────────────
 function renderDots() {
-  const nav = document.getElementById('dot-nav');
-  if(!nav) return;
-  nav.innerHTML = '';
+  const $nav = $('#dot-nav').empty();
   const total  = QUESTIONS.length;
   const winSize = 5;
   let start = Math.max(0, current - Math.floor(winSize / 2));
   let end   = Math.min(total - 1, start + winSize - 1);
   if (end - start < winSize - 1) start = Math.max(0, end - winSize + 1);
 
-  if (start > 0) nav.insertAdjacentHTML('beforeend', `<span class="text-gray-300 text-xxs px-1">...</span>`);
+  if (start > 0) $nav.append('<span class="text-gray-300 text-xxs px-1">...</span>');
 
   for (let i = start; i <= end; i++) {
     const answered = answers[i] !== null && answers[i] !== '';
@@ -513,10 +467,10 @@ function renderDots() {
     if (isCur)      cls += 'bg-primary-400 text-white';
     else if(answered) cls += 'bg-green-100 text-green-700 border border-green-200';
     else              cls += 'bg-gray-100 text-gray-400 hover:bg-primary-50 border border-gray-200';
-    nav.insertAdjacentHTML('beforeend', `<button class="${cls}" onclick="goToQuestion(${i})">${i+1}</button>`);
+    $nav.append(`<button class="${cls}" onclick="goToQuestion(${i})">${i+1}</button>`);
   }
 
-  if (end < total - 1) nav.insertAdjacentHTML('beforeend', `<span class="text-gray-300 text-xxs px-1">...</span>`);
+  if (end < total - 1) $nav.append('<span class="text-gray-300 text-xxs px-1">...</span>');
 }
 
 // ── SUBMIT ────────────────────────────────────────────────────────
@@ -549,6 +503,8 @@ function confirmSubmit() {
 
 function submitExam() {
   clearInterval(timerInterval);
+  isSubmitting = true;
+  
   Swal.fire({
     title: 'กำลังส่งข้อสอบ...',
     allowOutsideClick: false,
@@ -556,12 +512,11 @@ function submitExam() {
     customClass: { popup: 'rounded-2xl font-sans' },
     didOpen: () => Swal.showLoading(),
   });
-  
-  // Actually submit the form
-  document.getElementById('exam-form').submit();
+  $('#exam-form').submit();
 }
 
 function autoSubmit() {
+  isSubmitting = true;
   Swal.fire({
     icon: 'info',
     title: 'หมดเวลา!',
@@ -574,5 +529,3 @@ function autoSubmit() {
   }).then(() => submitExam());
 }
 </script>
-</body>
-</html>

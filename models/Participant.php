@@ -73,6 +73,38 @@ function getParticipantsByProject(int $projectId): array
     return $stmt->fetchAll();
 }
 
+function searchParticipantsByName(int $projectId, string $term, int $limit = 10): array
+{
+    $term = trim($term);
+    if ($projectId <= 0 || mb_strlen($term) < 2) {
+        return [];
+    }
+
+    $like = '%' . $term . '%';
+    $stmt = getDB()->prepare('
+        SELECT id, title, first_name, last_name
+        FROM participants
+        WHERE project_id = ?
+        AND (
+            first_name LIKE ?
+            OR last_name LIKE ?
+            OR CONCAT(first_name, " ", last_name) LIKE ?
+            OR CONCAT(COALESCE(title, ""), " ", first_name, " ", last_name) LIKE ?
+        )
+        ORDER BY first_name ASC, last_name ASC
+        LIMIT ?
+    ');
+    $stmt->bindValue(1, $projectId, PDO::PARAM_INT);
+    $stmt->bindValue(2, $like, PDO::PARAM_STR);
+    $stmt->bindValue(3, $like, PDO::PARAM_STR);
+    $stmt->bindValue(4, $like, PDO::PARAM_STR);
+    $stmt->bindValue(5, $like, PDO::PARAM_STR);
+    $stmt->bindValue(6, max(1, min(20, $limit)), PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
 function getParticipant(int $id): ?array
 {
     $stmt = getDB()->prepare('SELECT * FROM participants WHERE id = ? LIMIT 1');
@@ -129,7 +161,7 @@ function createParticipant(int $projectId, array $data, ?int $adminId): array
             $payload['email'],
             $payload['phone'],
             $payload['id_card'],
-            generateToken(32),
+            generateToken(6),
             $payload['note'],
             $payload['import_batch'],
             $adminId,
@@ -179,7 +211,7 @@ function importParticipants(int $projectId, array $rows, int $adminId): array
                 trim((string) ($row['โทรศัพท์'] ?? $row['phone'] ?? $row[5] ?? '')),
                 trim((string) ($row['เลขบัตรประชาชน'] ?? $row['id_card'] ?? $row[6] ?? '')),
                 trim((string) ($row['หมายเหตุ'] ?? $row['note'] ?? $row[7] ?? '')),
-                generateToken(32),
+                generateToken(6),
                 $batch,
                 $adminId
             ]);

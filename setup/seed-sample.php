@@ -29,7 +29,7 @@ try {
 
     $projectId = (int) $db->query("SELECT id FROM projects WHERE code = 'TEST-001' LIMIT 1")->fetchColumn();
 
-    $token = 'testtoken1234567890testtoken1234567890testtoken1234567890abcd';
+    $token = '123456';
     $stmt = $db->prepare('
         INSERT INTO participants (project_id, first_name, last_name, email, access_token, created_by)
         VALUES (?, "Test", "Participant", "test@example.com", ?, ?)

@@ -70,12 +70,20 @@ function saveCertificateTemplate(array $data, ?int $adminId, ?int $id = null): a
 
     // Handle background image
     if (isset($_FILES['bg_image']) && $_FILES['bg_image']['tmp_name']) {
-        $payload['bg_image'] = uploadTemplateFile($_FILES['bg_image'], 'bg');
+        $uploaded = uploadTemplateFile($_FILES['bg_image'], 'bg');
+        if ($uploaded === null) {
+            return ['success' => false, 'errors' => ['ไฟล์พื้นหลังไม่ถูกต้อง กรุณาอัปโหลด PNG, JPG หรือ WEBP ขนาดไม่เกิน 5MB']];
+        }
+        $payload['bg_image'] = $uploaded;
     }
 
     // Handle Logo upload
     if (isset($_FILES['logo_image']) && $_FILES['logo_image']['tmp_name']) {
-        $payload['logo_path'] = uploadTemplateFile($_FILES['logo_image'], 'logo');
+        $uploaded = uploadTemplateFile($_FILES['logo_image'], 'logo');
+        if ($uploaded === null) {
+            return ['success' => false, 'errors' => ['ไฟล์โลโก้ไม่ถูกต้อง กรุณาอัปโหลด PNG, JPG หรือ WEBP ขนาดไม่เกิน 5MB']];
+        }
+        $payload['logo_path'] = $uploaded;
     }
 
     // Handle Signatures
@@ -96,7 +104,11 @@ function saveCertificateTemplate(array $data, ?int $adminId, ?int $id = null): a
         
         // Check for new upload
         if (isset($_FILES['sign_image_' . $i]) && $_FILES['sign_image_' . $i]['tmp_name']) {
-            $signPath = uploadTemplateFile($_FILES['sign_image_' . $i], 'sign' . $i);
+            $uploaded = uploadTemplateFile($_FILES['sign_image_' . $i], 'sign' . $i);
+            if ($uploaded === null) {
+                return ['success' => false, 'errors' => ['ไฟล์ลายเซ็นไม่ถูกต้อง กรุณาอัปโหลด PNG, JPG หรือ WEBP ขนาดไม่เกิน 5MB']];
+            }
+            $signPath = $uploaded;
         }
         
         $signatures[] = [
@@ -172,14 +184,36 @@ function saveCertificateTemplate(array $data, ?int $adminId, ?int $id = null): a
  */
 function uploadTemplateFile(array $file, string $prefix): ?string
 {
-    $uploadDir = 'uploads/templates';
-    if (!is_dir(ROOT_PATH . '/' . $uploadDir)) {
-        mkdir(ROOT_PATH . '/' . $uploadDir, 0755, true);
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        return null;
     }
-    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $fileName = $prefix . '_' . time() . '_' . uniqid() . '.' . $ext;
+
+    if (($file['size'] ?? 0) <= 0 || (int) $file['size'] > 5 * 1024 * 1024) {
+        return null;
+    }
+
+    $tmpName = (string) ($file['tmp_name'] ?? '');
+    if ($tmpName === '' || !is_uploaded_file($tmpName) || getimagesize($tmpName) === false) {
+        return null;
+    }
+
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($tmpName);
+    $extensions = [
+        'image/png' => 'png',
+        'image/jpeg' => 'jpg',
+        'image/webp' => 'webp',
+    ];
+    if (!isset($extensions[$mime])) {
+        return null;
+    }
+
+    if (!is_dir(TEMPLATE_UPLOAD_PATH)) {
+        mkdir(TEMPLATE_UPLOAD_PATH, 0755, true);
+    }
+    $uploadDir = 'uploads/templates';
+    $fileName = $prefix . '_' . bin2hex(random_bytes(12)) . '.' . $extensions[$mime];
     $dest = $uploadDir . '/' . $fileName;
-    if (move_uploaded_file($file['tmp_name'], ROOT_PATH . '/' . $dest)) {
+    if (move_uploaded_file($tmpName, ROOT_PATH . '/' . $dest)) {
         return $dest;
     }
     return null;

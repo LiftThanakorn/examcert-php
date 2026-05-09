@@ -711,3 +711,85 @@ Completed:
 - **Fixed Answer Logic**: Updated `isAnswerCorrect()` in `models/ExamSession.php` to be case-insensitive using `mb_strtolower()`.
 - **Improved Robustness**: Standardized answer comparison to handle variations in case (e.g., 'a' vs 'A') which previously caused correct multiple-choice answers to be marked as wrong if the database used a different case than the frontend keys.
 - **Unicode Support**: Ensured UTF-8 compatibility for case-insensitive comparisons in fill-in-the-blank questions.
+
+## 2026-05-09 - Rollback Before Architecture Refactor
+
+Completed:
+- Rolled the repository back from `784ce7d checkpoint: harden examcert architecture phase 1` to `c14a213 fix: ensure scoring uses auto-saved answers from DB and re-enable review tab for verification`.
+- Removed the uncommitted architecture/refactor work that was created after the checkpoint, including temporary service/model/controller-helper files.
+- Confirmed the working tree was clean immediately after rollback.
+
+Notes:
+- This is now the intended resume point before the architecture review/refactor attempt.
+- Open IDE tabs may still show files that no longer exist after rollback; refresh the editor if needed.
+
+Next:
+- Continue from `c14a213` and re-apply only targeted fixes intentionally.
+- If refactoring is requested again, create a smaller checkpoint before each phase.
+
+## 2026-05-09 - Entry Name Search Privacy Fix
+
+Completed:
+- Updated the public exam entry page so participant names are not loaded into the browser on initial page load.
+- Added a project-scoped participant search API that only returns matching names after the user types at least 2 characters.
+- Reworked `views/exam/entry.php` autocomplete to populate the datalist from the search endpoint instead of displaying everyone.
+- Cleaned the visible Thai text on the entry page while preserving the existing 6-character exam token field.
+- Replaced the browser-native datalist tooltip with a custom styled dropdown panel under the name field.
+
+Verification:
+- Ran PHP lint on `views/exam/entry.php`, `api/participant.php`, and `models/Participant.php`: passed.
+- Ran `git diff --check`: passed; only Windows LF/CRLF warnings remain.
+- Re-ran PHP lint on `views/exam/entry.php` after the custom dropdown change: passed.
+
+Next:
+- Browser-test the entry page by typing part of a participant name, selecting the matching name, entering the 6-character token, and starting the exam.
+
+## 2026-05-09 - Feature Bugfix and Security Hotfix Pass
+
+Completed:
+- Added runtime constants and helpers in `config/config.php`, including `APP_ENV`, `CERT_UPLOAD_PATH`, `TEMPLATE_UPLOAD_PATH`, `isLocalEnvironment()`, and `abortResponse()`.
+- Changed `index.php` so `display_errors` is enabled only in local/development mode.
+- Hardened session fingerprinting to tolerate missing user-agent values.
+- Standardized new participant tokens and sample seed token to 6 characters to match the public entry form.
+- Locked `api/participant.php?action=list` behind admin API login with JSON 401 responses while keeping the limited public `search` endpoint for entry autocomplete.
+- Added CSRF validation and session-question ownership validation to `api/exam.php?action=save_answer`.
+- Added `sessionHasQuestion()` to `models/ExamSession.php`.
+- Fixed certificate generation risks by defining the upload path dependency and moving certificate render/download failures to controlled responses.
+- Fixed certificate signature font scope in `models/Certificate.php`.
+- Hardened certificate template uploads with upload error checks, 5MB size limit, MIME/image validation, allowed PNG/JPG/WEBP types, and randomized filenames.
+
+Verification:
+- Ran PHP lint across all PHP files: passed.
+- Ran `git diff --check`: passed; only Windows LF/CRLF warnings remain.
+- HTTP smoke checked unauthenticated participant `list` API: returns 401.
+
+Notes:
+- Existing participants with old 32-character tokens may need `setup/reset-tokens.php` run once if the local database still contains long tokens.
+- Entry page search remains public but limited to project-scoped, term-based results after at least 2 characters.
+
+
+## 2026-05-09 - Final Stabilization & UX Hardening
+
+### Completed:
+- **Navigation Integrity**:
+  - Implemented multi-layered **Browser Back Button Locking** using `popstate` and `beforeunload`.
+  - Handled "back-spamming" behavior to ensure students stay on the exam page.
+  - Added `isSubmitting` flag to allow seamless navigation during legitimate form submissions.
+- **Session Resumption**:
+  - Refactored `startExamSession` to automatically resume `in_progress` sessions for participants.
+  - This prevents accidental attempt loss if a user navigates away or closes the tab.
+- **Project Visibility**:
+  - Fixed Landing Page issue where active projects weren't appearing by correctly fetching data in `index.php`.
+- **API & Routing Stability**:
+  - Resolved Fatal Errors in `index.php` routing by hardening the match-condition check.
+  - Corrected view paths for the landing page and integrated it with the global `header.php`.
+  - Re-integrated `search_participants` API action to support participant autocomplete.
+
+### Verification:
+- Verified that pressing the back button triggers a warning and stays on the page.
+- Verified that active projects appear on the landing page.
+- Verified that logging back in after navigating away resumes the existing session.
+- Performed final code audit for redundant HTML boilerplate: all public views now share a single, clean header/footer system.
+
+Next:
+- Production deployment and load testing.

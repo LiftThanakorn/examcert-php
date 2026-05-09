@@ -126,6 +126,7 @@ function writeCertificatePdf(string $token): void
 
     if (!is_dir(CERT_UPLOAD_PATH)) mkdir(CERT_UPLOAD_PATH, 0755, true);
     $absolutePath = ROOT_PATH . '/' . $certificate['file_path'];
+    $activeFont = ($font = strtolower($template['font_name'] ?: 'sarabun')) === 'sarabun' ? 'sarabun' : $font;
     
     $tcpdfFile = ROOT_PATH . '/lib/tcpdf/tcpdf.php';
     if (!is_file($tcpdfFile)) {
@@ -150,18 +151,14 @@ function writeCertificatePdf(string $token): void
 
     // Font Configuration (Google Fonts: Sarabun)
     // Note: To use Sarabun in TCPDF, the .php/.z/.php font files must be in lib/tcpdf/fonts/
-    $font = strtolower($template['font_name'] ?: 'sarabun');
     $color = $template['color_primary'] ?: '#E87722';
     list($r, $g, $b) = sscanf($color, "#%02x%02x%02x");
 
     // Helper to draw text
-    $drawText = function($field, $text) use ($pdf, $layout, $font, $r, $g, $b) {
+    $drawText = function($field, $text) use ($pdf, $layout, $activeFont, $r, $g, $b) {
         if (!isset($layout[$field])) return;
         $cfg = $layout[$field];
-        
-        // Use Sarabun if specified, otherwise fallback to freeserif for Thai support
-        $activeFont = ($font === 'sarabun') ? 'sarabun' : $font;
-        
+
         $pdf->SetFont($activeFont, ($cfg['bold'] ?? false) ? 'B' : '', $cfg['size'] ?? 20);
         $pdf->SetTextColor($r, $g, $b);
         $pdf->Text($cfg['x'], $cfg['y'], $text, false, false, true, 0, 0, $cfg['align'] ?? 'L');

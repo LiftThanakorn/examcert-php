@@ -15,7 +15,6 @@ class PublicExamController
         $project = $code !== '' ? getProjectByCodeOrId($code) : null;
         
         if (!$project) {
-            // If no project is found, we can't show the entry page
             header('Location: ' . BASE_URL . '/');
             exit;
         }
@@ -49,7 +48,7 @@ class PublicExamController
         }
 
         $pageTitle = 'เข้าสอบ';
-        $bodyClass = 'bg-gray-900 font-sans'; // Dark background for the entry screen
+        $bodyClass = 'bg-mesh min-h-screen flex items-center justify-center p-6 font-sans';
         require VIEWS_PATH . '/layout/header.php';
         require VIEWS_PATH . '/exam/entry.php';
         require VIEWS_PATH . '/layout/footer.php';
@@ -60,20 +59,16 @@ class PublicExamController
         $sessionId = (int) ($_GET['session_id'] ?? $_POST['session_id'] ?? 0);
         $session = getExamSession($sessionId);
         if (!$session) {
-            http_response_code(404);
-            exit('Session not found.');
+            abortResponse(404, 'Session not found.');
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!validateCsrfToken($_POST['csrf_token'] ?? null)) {
-                http_response_code(400);
-                echo 'Bad request.';
-                exit;
+                abortResponse(400, 'Bad request.');
             }
 
             $result = submitExamSession($sessionId, $_POST['answers'] ?? []);
             if ($result['success']) {
-                // Auto-issue certificate if passed
                 if ($result['result'] === 'pass') {
                     issueCertificateFromSession($sessionId, null);
                 }
@@ -90,7 +85,21 @@ class PublicExamController
         $project = getProject((int) $session['project_id']);
         $participant = getParticipant((int) $session['participant_id']);
         $questions = getSessionQuestions($session);
-        $secondsLeft = max(0, strtotime((string) $session['expires_at']) - time());
+
+        // Calculate seconds left: Min of (session expires_at) and (project exam_end)
+        $now = time();
+        $sessionEnd = strtotime((string) $session['expires_at']);
+        $effectiveEnd = $sessionEnd;
+
+        if (!empty($project['exam_end'])) {
+            $projectEnd = strtotime((string) $project['exam_end']);
+            if ($projectEnd < $sessionEnd) {
+                $effectiveEnd = $projectEnd;
+            }
+        }
+        
+        $secondsLeft = max(0, $effectiveEnd - $now);
+
         $pageTitle = 'ทำข้อสอบ';
         $bodyClass = 'bg-[#F9F8F6] font-sans';
         require VIEWS_PATH . '/layout/header.php';
@@ -103,8 +112,7 @@ class PublicExamController
         $sessionId = (int) ($_GET['session_id'] ?? 0);
         $session = getExamSession($sessionId);
         if (!$session) {
-            http_response_code(404);
-            exit('Session not found.');
+            abortResponse(404, 'Session not found.');
         }
 
         $project = getProject((int) $session['project_id']);
@@ -135,17 +143,17 @@ class PublicExamController
         $token = trim((string) ($_GET['token'] ?? ''));
         $certificate = $token !== '' ? getCertificateByToken($token) : null;
         if (!$certificate) {
-            http_response_code(404);
-            die('ไม่พบข้อมูลเกียรติบัตร (Invalid Token)');
+            abortResponse(404, 'Certificate not found.');
         }
         $template = getCertificateTemplate((int) ($certificate['template_id'] ?: 1));
         if (!$template) {
-            die('ไม่พบเทมเพลตเกียรติบัตร');
+            abortResponse(404, 'Certificate template not found.');
         }
 
         $viewPath = VIEWS_PATH . '/certificates/render.php';
         if (!file_exists($viewPath)) {
-            die('ไม่พบไฟล์ View: ' . $viewPath);
+            logError('Certificate render view missing', ['path' => $viewPath]);
+            abortResponse(500, 'Certificate render view is missing.');
         }
 
         require $viewPath;
@@ -155,23 +163,19 @@ class PublicExamController
     {
         $token = trim((string) ($_GET['token'] ?? ''));
         if ($token === '') {
-            http_response_code(400);
-            exit('Invalid token.');
+            abortResponse(400, 'Invalid token.');
         }
 
         $certificate = getCertificateByToken($token);
         if (!$certificate || (int) $certificate['is_revoked'] === 1) {
-            http_response_code(404);
-            exit('Certificate not found or revoked.');
+            abortResponse(404, 'Certificate not found or revoked.');
         }
 
         $filePath = ROOT_PATH . '/' . $certificate['file_path'];
         if (!is_file($filePath)) {
-            // Re-generate if file missing
             writeCertificatePdf($token);
             if (!is_file($filePath)) {
-                http_response_code(404);
-                exit('Certificate file not found.');
+                abortResponse(404, 'Certificate file not found.');
             }
         }
 

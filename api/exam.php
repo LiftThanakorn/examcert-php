@@ -10,6 +10,10 @@ require_once ROOT_PATH . '/models/AnswerLog.php';
 $action = (string) ($_GET['action'] ?? $_POST['action'] ?? '');
 
 if ($action === 'save_answer') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        jsonResponse(false, 'Invalid request.', [], 400);
+    }
+
     $sessionId = (int) ($_POST['session_id'] ?? 0);
     $questionId = (int) ($_POST['question_id'] ?? 0);
     $answer = trim((string) ($_POST['answer'] ?? ''));
@@ -21,6 +25,10 @@ if ($action === 'save_answer') {
     $session = getExamSession($sessionId);
     if (!$session || $session['status'] !== 'in_progress') {
         jsonResponse(false, 'Session is not active.', [], 403);
+    }
+
+    if (!sessionHasQuestion($session, $questionId)) {
+        jsonResponse(false, 'Question does not belong to this session.', [], 403);
     }
 
     $success = logAnswer($sessionId, $questionId, $answer);
@@ -60,6 +68,33 @@ if ($action === 'check_time') {
         'should_submit' => $shouldSubmit,
         'message' => $projectStatus['message'],
     ]);
+}
+
+if ($action === 'search_participants') {
+    $projectCode = trim((string) ($_GET['project_code'] ?? ''));
+    $query = trim((string) ($_GET['query'] ?? ''));
+
+    if ($projectCode === '' || $query === '') {
+        jsonResponse(false, 'Missing project code or query.', [], 400);
+    }
+
+    $project = getProjectByCodeOrId($projectCode);
+    if (!$project) {
+        jsonResponse(false, 'Project not found.', [], 404);
+    }
+
+    $stmt = getDB()->prepare('
+        SELECT id, first_name, last_name, title
+        FROM participants 
+        WHERE project_id = ? 
+        AND (first_name LIKE ? OR last_name LIKE ? OR CONCAT(first_name, " ", last_name) LIKE ?)
+        LIMIT 10
+    ');
+    $searchTerm = '%' . $query . '%';
+    $stmt->execute([$project['id'], $searchTerm, $searchTerm, $searchTerm]);
+    $results = $stmt->fetchAll();
+
+    jsonResponse(true, 'Success', $results);
 }
 
 jsonResponse(false, 'Unknown exam API action.', [], 400);

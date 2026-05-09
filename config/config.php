@@ -2,13 +2,21 @@
 declare(strict_types=1);
 
 define('APP_NAME', 'ระบบสอบออนไลน์พร้อมออกใบเกียรติบัตร มหาวิทยาลัยราชภัฏร้อยเอ็ด');
+define('APP_ENV', getenv('APP_ENV') ?: 'local');
 define('BASE_URL', 'http://localhost/examcert-php');
 define('ROOT_PATH', dirname(__DIR__));
 define('VIEWS_PATH', ROOT_PATH . '/views');
 define('CONTROLLERS_PATH', ROOT_PATH . '/controllers');
 define('UPLOADS_PATH', ROOT_PATH . '/uploads');
+define('CERT_UPLOAD_PATH', UPLOADS_PATH . '/certificates');
+define('TEMPLATE_UPLOAD_PATH', UPLOADS_PATH . '/templates');
 define('LOGS_PATH', ROOT_PATH . '/logs');
 define('LOG_FILE', LOGS_PATH . '/app.log');
+
+function isLocalEnvironment(): bool
+{
+    return in_array(APP_ENV, ['local', 'development', 'dev'], true);
+}
 
 function e(?string $value): string
 {
@@ -95,5 +103,12 @@ function jsonResponse(bool $success, string $message = '', array $data = [], int
         'message' => $message,
         'data' => $data,
     ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+function abortResponse(int $statusCode, string $publicMessage): never
+{
+    http_response_code($statusCode);
+    echo e($publicMessage);
     exit;
 }
