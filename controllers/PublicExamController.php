@@ -12,6 +12,14 @@ class PublicExamController
     {
         $code = trim((string) ($_GET['project'] ?? ''));
         $project = $code !== '' ? getProjectByCodeOrId($code) : null;
+        
+        if (!$project) {
+            // If no project is found, we can't show the entry page
+            header('Location: ' . BASE_URL . '/');
+            exit;
+        }
+
+        $projectCode = $code;
         $error = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {

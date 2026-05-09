@@ -70,19 +70,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Fetch participants for this project
     if (projectId > 0) {
+        console.log('Fetching participants for project ID:', projectId);
         fetch(`<?= e(BASE_URL) ?>/api/participant.php?action=list&project_id=${projectId}`)
             .then(res => res.json())
             .then(res => {
-                if (res.success) {
+                console.log('API Response:', res);
+                if (res.success && Array.isArray(res.data)) {
                     participantsData = res.data;
+                    console.log(`Loaded ${participantsData.length} participants.`);
+                    
+                    // Clear existing options just in case
+                    dataList.innerHTML = '';
+                    
                     participantsData.forEach(p => {
                         const option = document.createElement('option');
                         option.value = p.full_name;
                         dataList.appendChild(option);
                     });
+                } else {
+                    console.error('API Error or no data:', res.message);
                 }
             })
-            .catch(err => console.error('Failed to load participants', err));
+            .catch(err => {
+                console.error('Fetch failed:', err);
+                // Fallback attempt with relative path if BASE_URL has issues
+                if (!err.alreadyRetried) {
+                    console.log('Retrying with relative path...');
+                    fetch(`../api/participant.php?action=list&project_id=${projectId}`)
+                        .then(r => r.json())
+                        .then(r => { /* repeat logic or just log */ });
+                }
+            });
+    } else {
+        console.warn('No project ID found, auto-complete disabled.');
     }
 
     // Handle name selection
