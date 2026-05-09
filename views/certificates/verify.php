@@ -114,12 +114,19 @@
 </div>
 
 <!-- Hidden Iframe for high-precision rendering -->
-<iframe id="download-iframe" name="cert_iframe" src="about:blank" style="display:none;"></iframe>
+<iframe id="download-iframe" name="cert_iframe" src="about:blank" style="width:1px; height:1px; border:none; opacity:0;"></iframe>
+
+<div id="fallback-container" class="mt-4 hidden fade-in text-center no-print">
+    <p class="text-[10px] font-bold text-slate-400 mb-2">หากการดาวน์โหลดไม่เริ่มโดยอัตโนมัติ:</p>
+    <a id="fallback-link" href="#" target="_blank" class="text-xs font-black text-primary-500 hover:underline">คลิกที่นี่เพื่อเปิดหน้าดาวน์โหลดโดยตรง</a>
+</div>
 
 <script>
     function triggerDownload() {
         const btn = document.getElementById('btn-download');
         const iframe = document.getElementById('download-iframe');
+        const fallback = document.getElementById('fallback-container');
+        const fallbackLink = document.getElementById('fallback-link');
         
         const originalHTML = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังเตรียมไฟล์ PDF...';
@@ -128,12 +135,21 @@
         // Load the new dedicated render page into the hidden iframe
         const renderUrl = "<?= e(BASE_URL . '/public/render-cert.php?token=' . $certificate['verify_token']) ?>&download=1";
         iframe.src = renderUrl;
+        
+        // Setup fallback link
+        fallbackLink.href = renderUrl;
+        setTimeout(() => {
+            if (btn.disabled) {
+                fallback.classList.remove('hidden');
+            }
+        }, 5000); // Show fallback after 5 seconds
 
         // Listen for completion
         window.onmessage = function(e) {
             if (e.data === 'download_complete') {
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
+                fallback.classList.add('hidden');
             }
         };
     }
