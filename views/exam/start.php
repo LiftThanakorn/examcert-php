@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ห้องสอบออนไลน์ | <?= e($project['name']) ?></title>
+<meta name="base-url" content="<?= e(BASE_URL) ?>">
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -234,7 +235,7 @@ tailwind.config = {
 </form>
 
 <!-- ===================== JS ===================== -->
-<script src="<?= e(BASE_URL) ?>/assets/js/exam.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
 // ── DATA FROM PHP ──────────────────────────────────────────────────
 const QUESTIONS = <?= json_encode(array_map(function($q) {
@@ -242,7 +243,7 @@ const QUESTIONS = <?= json_encode(array_map(function($q) {
         'id' => (int)$q['id'],
         'text' => $q['question_text'],
         'type' => $q['type'],
-        'category' => 'ทั่วไป', // Could be added to DB later
+        'category' => 'ทั่วไป', 
         'difficulty' => 'ปานกลาง',
         'diffColor' => 'text-amber-500',
         'choices' => json_decode($q['choices'], true) ?: []
@@ -255,19 +256,37 @@ let answers  = new Array(QUESTIONS.length).fill(null);
 let totalSec = <?= (int)$secondsLeft ?>;                    
 let timerInterval;
 let direction = 'right';                   
-
-// Load existing answers from session/DB if available
-// (Assuming your backend provides them, otherwise start fresh)
+let sessionId = <?= (int)$session['id'] ?>;
 
 // ── INIT ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    initExam(totalSec, <?= (int)$session['id'] ?>); // From exam.js
     renderQuestion();
     renderPalette();
     renderDots();
     startTimer();
     updateProgress();
 });
+
+function getBaseUrl() {
+    return document.querySelector('meta[name="base-url"]')?.content || '';
+}
+
+function saveAnswer(questionId, answer) {
+    $.ajax({
+        url: getBaseUrl() + '/api/exam.php?action=save_answer',
+        type: 'POST',
+        data: {
+            session_id: sessionId,
+            question_id: questionId,
+            answer: answer,
+            csrf_token: document.querySelector('input[name="csrf_token"]')?.value
+        },
+        dataType: 'json',
+        success: function(res) {
+            if (!res.success) console.error('Auto-save failed:', res.message);
+        }
+    });
+}
 
 // ── TIMER ─────────────────────────────────────────────────────────
 function startTimer() {
