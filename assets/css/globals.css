@@ -7,33 +7,45 @@
   --primary-dark: #C4601A;
   --primary-light: #FFF3E8;
   --primary-50: #FAEEDA;
+  --secondary: #1E293B;
+  --accent: #FF813A;
   --white: #FFFFFF;
-  --gray-50: #F9F8F6;
-  --gray-100: #F1EFE8;
-  --gray-200: #D3D1C7;
-  --gray-400: #888780;
-  --gray-600: #5F5E5A;
-  --gray-900: #1A1A1A;
-  --success: #3B6D11;
-  --success-light: #EAF3DE;
-  --danger: #A32D2D;
-  --danger-light: #FCEBEB;
-  --info: #185FA5;
-  --info-light: #E6F1FB;
+  --gray-50: #F8FAFC;
+  --gray-100: #F1F5F9;
+  --gray-200: #E2E8F0;
+  --gray-300: #CBD5E1;
+  --gray-400: #94A3B8;
+  --gray-600: #475569;
+  --gray-900: #0F172A;
+  --success: #10B981;
+  --danger: #EF4444;
+  --info: #3B82F6;
+}
+
+@layer base {
+  body {
+    @apply text-gray-900 bg-gray-50;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
 }
 
 @layer components {
-  .btn-primary {
-    @apply px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors duration-200;
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20;
   }
-  .btn-secondary {
-    @apply px-4 py-2 bg-gray-200 text-gray-900 rounded hover:bg-gray-100 transition-colors duration-200;
+  .shadow-soft {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
   }
-  .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+  .shadow-premium {
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.1);
   }
-  .input-base {
-    @apply w-full px-3 py-2 border border-gray-200 rounded focus:border-primary-600 focus:ring-2 focus:ring-primary-50 transition-colors;
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
   }
 }
 

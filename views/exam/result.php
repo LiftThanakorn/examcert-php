@@ -1,74 +1,103 @@
-<div class="min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-xl w-full">
-        <div class="bg-white rounded-[40px] shadow-2xl overflow-hidden text-center">
-            
-            <!-- Result Header -->
-            <div class="pt-12 pb-8 px-8 <?= $session['result'] === 'pass' ? 'bg-green-50' : 'bg-red-50' ?> transition-colors duration-500">
-                <div class="w-24 h-24 mx-auto rounded-[32px] flex items-center justify-center shadow-lg mb-6 <?= $session['result'] === 'pass' ? 'bg-green-600 text-white' : 'bg-red-600 text-white' ?>">
-                    <?php if ($session['result'] === 'pass'): ?>
-                        <i class="fas fa-trophy text-4xl"></i>
-                    <?php else: ?>
-                        <i class="fas fa-rotate-right text-4xl"></i>
-                    <?php endif; ?>
-                </div>
-                <h1 class="text-3xl font-bold <?= $session['result'] === 'pass' ? 'text-green-700' : 'text-red-700' ?>">
-                    <?= $session['result'] === 'pass' ? 'ขอแสดงความยินดี!' : 'ไม่ผ่านเกณฑ์การสอบ' ?>
-                </h1>
-                <p class="<?= $session['result'] === 'pass' ? 'text-green-600' : 'text-red-600' ?> mt-2 opacity-80 font-medium">
-                    <?= $session['result'] === 'pass' ? 'คุณผ่านการทดสอบตามเกณฑ์ที่กำหนด' : 'ท่านสามารถลองใหม่อีกครั้งได้ตามสิทธิ์ที่เหลือ' ?>
-                </p>
-            </div>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สรุปผลการสอบ | <?= e(APP_NAME) ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/globals.css">
+    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/custom.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-mesh min-h-screen flex items-center justify-center p-6 antialiased">
 
-            <!-- Score Details -->
-            <div class="p-8 md:p-12 space-y-10">
-                
-                <div class="space-y-4">
-                    <div class="flex items-end justify-between">
-                        <div class="text-left">
-                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">คะแนนที่คุณได้</span>
-                            <div class="text-5xl font-black text-gray-800 mt-1"><?= round((float) $session['percent'], 1) ?><span class="text-2xl text-gray-300 ml-1">%</span></div>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">เกณฑ์ผ่าน</span>
-                            <div class="text-xl font-bold text-gray-500 mt-1"><?= (float) $project['pass_score'] ?>%</div>
-                        </div>
+    <div class="max-w-2xl w-full animate-float">
+        <div class="card-premium overflow-hidden !p-0">
+            <!-- Header Background based on result -->
+            <?php if ($session['result'] === 'pass'): ?>
+                <div class="bg-gradient-to-br from-green-500 to-green-600 p-12 text-center text-white relative">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-[8rem]"></div>
+                    <div class="w-24 h-24 bg-white/20 backdrop-blur-lg rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl">
+                        <i class="fas fa-award text-4xl"></i>
                     </div>
-                    <div class="h-4 w-full bg-gray-50 rounded-full border border-gray-100 overflow-hidden shadow-inner">
-                        <div class="h-full <?= $session['result'] === 'pass' ? 'bg-green-500' : 'bg-red-500' ?> rounded-full progress-bar-fill" style="width: <?= (float) $session['percent'] ?>%"></div>
+                    <h1 class="text-4xl font-extrabold tracking-tight mb-2">ยินดีด้วย คุณสอบผ่าน!</h1>
+                    <p class="text-white/80 font-medium">คุณผ่านการทดสอบตามเกณฑ์ที่มหาวิทยาลัยกำหนด</p>
+                </div>
+            <?php else: ?>
+                <div class="bg-gradient-to-br from-danger to-red-600 p-12 text-center text-white relative">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-[8rem]"></div>
+                    <div class="w-24 h-24 bg-white/20 backdrop-blur-lg rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl">
+                        <i class="fas fa-redo-alt text-4xl"></i>
+                    </div>
+                    <h1 class="text-4xl font-extrabold tracking-tight mb-2">ไม่ผ่านเกณฑ์การสอบ</h1>
+                    <p class="text-white/80 font-medium">อย่าเพิ่งท้อ! ท่านสามารถทบทวนและลองใหม่อีกครั้ง</p>
+                </div>
+            <?php endif; ?>
+
+            <div class="p-10 space-y-10">
+                <!-- Score Circle/Bar -->
+                <div class="flex flex-col items-center gap-4">
+                    <div class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">คะแนนที่ทำได้</div>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-7xl font-black text-gray-900"><?= round((float) $session['percent'], 0) ?></span>
+                        <span class="text-2xl font-bold text-gray-300">%</span>
+                    </div>
+                    <div class="w-full max-w-sm h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                        <div class="h-full <?= $session['result'] === 'pass' ? 'bg-green-500' : 'bg-danger' ?> transition-all duration-1000" style="width: <?= (float) $session['percent'] ?>%"></div>
+                    </div>
+                    <div class="flex justify-between w-full max-w-sm text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
+                        <span>0%</span>
+                        <span>เกณฑ์ผ่าน: <?= (float) $project['pass_score'] ?>%</span>
+                        <span>100%</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-5 rounded-3xl border border-gray-100">
-                        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">ทำคะแนนได้</div>
-                        <div class="text-xl font-bold text-gray-800"><?= (float) $session['score'] ?> / <?= (float) $session['total_score'] ?></div>
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 flex flex-col items-center gap-2">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">คะแนนดิบ</span>
+                        <span class="text-2xl font-bold text-gray-900"><?= (float) $session['score'] ?> / <?= (float) $session['total_score'] ?></span>
                     </div>
-                    <div class="bg-gray-50 p-5 rounded-3xl border border-gray-100">
-                        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">สถานะ</div>
-                        <div class="text-xl font-bold <?= $session['result'] === 'pass' ? 'text-green-600' : 'text-red-600' ?>">
-                            <?= $session['result'] === 'pass' ? 'ผ่าน' : 'ไม่ผ่าน' ?>
-                        </div>
+                    <div class="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 flex flex-col items-center gap-2">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">สถานะ</span>
+                        <span class="text-2xl font-bold <?= $session['result'] === 'pass' ? 'text-green-600' : 'text-danger' ?>">
+                            <?= $session['result'] === 'pass' ? 'ผ่านการสอบ' : 'ไม่ผ่านเกณฑ์' ?>
+                        </span>
                     </div>
                 </div>
 
                 <!-- Actions -->
-                <div class="space-y-3 pt-4">
+                <div class="space-y-4 pt-4">
                     <?php if ($session['result'] === 'pass'): ?>
-                        <a href="<?= e(BASE_URL) ?>/public/verify.php?token=<?= e($certificate['verify_token'] ?? '') ?>" class="w-full h-16 bg-primary-400 hover:bg-primary-500 text-white font-bold rounded-2xl shadow-orange transition-all flex items-center justify-center gap-3 group">
-                            <i class="fas fa-certificate text-xl"></i>
-                            รับเกียรติบัตรของคุณ
+                        <a href="<?= e(BASE_URL) ?>/public/verify.php?token=<?= e($certificate['verify_token'] ?? '') ?>" class="btn-premium w-full h-16 text-lg flex items-center justify-center gap-4">
+                            <i class="fas fa-certificate"></i>
+                            ดูใบประกาศนียบัตรของคุณ
+                        </a>
+                    <?php else: ?>
+                        <a href="<?= e(BASE_URL) ?>/public/exam.php?project=<?= e($project['code']) ?>" class="btn-premium w-full h-16 text-lg flex items-center justify-center gap-4 bg-gray-900 hover:bg-black">
+                            <i class="fas fa-sync-alt"></i>
+                            พยายามอีกครั้ง
                         </a>
                     <?php endif; ?>
                     
-                    <a href="<?= e(BASE_URL) ?>/public/exam.php?project=<?= e($project['code']) ?>" class="w-full h-16 bg-white border-2 border-gray-100 hover:border-gray-200 text-gray-600 font-bold rounded-2xl transition-all flex items-center justify-center">
-                        กลับสู่หน้าหลัก
+                    <a href="<?= e(BASE_URL) ?>/" class="w-full h-16 bg-white border-2 border-gray-100 hover:border-primary-500 hover:text-primary-500 text-gray-500 font-bold rounded-[2rem] transition-all flex items-center justify-center gap-3">
+                        <i class="fas fa-home"></i>
+                        กลับหน้าหลัก
                     </a>
                 </div>
             </div>
 
-            <div class="pb-8 text-center px-8">
-                <p class="text-gray-300 text-[10px] uppercase font-bold tracking-[0.2em]">ExamCert Standalone v1 Security Certified</p>
+            <!-- Footer info -->
+            <div class="bg-gray-50/50 py-6 text-center border-t border-gray-50">
+                <p class="text-[10px] font-bold text-gray-300 uppercase tracking-[0.2em]">ExamCert Digital Result Verification System</p>
             </div>
         </div>
     </div>
-</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<?= e(BASE_URL) ?>/assets/js/app.js"></script>
+</body>
+</html>

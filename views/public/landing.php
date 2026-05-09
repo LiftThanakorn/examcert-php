@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle ?? 'ExamCert Platform') ?></title>
+    <title><?= e($pageTitle ?? 'ระบบสอบออนไลน์ มรภ.ร้อยเอ็ด') ?></title>
     
-    <!-- Fonts: Inter & Noto Sans Thai -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome -->
+    <!-- CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Tailwind CSS (CDN for standalone) -->
+    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/globals.css">
+    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/custom.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -24,164 +24,143 @@
                     },
                     colors: {
                         primary: {
-                            50: '#FFF3EB',
-                            100: '#FFE4D1',
-                            200: '#FFC8A3',
-                            300: '#FFA56E',
-                            400: '#FF813A',
-                            500: '#E87722', // Brand Primary
-                            600: '#C76118',
-                            700: '#A34D10',
+                            50: '#FFF3EB', 100: '#FFE4D1', 200: '#FFC8A3', 300: '#FFA56E',
+                            400: '#FF813A', 500: '#E87722', 600: '#C76118', 700: '#A34D10',
                         }
-                    },
-                    boxShadow: {
-                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
-                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
                     }
                 }
             }
         }
     </script>
-    <style>
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-        .bg-pattern {
-            background-image: radial-gradient(#FFC8A3 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-    </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col antialiased relative overflow-x-hidden">
-
-    <!-- Decorative Background Elements -->
-    <div class="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-primary-100/50 to-transparent rounded-bl-full pointer-events-none -z-10"></div>
-    <div class="absolute bottom-0 left-0 w-full h-64 bg-pattern opacity-30 pointer-events-none -z-10"></div>
+<body class="bg-mesh min-h-screen font-sans antialiased">
 
     <!-- Navigation -->
-    <nav class="glass-panel border-b border-white/40 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/30">
-                        <i class="fas fa-certificate text-white text-xl"></i>
-                    </div>
-                    <span class="ml-3 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 tracking-tight">ExamCert</span>
+    <nav class="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-7xl">
+        <div class="glass shadow-soft rounded-[2rem] px-8 py-4 flex justify-between items-center border border-white/50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary-500/30">
+                    <i class="fas fa-certificate text-xl"></i>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <a href="<?= e(BASE_URL) ?>/admin/login.php" class="text-sm font-semibold text-gray-500 hover:text-primary-500 transition-colors">
-                        <i class="fas fa-lock mr-1.5"></i> ผู้ดูแลระบบ
-                    </a>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tighter text-gray-900 block leading-none">ExamCert</span>
+                    <span class="text-[10px] font-bold text-primary-500 uppercase tracking-widest leading-none">RERU Portal</span>
                 </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="<?= e(BASE_URL) ?>/admin/login.php" class="text-sm font-bold text-gray-500 hover:text-primary-500 transition-colors flex items-center gap-2">
+                    <i class="fas fa-lock text-xs"></i> สำหรับผู้ดูแล
+                </a>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-4xl w-full">
-            
-            <!-- Hero Section -->
-            <div class="text-center mb-16">
-                <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-4 leading-tight">
-                    ระบบสอบออนไลน์<span class="text-primary-500 block sm:inline">พร้อมออกใบเกียรติบัตร</span>
+    <!-- Hero Section -->
+    <header class="pt-40 pb-20 px-6">
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+            <div class="space-y-8 text-center lg:text-left">
+                <div class="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-600 rounded-full text-xs font-extrabold uppercase tracking-widest animate-bounce">
+                    <i class="fas fa-star text-[10px]"></i> แพลตฟอร์มสอบออนไลน์ยอดนิยม
+                </div>
+                <h1 class="text-5xl md:text-7xl font-extrabold text-gray-900 leading-[1.1] tracking-tighter">
+                    ยกระดับการสอบ<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-accent">สู่ความเป็นเลิศ</span>
                 </h1>
-                <p class="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto font-medium">
-                    สำหรับบุคลากรมหาวิทยาลัยราชภัฏร้อยเอ็ด
+                <p class="text-lg text-gray-500 font-medium max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                    ระบบสอบออนไลน์และออกใบประกาศนียบัตรอัตโนมัติ สำหรับบุคลากรมหาวิทยาลัยราชภัฏร้อยเอ็ด พัฒนามาเพื่อความแม่นยำ รวดเร็ว และเป็นสากล
                 </p>
-            </div>
-
-            <!-- Portal Cards -->
-            <div class="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-                
-                <!-- Take Exam Card -->
-                <a href="<?= e(BASE_URL) ?>/public/exam.php" class="group block relative rounded-3xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
-                    <div class="absolute top-0 left-0 w-full h-1.5 bg-primary-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-                    <div class="p-8 sm:p-10">
-                        <div class="w-16 h-16 bg-orange-50 text-primary-500 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:bg-primary-500 group-hover:text-white transition-colors duration-300 shadow-inner">
-                            <i class="fas fa-laptop-code"></i>
-                        </div>
-                        <h2 class="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">เข้าสู่ระบบการสอบ</h2>
-                        <p class="text-gray-500 text-sm leading-relaxed mb-6">
-                            สำหรับผู้มีสิทธิ์สอบ กรุณาเตรียม <strong>รหัสโครงการ</strong> และ <strong>รหัสผ่าน (Token)</strong> เพื่อเข้าสู่ห้องสอบออนไลน์
-                        </p>
-                        <div class="inline-flex items-center text-primary-500 font-semibold text-sm group-hover:translate-x-2 transition-transform duration-300">
-                            เริ่มต้นทำข้อสอบ <i class="fas fa-arrow-right ml-2"></i>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Verify Cert Card -->
-                <a href="<?= e(BASE_URL) ?>/public/verify.php" class="group block relative rounded-3xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
-                    <div class="absolute top-0 left-0 w-full h-1.5 bg-blue-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-                    <div class="p-8 sm:p-10">
-                        <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300 shadow-inner">
-                            <i class="fas fa-search-location"></i>
-                        </div>
-                        <h2 class="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">ตรวจสอบใบประกาศ</h2>
-                        <p class="text-gray-500 text-sm leading-relaxed mb-6">
-                            สำหรับหน่วยงานหรือ HR เพื่อใช้ในการตรวจสอบความถูกต้องของใบประกาศนียบัตร โดยกรอกรหัสอ้างอิง
-                        </p>
-                        <div class="inline-flex items-center text-blue-500 font-semibold text-sm group-hover:translate-x-2 transition-transform duration-300">
-                            ตรวจสอบทันที <i class="fas fa-arrow-right ml-2"></i>
-                        </div>
-                    </div>
-                </a>
-
-            </div>
-
-            <!-- Active Projects Section -->
-            <?php if (!empty($projects)): ?>
-            <div class="mt-20 fade-up" style="animation-delay: 0.4s;">
-                <div class="flex items-center justify-between mb-8">
-                    <h3 class="text-xl font-bold text-gray-900 flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center text-sm">
-                            <i class="fas fa-list-ul"></i>
-                        </span>
-                        โครงการสอบที่เปิดให้เข้าสอบ
-                    </h3>
-                    <div class="h-px flex-grow ml-6 bg-gray-100 hidden sm:block"></div>
-                </div>
-                
-                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <?php foreach ($projects as $proj): ?>
-                    <a href="<?= e(BASE_URL) ?>/public/exam.php?project=<?= e($proj['code']) ?>" class="group p-6 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-card-hover hover:border-primary-200 transition-all duration-300 transform hover:-translate-y-1">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="w-10 h-10 bg-gray-50 text-gray-400 group-hover:bg-primary-50 group-hover:text-primary-500 rounded-xl flex items-center justify-center transition-colors">
-                                <i class="fas fa-file-signature text-lg"></i>
-                            </div>
-                            <span class="text-[10px] font-bold px-2 py-1 bg-gray-100 text-gray-500 rounded-md group-hover:bg-primary-100 group-hover:text-primary-600 transition-colors">
-                                รหัส: <?= e($proj['code']) ?>
-                            </span>
-                        </div>
-                        <h4 class="font-bold text-gray-800 group-hover:text-primary-700 transition-colors leading-tight mb-2"><?= e($proj['name']) ?></h4>
-                        <div class="flex items-center text-primary-500 text-xs font-bold uppercase tracking-wider mt-4 opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0">
-                            เข้าสู่ห้องสอบ <i class="fas fa-arrow-right ml-2"></i>
-                        </div>
+                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                    <a href="#active-exams" class="btn-premium flex items-center gap-3 group">
+                        เข้าสู่ห้องสอบ <i class="fas fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>
                     </a>
-                    <?php endforeach; ?>
+                    <a href="<?= e(BASE_URL) ?>/public/verify.php" class="px-8 py-4 bg-white text-gray-700 font-bold rounded-2xl border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-3 shadow-soft">
+                        ตรวจสอบใบประกาศ <i class="fas fa-search-location text-gray-400"></i>
+                    </a>
                 </div>
+            </div>
+            <div class="relative hidden lg:block">
+                <div class="absolute -top-10 -right-10 w-64 h-64 bg-primary-200/30 rounded-full blur-3xl animate-pulse"></div>
+                <div class="absolute -bottom-10 -left-10 w-64 h-64 bg-blue-200/30 rounded-full blur-3xl animate-pulse delay-700"></div>
+                <img src="<?= e(BASE_URL) ?>/assets/img/landing_hero.png" alt="Hero" class="relative w-full rounded-[3rem] shadow-premium animate-float border-4 border-white/50">
+            </div>
+        </div>
+    </header>
+
+    <!-- Active Projects -->
+    <section id="active-exams" class="py-24 px-6 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+                <div class="space-y-4">
+                    <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">โครงการที่เปิดสอบ</h2>
+                    <p class="text-gray-500 font-medium">กรุณาเลือกโครงการที่คุณลงทะเบียนไว้เพื่อเข้าทำข้อสอบ</p>
+                </div>
+                <div class="flex items-center gap-4 text-sm font-bold">
+                    <span class="flex items-center gap-2 text-green-500"><i class="fas fa-circle text-[6px]"></i> เปิดระบบ</span>
+                    <span class="flex items-center gap-2 text-gray-400"><i class="fas fa-circle text-[6px]"></i> ปิดระบบ</span>
+                </div>
+            </div>
+
+            <?php if (!empty($projects)): ?>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <?php foreach ($projects as $proj): ?>
+                <a href="<?= e(BASE_URL) ?>/public/exam.php?project=<?= e($proj['code']) ?>" class="card-premium group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-primary-50 rounded-bl-[4rem] flex items-start justify-end p-4 group-hover:bg-primary-500 transition-colors duration-300">
+                        <i class="fas fa-arrow-up-right-from-square text-primary-500 group-hover:text-white transition-colors"></i>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="inline-block px-3 py-1 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                            Code: <?= e($proj['code']) ?>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors">
+                            <?= e($proj['name']) ?>
+                        </h3>
+                        <div class="pt-6 border-t border-gray-50 flex items-center justify-between">
+                            <span class="text-xs font-bold text-gray-400">มหาวิทยาลัยราชภัฏร้อยเอ็ด</span>
+                            <span class="text-primary-500 font-extrabold text-xs group-hover:mr-2 transition-all">เข้าสู่ห้องสอบ</span>
+                        </div>
+                    </div>
+                </a>
+                <?php endforeach; ?>
             </div>
             <?php else: ?>
-            <div class="mt-20 text-center p-12 bg-white rounded-3xl border border-dashed border-gray-200">
-                <i class="fas fa-inbox text-4xl text-gray-100 mb-4"></i>
-                <p class="text-gray-400 font-medium">ขณะนี้ยังไม่มีโครงการสอบที่เปิดให้บริการ</p>
+            <div class="card-premium text-center py-20 space-y-4 border-dashed bg-transparent">
+                <div class="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto text-gray-300 text-3xl">
+                    <i class="fas fa-calendar-times"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-400">ยังไม่มีโครงการสอบในขณะนี้</h3>
+                <p class="text-sm text-gray-300">กรุณาติดตามข่าวสารจากทางมหาวิทยาลัย</p>
             </div>
             <?php endif; ?>
+        </div>
+    </section>
 
-            <!-- Footer Note -->
-            <div class="mt-16 text-center text-sm text-gray-400">
-                <p>&copy; <?= date('Y') ?> ระบบสอบออนไลน์ มหาวิทยาลัยราชภัฏร้อยเอ็ด. All rights reserved.</p>
-                <p class="mt-3 leading-relaxed">
-                    พัฒนาระบบโดย นายธนากร อินทพันธ์<br>
-                    <span class="text-xs">ตำแหน่งบุคลากร สังกัดงานบริหารทรัพยากรบุคคลและนิติการ มหาวิทยาลัยราชภัฏร้อยเอ็ด</span>
+    <!-- Footer -->
+    <footer class="py-20 px-6 border-t border-gray-100 bg-white/50">
+        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+            <div>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white">
+                        <i class="fas fa-certificate text-sm"></i>
+                    </div>
+                    <span class="text-lg font-extrabold tracking-tighter text-gray-900">ExamCert <span class="text-gray-300 font-medium">v1.0</span></span>
+                </div>
+                <p class="text-sm text-gray-400 leading-relaxed max-w-md">
+                    ระบบสอบออนไลน์และออกใบประกาศนียบัตรอย่างเป็นทางการ<br>
+                    เพื่อสนับสนุนความเป็นเลิศทางวิชาการและการพัฒนาบุคลากรอย่างต่อเนื่อง
                 </p>
             </div>
-
+            <div class="space-y-4 md:text-right">
+                <p class="text-sm font-bold text-gray-900">&copy; <?= date('Y') ?> มหาวิทยาลัยราชภัฏร้อยเอ็ด</p>
+                <div class="text-xs text-gray-400 space-y-1">
+                    <p>พัฒนาระบบโดย นายธนากร อินทพันธ์</p>
+                    <p>บุคลากร สังกัดงานบริหารทรัพยากรบุคคลและนิติการ</p>
+                </div>
+            </div>
         </div>
-    </main>
+    </footer>
 
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<?= e(BASE_URL) ?>/assets/js/app.js"></script>
 </body>
 </html>
