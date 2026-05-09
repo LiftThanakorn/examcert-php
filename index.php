@@ -7,13 +7,17 @@ require_once __DIR__ . '/config/session.php';
 // Simple Router
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $scriptName = $_SERVER['SCRIPT_NAME'];
-$baseDir = dirname($scriptName);
+// Standardize slashes for Windows/Linux
+$baseDir = str_replace('\\', '/', dirname($scriptName));
 
 // Clean up URI
 if ($baseDir !== '/' && strpos($requestUri, $baseDir) === 0) {
     $requestUri = substr($requestUri, strlen($baseDir));
 }
-if ($requestUri === '' || $requestUri === '/') {
+
+// Ensure leading slash and handle empty
+$requestUri = '/' . ltrim($requestUri, '/');
+if ($requestUri === '/') {
     $requestUri = '/index.php';
 }
 

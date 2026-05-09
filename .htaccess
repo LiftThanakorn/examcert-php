@@ -1,15 +1,16 @@
-﻿RewriteEngine On
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # ปิดการแสดงรายชื่อไฟล์ในโฟลเดอร์
+    Options -Indexes
 
-# Ignore case for all requests
-RewriteBase /
-RewriteOptions InheritIgnoreCase On
+    # กรณีเข้าผ่านโฟลเดอร์ย่อย (เช่น localhost/examcert-php) 
+    # หรือ Virtual Host (เช่น examcert.test) ก็ทำงานได้
+    # ไม่ต้องมี RewriteBase เพื่อความยืดหยุ่น
 
-# Normalize path separators for Windows
-RewriteRule \\ / [L]
-
-# Ignore existing files and directories
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-
-# Route all requests to index.php for MVC routing
-RewriteRule ^(.*)$ index.php?q=$1 [L,QSA]
+    # ถ้าไม่ใช่ไฟล์จริง และไม่ใช่โฟลเดอร์จริง ให้ส่งไปที่ index.php ทั้งหมด
+    # และพ่วงค่า Query String (?...) ไปด้วย [QSA]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
