@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_once ROOT_PATH . '/models/BaseModel.php';
 require_once ROOT_PATH . '/models/ExamSession.php';
 
 function getCertificates(): array
@@ -315,8 +314,4 @@ function incrementCertificateDownload(int $id): void
 {
     $stmt = getDB()->prepare('UPDATE certificates SET download_count = download_count + 1, last_downloaded_at = NOW() WHERE id = ?');
     $stmt->execute([$id]);
-}
-
-class Certificate extends BaseModel
-{
 }

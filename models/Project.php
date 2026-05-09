@@ -1,8 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_once ROOT_PATH . '/models/BaseModel.php';
-
 function projectDefaults(): array
 {
     return [
@@ -360,8 +358,4 @@ function extendProjectExamEnd(int $id, int $minutes): bool
         logError('Extend project failed', ['id' => $id, 'error' => $e->getMessage()]);
         return false;
     }
-}
-
-class Project extends BaseModel
-{
 }

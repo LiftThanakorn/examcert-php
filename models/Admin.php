@@ -1,8 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_once ROOT_PATH . '/models/BaseModel.php';
-
 function isLoggedIn(): bool
 {
     return !empty($_SESSION['admin_id']);
@@ -81,8 +79,4 @@ function logoutAdmin(): void
     }
 
     session_destroy();
-}
-
-class Admin extends BaseModel
-{
 }

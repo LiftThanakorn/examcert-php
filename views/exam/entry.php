@@ -89,6 +89,84 @@
     }
 </style>
 
+<?php
+$runtimeStatus = $runtimeStatus ?? getProjectRuntimeStatus($project);
+$examStatus = (string) ($runtimeStatus['status'] ?? 'draft');
+$examAllowed = (bool) ($runtimeStatus['allowed'] ?? false);
+?>
+
+<?php if ($examStatus === 'scheduled'): ?>
+    <?php
+    $opensInSec = (int) ($runtimeStatus['seconds_left'] ?? 0);
+    $opensAt = !empty($project['exam_start'])
+        ? (new DateTimeImmutable((string) $project['exam_start']))->setTimezone(new DateTimeZone('Asia/Bangkok'))->format('d/m/Y H:i')
+        : '-';
+    ?>
+    <div class="w-full max-w-lg mx-auto mb-5">
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
+            <div class="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-clock text-blue-600"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-blue-800">ยังไม่เปิดรับการสอบ</p>
+                <p class="text-xs text-blue-600 mt-0.5">เปิดสอบวันที่ <strong><?= e($opensAt) ?></strong> น.</p>
+                <?php if ($opensInSec > 0): ?>
+                    <p class="text-xxs text-blue-500 mt-1">
+                        เหลือเวลาอีก <strong id="opens-countdown"><?= gmdate('H:i:s', $opensInSec) ?></strong>
+                    </p>
+                    <script>
+                    (function() {
+                        let sec = <?= (int) $opensInSec ?>;
+                        const el = document.getElementById('opens-countdown');
+                        const t = setInterval(() => {
+                            sec--;
+                            if (sec <= 0) {
+                                clearInterval(t);
+                                location.reload();
+                                return;
+                            }
+                            const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+                            const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+                            const s = String(sec % 60).padStart(2, '0');
+                            if (el) el.textContent = `${h}:${m}:${s}`;
+                        }, 1000);
+                    })();
+                    </script>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+<?php elseif ($examStatus === 'closed'): ?>
+    <div class="w-full max-w-lg mx-auto mb-5">
+        <div class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+            <div class="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-lock text-red-500"></i>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-red-700">ปิดรับการสอบแล้ว</p>
+                <?php if (!empty($project['exam_end'])): ?>
+                    <p class="text-xs text-red-500 mt-0.5">
+                        สิ้นสุดเมื่อ <?= e((new DateTimeImmutable((string) $project['exam_end']))->setTimezone(new DateTimeZone('Asia/Bangkok'))->format('d/m/Y H:i')) ?> น.
+                    </p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+<?php elseif ($examStatus === 'draft'): ?>
+    <div class="w-full max-w-lg mx-auto mb-5">
+        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex items-start gap-3">
+            <div class="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-circle-pause text-gray-400"></i>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">ระบบยังไม่พร้อมรับการสอบ</p>
+                <p class="text-xs text-gray-400 mt-0.5">กรุณาติดต่อผู้ดูแลระบบ</p>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<div class="w-full max-w-lg mx-auto <?= $examAllowed ? '' : 'opacity-50 pointer-events-none select-none' ?>">
 <div class="card-premium fade-up">
     <div class="text-center mb-10">
         <div class="inline-flex items-center justify-center w-20 h-20 bg-orange-50 rounded-3xl mb-6 text-orange-500 shadow-sm border border-orange-100">
@@ -151,6 +229,7 @@
             ระบบออกข้อสอบพร้อมรับเกียรติบัตร <br>พัฒนาโดยนายธนากร อินทพันธ์ บุคลากร งานบริหารทรัพยากรบุคคลและนิติการ มหาวิทยาลัยราชภัฏร้อยเอ็ด
         </p>
     </div>
+</div>
 </div>
 
 <script>

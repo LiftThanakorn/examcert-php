@@ -2,6 +2,22 @@
 
 
 
+## 2026-05-10 - Priority 3 UX and Completeness Pass
+
+Completed:
+
+- Added exam schedule status banners to the public entry page for scheduled, closed, and draft states.
+- Passed `getProjectRuntimeStatus()` from `PublicExamController::entry()` and blocked POST starts when the runtime status is not allowed.
+- Updated exam warning timers to use each project's `warning_before` threshold instead of fixed warning text/timing.
+- Cleaned up the unused empty `BaseModel` inheritance pattern by removing empty model classes and deleting `models/BaseModel.php`.
+
+Verification:
+
+- Ran PHP lint across all PHP files in the project: passed.
+- Ran `node --check assets/js/exam.js`: passed.
+- Confirmed no runtime `BaseModel` references remain.
+- Ran `git diff --check`: passed; only existing Windows LF/CRLF conversion warnings remain.
+
 ## 2026-05-10 - Priority 2 Logic Bugfix Pass
 
 Completed:

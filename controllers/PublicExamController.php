@@ -20,6 +20,7 @@ class PublicExamController
         }
 
         $projectCode = $code;
+        $runtimeStatus = getProjectRuntimeStatus($project);
         $error = '';
 
         // Server-side lockdown: Redirect back to exam if a session is already in progress
@@ -34,32 +35,39 @@ class PublicExamController
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!validateCsrfToken($_POST['csrf_token'] ?? null)) {
+            if (!$runtimeStatus['allowed']) {
+                $error = $runtimeStatus['message'] ?: 'ยังไม่เปิดรับการสอบ';
+            } elseif (!validateCsrfToken($_POST['csrf_token'] ?? null)) {
                 $error = 'คำขอไม่ถูกต้อง กรุณาลองใหม่';
             } else {
                 $code = trim((string) ($_POST['project_code'] ?? ''));
                 $project = getProjectByCodeOrId($code);
-                
-                $firstName = trim((string) ($_POST['first_name'] ?? ''));
-                $lastName = trim((string) ($_POST['last_name'] ?? ''));
-                $token = trim((string) ($_POST['access_token'] ?? ''));
+                $runtimeStatus = $project ? getProjectRuntimeStatus($project) : ['allowed' => false, 'message' => 'ไม่พบโครงการสอบ'];
 
-                $participant = $project ? getParticipantByAuth((int) $project['id'], $firstName, $lastName, $token) : null;
-
-                if (!$project || !$participant) {
-                    $error = 'ไม่พบโครงการหรือข้อมูลยืนยันตัวตนไม่ถูกต้อง';
+                if (!$runtimeStatus['allowed']) {
+                    $error = $runtimeStatus['message'] ?: 'ยังไม่เปิดรับการสอบ';
                 } else {
-                    $result = startExamSession($project, $participant);
-                    if ($result['success']) {
-                        redirect('public/take-exam.php?session_id=' . (int) $result['session_id']);
+                    $firstName = trim((string) ($_POST['first_name'] ?? ''));
+                    $lastName = trim((string) ($_POST['last_name'] ?? ''));
+                    $token = trim((string) ($_POST['access_token'] ?? ''));
+
+                    $participant = $project ? getParticipantByAuth((int) $project['id'], $firstName, $lastName, $token) : null;
+
+                    if (!$project || !$participant) {
+                        $error = 'ไม่พบโครงการหรือข้อมูลยืนยันตัวตนไม่ถูกต้อง';
+                    } else {
+                        $result = startExamSession($project, $participant);
+                        if ($result['success']) {
+                            redirect('public/take-exam.php?session_id=' . (int) $result['session_id']);
+                        }
+                        $error = $result['message'];
                     }
-                    $error = $result['message'];
                 }
             }
         }
 
         $pageTitle = 'เข้าสอบ';
-        $bodyClass = 'bg-mesh min-h-screen flex items-center justify-center p-6 font-sans';
+        $bodyClass = 'bg-mesh min-h-screen flex flex-col items-center justify-center p-6 font-sans';
         require VIEWS_PATH . '/layout/header.php';
         require VIEWS_PATH . '/exam/entry.php';
         require VIEWS_PATH . '/layout/footer.php';

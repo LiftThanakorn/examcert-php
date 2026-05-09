@@ -1,8 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_once ROOT_PATH . '/models/BaseModel.php';
-
 function templateDefaults(): array
 {
     return [
@@ -228,8 +226,4 @@ function deleteCertificateTemplate(int $id): bool
         logError('Delete certificate template failed', ['id' => $id, 'error' => $e->getMessage()]);
         return false;
     }
-}
-
-class CertTemplate extends BaseModel
-{
 }

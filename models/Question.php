@@ -1,8 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_once ROOT_PATH . '/models/BaseModel.php';
-
 function questionDefaults(): array
 {
     return [
@@ -253,8 +251,4 @@ function bulkInsertQuestions(array $questions): bool
         logError('Bulk insert questions failed', ['error' => $e->getMessage()]);
         return false;
     }
-}
-
-class Question extends BaseModel
-{
 }

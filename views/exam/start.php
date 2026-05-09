@@ -242,6 +242,8 @@ let totalSec = <?= (int)$secondsLeft ?>;
 let timerInterval;
 let direction = 'right';                   
 let sessionId = <?= (int)$session['id'] ?>;
+let warningThreshold = <?= max(0, (int) ($project['warning_before'] ?? 30)) * 60 ?>;
+let warningShown = false;
 
 // ── INIT ──────────────────────────────────────────────────────────
 $(document).ready(() => {
@@ -280,12 +282,22 @@ function startTimer() {
 
   timerInterval = setInterval(() => {
     totalSec--;
-    updateTimerDisplay();
-
-    // Secondary local check (server check is every 30s)
     if (totalSec <= 0) {
       clearInterval(timerInterval);
+      totalSec = 0;
+      updateTimerDisplay();
       autoSubmit();
+      return;
+    }
+
+    updateTimerDisplay();
+
+    if (!warningShown && warningThreshold > 0 && totalSec <= warningThreshold) {
+      showWarningBanner(Math.ceil(totalSec / 60));
+    }
+
+    if (totalSec <= 300) {
+      $('#timer-box').addClass('text-red-500 animate-pulse');
     }
   }, 1000);
 
@@ -331,6 +343,8 @@ function updateTimerDisplay() {
 }
 
 function showWarningBanner(minutes) {
+  if (warningShown) return;
+  warningShown = true;
   const $banner = $('#warning-banner');
   $('#warn-time').text(`${minutes} นาที`);
   $banner.removeClass('hidden');

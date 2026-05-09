@@ -1,8 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_once ROOT_PATH . '/models/BaseModel.php';
-
 function logAnswer(int $sessionId, int $questionId, string $answer): bool
 {
     try {

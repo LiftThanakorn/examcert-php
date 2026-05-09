@@ -1,8 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_once ROOT_PATH . '/models/BaseModel.php';
-
 function participantDefaults(): array
 {
     return [
@@ -379,8 +377,4 @@ function deleteParticipant(int $id): bool
         logError('Delete participant failed', ['id' => $id, 'error' => $e->getMessage()]);
         return false;
     }
-}
-
-class Participant extends BaseModel
-{
 }

@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_once ROOT_PATH . '/models/BaseModel.php';
 require_once ROOT_PATH . '/models/Project.php';
 require_once ROOT_PATH . '/models/Participant.php';
 require_once ROOT_PATH . '/models/Question.php';
@@ -288,8 +287,4 @@ function getSessionAnswerLogs(int $sessionId): array
     ');
     $stmt->execute([$sessionId]);
     return $stmt->fetchAll();
-}
-
-class ExamSession extends BaseModel
-{
 }

@@ -9,10 +9,14 @@ let timerInterval = null;
 
 let syncInterval = null;
 let sessionId = 0;
+let warningThreshold = 1800;
+let warningShown = false;
 
-function initExam(remainingSeconds, id) {
+function initExam(remainingSeconds, id, warningSeconds) {
     timeRemaining = remainingSeconds;
     sessionId = id;
+    warningThreshold = warningSeconds || 1800;
+    warningShown = false;
     updateTimerDisplay();
     startTimer();
     updateProgress();
@@ -52,8 +56,26 @@ function startTimer() {
             timeRemaining = 0;
             updateTimerDisplay();
             autoSubmit();
-        } else {
-            updateTimerDisplay();
+            return;
+        }
+
+        updateTimerDisplay();
+
+        if (!warningShown && timeRemaining <= warningThreshold) {
+            warningShown = true;
+            const mins = Math.ceil(timeRemaining / 60);
+            const banner = document.getElementById('warning-banner');
+            const warnEl = document.getElementById('warn-time');
+            if (warnEl) warnEl.textContent = `${mins} นาที`;
+            if (banner) {
+                banner.classList.remove('hidden');
+                setTimeout(() => banner.classList.add('hidden'), 10000);
+            }
+        }
+
+        if (timeRemaining <= 300) {
+            const timerEl = document.getElementById('timer');
+            if (timerEl) timerEl.classList.add('text-red-500', 'animate-pulse');
         }
     }, 1000);
 }
