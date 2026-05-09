@@ -134,10 +134,19 @@ class PublicExamController
         $certificate = $token !== '' ? getCertificateByToken($token) : null;
         if (!$certificate) {
             http_response_code(404);
-            exit('Certificate not found.');
+            die('ไม่พบข้อมูลเกียรติบัตร (Invalid Token)');
         }
         $template = getCertificateTemplate((int) ($certificate['template_id'] ?: 1));
-        require VIEWS_PATH . '/certificates/render.php';
+        if (!$template) {
+            die('ไม่พบเทมเพลตเกียรติบัตร');
+        }
+
+        $viewPath = VIEWS_PATH . '/certificates/render.php';
+        if (!file_exists($viewPath)) {
+            die('ไม่พบไฟล์ View: ' . $viewPath);
+        }
+
+        require $viewPath;
     }
 
     public function downloadCertificate(): void
