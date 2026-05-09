@@ -43,6 +43,7 @@ $route = match ($path) {
     '/admin/certificates/template-delete.php' => [TemplateController::class, 'delete'],
     '/admin/exam-sessions', '/admin/exam-sessions/', '/admin/exam-sessions/index.php' => [ExamController::class, 'sessions'],
     '/admin/exam-sessions/export.php' => [ExamController::class, 'exportSessions'],
+    '/admin/exam-sessions/delete.php' => [ExamController::class, 'deleteSession'],
     '/admin/reports', '/admin/reports/', '/admin/reports/index.php' => [ReportController::class, 'index'],
     '/admin/reports/export.php' => [ReportController::class, 'export'],
     '/public/exam.php' => [PublicExamController::class, 'entry'],

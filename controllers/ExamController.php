@@ -53,4 +53,20 @@ class ExamController
             ]);
         }
     }
+    
+    public function deleteSession(): void
+    {
+        requireLogin();
+        
+        $sessionId = (int) ($_POST['id'] ?? 0);
+        if ($sessionId > 0) {
+            if (deleteExamSession($sessionId)) {
+                setFlash('success', 'ลบประวัติการสอบเรียบร้อยแล้ว');
+            } else {
+                setFlash('error', 'ไม่สามารถลบประวัติการสอบได้');
+            }
+        }
+        
+        redirect('admin/exam-sessions');
+    }
 }

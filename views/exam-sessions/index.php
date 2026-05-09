@@ -56,9 +56,16 @@
                                             <i class="fas fa-certificate mr-1.5"></i> ออกใบเซอร์
                                         </button>
                                     </form>
-                                <?php else: ?>
-                                    <span class="text-xs text-gray-300">-</span>
                                 <?php endif; ?>
+
+                                <form method="post" action="<?= e(BASE_URL) ?>/admin/exam-sessions/delete.php" id="delete-form-<?= (int) $session['id'] ?>">
+                                    <?= csrfField() ?>
+                                    <input type="hidden" name="id" value="<?= (int) $session['id'] ?>">
+                                    <button type="button" onclick="confirmDelete('ประวัติการสอบนี้จะถูกลบถาวร', () => document.getElementById('delete-form-<?= (int) $session['id'] ?>').submit())" 
+                                        class="p-1.5 text-gray-300 hover:text-red-500 transition-colors">
+                                        <i class="fas fa-trash-can text-sm"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>

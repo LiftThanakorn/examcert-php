@@ -206,6 +206,33 @@ function submitExamSession(int $sessionId, array $answers): array
     }
 }
 
+function deleteExamSession(int $sessionId): bool
+{
+    try {
+        $db = getDB();
+        $db->beginTransaction();
+        
+        // Delete associated answer logs first
+        $stmt = $db->prepare('DELETE FROM answer_logs WHERE session_id = ?');
+        $stmt->execute([$sessionId]);
+        
+        // Delete certificates if any
+        $stmt = $db->prepare('DELETE FROM certificates WHERE session_id = ?');
+        $stmt->execute([$sessionId]);
+        
+        // Delete the session
+        $stmt = $db->prepare('DELETE FROM exam_sessions WHERE id = ?');
+        $stmt->execute([$sessionId]);
+        
+        $db->commit();
+        return true;
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        logError('Delete session failed', ['session_id' => $sessionId, 'error' => $e->getMessage()]);
+        return false;
+    }
+}
+
 class ExamSession extends BaseModel
 {
 }
