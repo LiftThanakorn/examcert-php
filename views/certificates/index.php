@@ -10,11 +10,6 @@
     </div>
 </div>
 
-<?php if ($flash): ?>
-    <div class="mb-6 rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm text-green-700 shadow-sm fade-up">
-        <i class="fas fa-check-circle mr-2 text-green-500"></i> <?= e($flash['message'] ?? '') ?>
-    </div>
-<?php endif; ?>
 
 <div class="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden fade-up fade-up-1">
     <div class="overflow-x-auto">

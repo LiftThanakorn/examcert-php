@@ -9,10 +9,10 @@
         </div>
 
         <div class="bg-white rounded-3xl shadow-2xl overflow-hidden p-8">
-            <?php if ($flash): ?>
+            <?php if (!empty($error)): ?>
                 <div class="mb-6 p-4 rounded-2xl bg-red-50 text-red-600 text-sm font-medium border border-red-100 flex items-center gap-3">
                     <i class="fas fa-circle-exclamation text-lg"></i>
-                    <?= e($flash['message']) ?>
+                    <?= e($error) ?>
                 </div>
             <?php endif; ?>
 
