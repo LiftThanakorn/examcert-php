@@ -2,6 +2,7 @@
 $templateMode = $templateMode ?? 'list';
 $errors = $errors ?? [];
 $template = array_merge(templateDefaults(), $template ?? []);
+$signatures = json_decode((string)($template['signature_paths'] ?? '[]'), true);
 ?>
 
 <?php if ($templateMode === 'list'): ?>
@@ -83,7 +84,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
 
         <div class="flex-1 flex gap-4 min-h-0">
             <!-- Left Sidebar -->
-            <aside class="w-72 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 flex-shrink-0">
+            <aside class="w-72 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 flex-shrink-0 pb-10">
                 <form id="main-form" method="post" action="<?= e($action) ?>" enctype="multipart/form-data" class="contents">
                     <?= csrfField() ?>
                     <div class="bg-white rounded-3xl border border-slate-100 p-6 space-y-5 shadow-sm">
@@ -91,6 +92,22 @@ $template = array_merge(templateDefaults(), $template ?? []);
                         <div>
                             <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">ชื่อเทมเพลต</label>
                             <input name="name" required value="<?= e($template['name']) ?>" class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary-500/20" placeholder="ระบุชื่อเทมเพลต...">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">การวางแนว</label>
+                                <select name="orientation" id="orient-select" class="w-full bg-slate-50 border-none rounded-xl px-2 py-3 text-xs font-bold text-slate-700 cursor-pointer" onchange="updateOrientation()">
+                                    <option value="L" <?= $template['orientation']==='L'?'selected':'' ?>>แนวนอน</option>
+                                    <option value="P" <?= $template['orientation']==='P'?'selected':'' ?>>แนวตั้ง</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">สีหลัก</label>
+                                <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-2 py-2.5">
+                                    <input type="color" name="color_primary" value="<?= e($template['color_primary'] ?? '#E87722') ?>" id="color-picker" oninput="updateColor()" class="w-8 h-8 border-none bg-transparent cursor-pointer rounded-lg overflow-hidden p-0">
+                                    <input type="text" value="<?= e($template['color_primary'] ?? '#E87722') ?>" class="w-full bg-transparent border-none p-0 text-[10px] font-mono font-bold text-slate-500 uppercase pointer-events-none">
+                                </div>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">ภาพพื้นหลัง (A4)</label>
@@ -116,6 +133,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
                             'show_certno' => 'เลขที่ใบเซอร์',
                             'show_qr' => 'QR Code',
                             'show_date' => 'วันที่ออก',
+                            'show_score' => 'คะแนนที่ได้',
                             'is_active' => 'เปิดใช้งาน'
                         ];
                         foreach($opts as $k => $v): ?>
@@ -130,15 +148,29 @@ $template = array_merge(templateDefaults(), $template ?? []);
                             </label>
                         <?php endforeach; ?>
                     </div>
+
+                    <!-- Logo and Signatures Side UI -->
+                    <div class="bg-white rounded-3xl border border-slate-100 p-6 space-y-4 shadow-sm">
+                        <div class="text-[10px] font-black text-primary-500 uppercase tracking-[0.2em] mb-2">โลโก้และลายเซ็น</div>
+                        <div>
+                            <label class="block text-[9px] font-black text-slate-400 uppercase mb-2">โลโก้หน่วยงาน</label>
+                            <input type="file" name="logo_image" class="w-full text-[10px] font-bold text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-slate-100 file:text-slate-500 hover:file:bg-slate-200">
+                        </div>
+                        <?php for($i=1;$i<=2;$i++): ?>
+                        <div class="pt-2 border-t border-slate-50">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase mb-2">ลายเซ็น <?= $i ?></label>
+                            <input type="file" name="sign_image_<?= $i ?>" class="w-full text-[10px] font-bold text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-slate-100 file:text-slate-500 hover:file:bg-slate-200 mb-2">
+                            <input type="text" name="sign_name_<?= $i ?>" value="<?= e($signatures[$i-1]['name'] ?? '') ?>" placeholder="ชื่อ-นามสกุล (กำกับ)" class="w-full bg-slate-50 border-none rounded-xl px-3 py-2 text-[10px] font-bold">
+                        </div>
+                        <?php endfor; ?>
+                    </div>
                     
                     <textarea name="layout_json" id="layout_json" class="hidden"><?= e($template['layout_json'] ?? '') ?></textarea>
-                    <input type="hidden" name="orientation" value="<?= e($template['orientation']) ?>">
                 </form>
             </aside>
 
             <!-- Main Canvas -->
             <div class="flex-1 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center justify-center relative overflow-hidden p-10 shadow-inner">
-                <!-- Wrapper for maintaining scale and centering without layout collapse -->
                 <div class="designer-wrapper">
                     <div id="designer-container" class="relative bg-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] overflow-hidden" 
                          style="width: <?= $template['orientation'] === 'L' ? '1123px' : '794px' ?>; height: <?= $template['orientation'] === 'L' ? '794px' : '1123px' ?>;">
@@ -148,11 +180,27 @@ $template = array_merge(templateDefaults(), $template ?? []);
                         </div>
 
                         <!-- Draggable Elements -->
-                        <div id="drag-name" class="designer-tag" data-id="name">ชื่อผู้เข้าสอบ</div>
-                        <div id="drag-course" class="designer-tag tag-blue" data-id="course">ชื่อโครงการ / หลักสูตร</div>
-                        <div id="drag-date" class="designer-tag tag-green" data-id="date">วันที่</div>
-                        <div id="drag-certno" class="designer-tag tag-purple" data-id="certno">เลขที่ใบเซอร์</div>
+                        <div id="drag-name" class="designer-tag" data-id="name" style="color: <?= e($template['color_primary']) ?>">ชื่อผู้เข้าสอบ</div>
+                        <div id="drag-course" class="designer-tag tag-blue" data-id="course" style="color: <?= e($template['color_primary']) ?>">ชื่อโครงการ / หลักสูตร</div>
+                        <div id="drag-date" class="designer-tag tag-green" data-id="date" style="color: <?= e($template['color_primary']) ?>">วันที่</div>
+                        <div id="drag-certno" class="designer-tag tag-purple" data-id="certno" style="color: <?= e($template['color_primary']) ?>">เลขที่ใบเซอร์</div>
+                        <div id="drag-score" class="designer-tag tag-orange" data-id="score" style="color: <?= e($template['color_primary']) ?>">คะแนน: 90%</div>
                         <div id="drag-qrcode" class="designer-tag tag-dark" data-id="qrcode" style="width: 100px; height: 100px;">QR</div>
+
+                        <?php if(!empty($template['logo_path'])): ?>
+                            <div id="drag-logo" class="designer-tag tag-white" data-id="logo" style="width: 80px; height: 80px; padding: 0;">
+                                <img src="<?= e(BASE_URL . '/' . $template['logo_path']) ?>" class="w-full h-full object-contain">
+                            </div>
+                        <?php endif; ?>
+
+                        <?php for($i=1;$i<=2;$i++): 
+                            $sPath = $signatures[$i-1]['path'] ?? null;
+                            if($sPath): ?>
+                            <div id="drag-sign<?= $i ?>" class="designer-tag tag-white flex flex-col items-center justify-center gap-1" data-id="sign<?= $i ?>" style="width: 120px; min-height: 60px;">
+                                <img src="<?= e(BASE_URL . '/' . $sPath) ?>" class="h-10 object-contain pointer-events-none">
+                                <span class="text-[8px] text-slate-400 font-bold"><?= e($signatures[$i-1]['name'] ?? '') ?></span>
+                            </div>
+                        <?php endif; endfor; ?>
                     </div>
                 </div>
             </div>
@@ -168,32 +216,36 @@ $template = array_merge(templateDefaults(), $template ?? []);
                         'course' => ['label' => 'ชื่อหลักสูตร', 'color' => 'bg-blue-500'],
                         'date' => ['label' => 'วันที่ออก', 'color' => 'bg-green-500'],
                         'certno' => ['label' => 'เลขที่ใบเซอร์', 'color' => 'bg-purple-500'],
+                        'score' => ['label' => 'คะแนน', 'color' => 'bg-orange-500'],
                         'qrcode' => ['label' => 'QR Code', 'color' => 'bg-slate-800'],
+                        'logo' => ['label' => 'โลโก้', 'color' => 'bg-white border'],
+                        'sign1' => ['label' => 'ลายเซ็น 1', 'color' => 'bg-white border'],
+                        'sign2' => ['label' => 'ลายเซ็น 2', 'color' => 'bg-white border'],
                     ];
                     foreach($elements as $id => $meta): ?>
-                        <div class="space-y-4 pb-6 border-b border-slate-50 last:border-0 last:pb-0">
+                        <div id="prop-<?= $id ?>" class="space-y-4 pb-6 border-b border-slate-50 last:border-0 last:pb-0 hidden">
                             <div class="flex items-center gap-3">
                                 <span class="w-3 h-3 rounded-md <?= $meta['color'] ?> shadow-sm"></span>
                                 <span class="text-xs font-black text-slate-700 uppercase"><?= $meta['label'] ?></span>
                             </div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="space-y-1">
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase">พิกัด X (มม.)</label>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase">X (มม.)</label>
                                     <input type="number" step="0.1" id="input-<?= $id ?>-x" oninput="updateFromInputs('<?= $id ?>')" class="w-full bg-slate-50 border-none rounded-xl px-3 py-2 text-[11px] font-mono font-bold text-slate-700">
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase">พิกัด Y (มม.)</label>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase">Y (มม.)</label>
                                     <input type="number" step="0.1" id="input-<?= $id ?>-y" oninput="updateFromInputs('<?= $id ?>')" class="w-full bg-slate-50 border-none rounded-xl px-3 py-2 text-[11px] font-mono font-bold text-slate-700">
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="space-y-1">
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase"><?= $id==='qrcode'?'ขนาด (มม.)':'ขนาดอักษร (pt)' ?></label>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase"><?= in_array($id,['qrcode','logo','sign1','sign2'])?'ขนาด (มม.)':'ขนาดอักษร (pt)' ?></label>
                                     <input type="number" id="input-<?= $id ?>-size" oninput="updateFromInputs('<?= $id ?>')" class="w-full bg-slate-50 border-none rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700">
                                 </div>
-                                <?php if($id!=='qrcode'): ?>
+                                <?php if(!in_array($id,['qrcode','logo','sign1','sign2'])): ?>
                                 <div class="space-y-1">
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase">การจัดวาง</label>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase">จัดวาง</label>
                                     <select id="input-<?= $id ?>-align" onchange="updateFromInputs('<?= $id ?>')" class="w-full bg-slate-50 border-none rounded-xl px-2 py-2 text-[10px] font-bold text-slate-700 cursor-pointer">
                                         <option value="L">ชิดซ้าย</option>
                                         <option value="C" selected>กึ่งกลาง</option>
@@ -216,13 +268,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
     </div>
 
     <style>
-        .designer-wrapper {
-            transform: scale(0.6);
-            transform-origin: center center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .designer-wrapper { transform: scale(0.6); transform-origin: center center; display: flex; align-items: center; justify-content: center; }
         .designer-tag {
             position: absolute; z-index: 100; cursor: grab; user-select: none;
             padding: 4px 12px; background: #E87722; color: white; border-radius: 6px;
@@ -233,12 +279,12 @@ $template = array_merge(templateDefaults(), $template ?? []);
         .designer-tag.tag-blue { background: #3B82F6; }
         .designer-tag.tag-green { background: #10B981; }
         .designer-tag.tag-purple { background: #8B5CF6; }
+        .designer-tag.tag-orange { background: #f97316; }
         .designer-tag.tag-dark { background: #1F2937; }
+        .designer-tag.tag-white { background: white; color: black; }
         
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-
-        /* Robust Toggle Styles */
         .peer:checked ~ div .absolute { left: 1.5rem !important; }
         .peer:checked ~ div { background-color: #E87722 !important; }
     </style>
@@ -248,38 +294,59 @@ $template = array_merge(templateDefaults(), $template ?? []);
     const shield = document.getElementById('designer-shield');
     const container = document.getElementById('designer-container');
     const layoutText = document.getElementById('layout_json');
+    const colorPicker = document.getElementById('color-picker');
     
-    // Scale Logic: 1mm = 3.78px (at 96dpi)
     const MM_TO_PX = 3.7795275591;
     const DESIGN_SCALE = 0.6; 
-    const PT_TO_PX = 1.333333; // 1pt = 1.33px
+    const PT_TO_PX = 1.333333;
 
     let layout = {};
     try { layout = JSON.parse(layoutText.value || '{}'); } catch(e) { layout = {}; }
 
+    function updateColor() {
+        const color = colorPicker.value;
+        const tags = document.querySelectorAll('.designer-tag:not(.tag-dark):not(.tag-white)');
+        tags.forEach(t => t.style.color = color);
+    }
+
+    function updateOrientation() {
+        const orient = document.getElementById('orient-select').value;
+        if (orient === 'L') {
+            container.style.width = '1123px';
+            container.style.height = '794px';
+        } else {
+            container.style.width = '794px';
+            container.style.height = '1123px';
+        }
+    }
+
     function sync() {
-        Object.keys(layout).forEach(id => {
-            const el = document.getElementById('drag-' + id);
-            if (!el) return;
+        const currentLayout = {};
+        document.querySelectorAll('.designer-tag').forEach(el => {
+            const id = el.dataset.id;
+            const x = parseFloat(document.getElementById(`input-${id}-x`).value || 0);
+            const y = parseFloat(document.getElementById(`input-${id}-y`).value || 0);
+            const size = parseFloat(document.getElementById(`input-${id}-size`).value || 20);
             
-            layout[id].x = parseFloat(document.getElementById(`input-${id}-x`).value || 0);
-            layout[id].y = parseFloat(document.getElementById(`input-${id}-y`).value || 0);
-            
-            if (id === 'qrcode') {
-                layout[id].w = parseFloat(document.getElementById(`input-${id}-size`).value || 28);
-                layout[id].h = layout[id].w;
+            currentLayout[id] = { x, y };
+            if (['qrcode', 'logo', 'sign1', 'sign2'].includes(id)) {
+                currentLayout[id].w = size;
+                currentLayout[id].h = size;
             } else {
-                layout[id].size = parseFloat(document.getElementById(`input-${id}-size`).value || 20);
-                layout[id].align = document.getElementById(`input-${id}-align`).value;
+                currentLayout[id].size = size;
+                currentLayout[id].align = document.getElementById(`input-${id}-align`).value;
             }
         });
-        layoutText.value = JSON.stringify(layout, null, 4);
+        layoutText.value = JSON.stringify(currentLayout, null, 4);
     }
 
     function init() {
-        Object.keys(layout).forEach(id => {
-            const el = document.getElementById('drag-' + id);
-            if (!el) return;
+        document.querySelectorAll('.designer-tag').forEach(el => {
+            const id = el.dataset.id;
+            if (!layout[id]) {
+                layout[id] = { x: 50, y: 50, size: 20, align: 'C' };
+                if (['qrcode','logo','sign1','sign2'].includes(id)) { layout[id].w = 28; layout[id].h = 28; }
+            }
 
             const align = layout[id].align || 'C';
             if (align === 'C') el.style.transform = 'translate(-50%, -50%)';
@@ -289,52 +356,52 @@ $template = array_merge(templateDefaults(), $template ?? []);
             el.style.left = (layout[id].x * MM_TO_PX) + 'px';
             el.style.top = (layout[id].y * MM_TO_PX) + 'px';
             
-            if (id === 'qrcode') {
+            const sizeInput = document.getElementById(`input-${id}-size`);
+            const alignInput = document.getElementById(`input-${id}-align`);
+            
+            if (['qrcode', 'logo', 'sign1', 'sign2'].includes(id)) {
                 el.style.width = (layout[id].w * MM_TO_PX) + 'px';
-                el.style.height = (layout[id].w * MM_TO_PX) + 'px';
+                if(id !== 'sign1' && id !== 'sign2') el.style.height = (layout[id].w * MM_TO_PX) + 'px';
+                sizeInput.value = layout[id].w;
             } else {
                 el.style.fontSize = (layout[id].size * PT_TO_PX) + 'px';
+                sizeInput.value = layout[id].size;
+                if(alignInput) alignInput.value = layout[id].align || 'C';
             }
             
             document.getElementById(`input-${id}-x`).value = layout[id].x;
             document.getElementById(`input-${id}-y`).value = layout[id].y;
-            document.getElementById(`input-${id}-size`).value = layout[id].size || layout[id].w || 20;
-            if (document.getElementById(`input-${id}-align`)) 
-                document.getElementById(`input-${id}-align`).value = layout[id].align || 'C';
+            document.getElementById(`prop-${id}`).classList.remove('hidden');
                 
             drag(el, id);
         });
         sync();
+        updateColor();
+        updateOrientation();
         
         shield.style.opacity = '0';
         setTimeout(() => { shield.style.display = 'none'; studio.style.opacity = '1'; }, 500);
     }
 
     function updateFromInputs(id) {
-        if (!layout[id]) return;
-        layout[id].x = parseFloat(document.getElementById(`input-${id}-x`).value || 0);
-        layout[id].y = parseFloat(document.getElementById(`input-${id}-y`).value || 0);
-        
-        if (id === 'qrcode') {
-            layout[id].w = parseFloat(document.getElementById(`input-${id}-size`).value || 28);
-        } else {
-            layout[id].size = parseFloat(document.getElementById(`input-${id}-size`).value || 20);
-            layout[id].align = document.getElementById(`input-${id}-align`).value;
-        }
-        
         const el = document.getElementById('drag-' + id);
-        const align = layout[id].align || 'C';
-        if (align === 'C') el.style.transform = 'translate(-50%, -50%)';
-        else if (align === 'R') el.style.transform = 'translate(-100%, -50%)';
-        else el.style.transform = 'translate(0, -50%)';
-
-        el.style.left = (layout[id].x * MM_TO_PX) + 'px';
-        el.style.top = (layout[id].y * MM_TO_PX) + 'px';
-        if (id === 'qrcode') {
-            el.style.width = (layout[id].w * MM_TO_PX) + 'px';
-            el.style.height = (layout[id].w * MM_TO_PX) + 'px';
+        const x = parseFloat(document.getElementById(`input-${id}-x`).value || 0);
+        const y = parseFloat(document.getElementById(`input-${id}-y`).value || 0);
+        const size = parseFloat(document.getElementById(`input-${id}-size`).value || 20);
+        const alignInput = document.getElementById(`input-${id}-align`);
+        
+        el.style.left = (x * MM_TO_PX) + 'px';
+        el.style.top = (y * MM_TO_PX) + 'px';
+        
+        if (['qrcode', 'logo', 'sign1', 'sign2'].includes(id)) {
+            el.style.width = (size * MM_TO_PX) + 'px';
+            if(id !== 'sign1' && id !== 'sign2') el.style.height = (size * MM_TO_PX) + 'px';
         } else {
-            el.style.fontSize = (layout[id].size * PT_TO_PX) + 'px';
+            el.style.fontSize = (size * PT_TO_PX) + 'px';
+            const align = alignInput.value;
+            if (align === 'C') el.style.transform = 'translate(-50%, -50%)';
+            else if (align === 'R') el.style.transform = 'translate(-100%, -50%)';
+            else el.style.transform = 'translate(0, -50%)';
         }
         sync();
     }
@@ -343,28 +410,16 @@ $template = array_merge(templateDefaults(), $template ?? []);
         let x2 = 0, y2 = 0;
         el.onmousedown = (e) => {
             e.preventDefault();
-            x2 = e.clientX; 
-            y2 = e.clientY;
-            
+            x2 = e.clientX; y2 = e.clientY;
             document.onmousemove = (ev) => {
-                let dx = ev.clientX - x2;
-                let dy = ev.clientY - y2;
-                
-                let moveX = dx / DESIGN_SCALE;
-                let moveY = dy / DESIGN_SCALE;
-                
+                let dx = ev.clientX - x2; let dy = ev.clientY - y2;
+                let moveX = dx / DESIGN_SCALE; let moveY = dy / DESIGN_SCALE;
                 let currentLeft = parseFloat(el.style.left) || 0;
                 let currentTop = parseFloat(el.style.top) || 0;
-                
                 let newLeft = currentLeft + moveX;
                 let newTop = currentTop + moveY;
-                
-                el.style.left = newLeft + "px";
-                el.style.top = newTop + "px";
-                
-                x2 = ev.clientX;
-                y2 = ev.clientY;
-                
+                el.style.left = newLeft + "px"; el.style.top = newTop + "px";
+                x2 = ev.clientX; y2 = ev.clientY;
                 document.getElementById(`input-${id}-x`).value = (newLeft / MM_TO_PX).toFixed(1);
                 document.getElementById(`input-${id}-y`).value = (newTop / MM_TO_PX).toFixed(1);
                 sync();
@@ -388,29 +443,10 @@ $template = array_merge(templateDefaults(), $template ?? []);
                     "course": { "x": 148.5, "y": 110, "align": "C", "size": 22 },
                     "date":   { "x": 148.5, "y": 130, "align": "C", "size": 16 },
                     "certno": { "x": 230,   "y": 170, "align": "R", "size": 11 },
+                    "score":  { "x": 148.5, "y": 120, "align": "C", "size": 18 },
                     "qrcode": { "x": 240,   "y": 140, "w": 28 }
                 };
                 init();
-            }
-        });
-    }
-
-    function confirmDelete(id, name) {
-        Swal.fire({
-            title: 'ลบเทมเพลต?',
-            text: `คุณต้องการลบ "${name}" ใช่หรือไม่?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'ลบข้อมูล',
-            cancelButtonText: 'ยกเลิก'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '<?= e(BASE_URL) ?>/admin/certificates/template-delete.php';
-                form.innerHTML = `<?= csrfField() ?><input type="hidden" name="id" value="${id}">`;
-                document.body.appendChild(form);
-                form.submit();
             }
         });
     }

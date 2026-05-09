@@ -1,14 +1,6 @@
 <?php
 // views/certificates/render.php
-//Standalone page for high-precision certificate rendering
-
-// Debugging (Remove in production)
-// error_reporting(E_ALL);
-// ini_set('display_errors', '1');
-
-if (!isset($certificate) || !isset($template)) {
-    die("Error: ข้อมูลเกียรติบัตรหรือเทมเพลตไม่ถูกต้อง");
-}
+// Standalone page for high-precision certificate rendering
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -59,6 +51,20 @@ if (!isset($certificate) || !isset($template)) {
             line-height: 1.1;
         }
 
+        .image-field {
+            position: absolute;
+            object-fit: contain;
+        }
+
+        .signature-box {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
         @media print {
             body { background: white; padding: 0; }
             #cert-container { box-shadow: none; }
@@ -75,6 +81,9 @@ if (!isset($certificate) || !isset($template)) {
         <div class="content-layer">
             <?php 
             $layout = json_decode((string) ($template['layout_json'] ?? ''), true) ?: [];
+            $primaryColor = $template['color_primary'] ?? '#E87722';
+            $signatures = json_decode((string)($template['signature_paths'] ?? '[]'), true);
+
             foreach ($layout as $field => $cfg): 
                 $text = ''; $show = true;
                 if ($field === 'name') { 
@@ -84,14 +93,42 @@ if (!isset($certificate) || !isset($template)) {
                 elseif ($field === 'course') { $text = $certificate['project_name']; $show = !empty($template['show_course']); }
                 elseif ($field === 'date') { $text = date('d/m/Y', strtotime($certificate['issued_date'])); $show = !empty($template['show_date']); }
                 elseif ($field === 'certno') { $text = $certificate['cert_number']; $show = !empty($template['show_certno']); }
+                elseif ($field === 'score') { $text = "คะแนนที่ได้: " . $certificate['percent'] . "%"; $show = !empty($template['show_score']); }
                 
+                // Handle Images (Logo/Signatures)
+                if (in_array($field, ['qrcode', 'logo', 'sign1', 'sign2'])) {
+                    $style = "left: " . ($cfg['x'] ?? 0) . "mm; ";
+                    $style .= "top: " . ($cfg['y'] ?? 0) . "mm; ";
+                    $style .= "width: " . ($cfg['w'] ?? 28) . "mm; ";
+                    $style .= "transform: translate(-50%, -50%); ";
+                    
+                    if ($field === 'qrcode' && !empty($template['show_qr'])) {
+                        echo '<div id="qrcode" style="'.$style.' height:'.($cfg['w']??28).'mm; background:white; padding:1.5mm; display:flex; align-items:center; justify-content:center; z-index:20;"></div>';
+                    }
+                    elseif ($field === 'logo' && !empty($template['logo_path'])) {
+                        echo '<img src="'.e(BASE_URL.'/'.$template['logo_path']).'" style="'.$style.' height:'.($cfg['w']??28).'mm; object-fit:contain; z-index:15;" crossorigin="anonymous">';
+                    }
+                    elseif ($field === 'sign1' || $field === 'sign2') {
+                        $idx = $field === 'sign1' ? 0 : 1;
+                        $sPath = $signatures[$idx]['path'] ?? null;
+                        $sName = $signatures[$idx]['name'] ?? '';
+                        if ($sPath) {
+                            echo '<div class="signature-box" style="'.$style.' z-index:15;">
+                                    <img src="'.e(BASE_URL.'/'.$sPath).'" style="height: '.(($cfg['w']??40)*0.4).'mm; object-fit:contain;" crossorigin="anonymous">
+                                    <div style="font-size: 10pt; margin-top: 2mm; font-weight: bold; color: #333;">('.e($sName).')</div>
+                                  </div>';
+                        }
+                    }
+                    continue;
+                }
+
                 if (!$text || !$show) continue;
 
                 $style = "left: " . ($cfg['x'] ?? 0) . "mm; ";
                 $style .= "top: " . ($cfg['y'] ?? 0) . "mm; ";
                 $style .= "font-size: " . ($cfg['size'] ?? 20) . "pt; ";
-                $style .= "color: " . ($template['color_primary'] ?? '#E87722') . "; ";
-                if (!empty($cfg['bold'])) $style .= "font-weight: bold; ";
+                $style .= "color: " . $primaryColor . "; ";
+                if (!empty($cfg['bold']) || $field === 'name') $style .= "font-weight: bold; ";
                 
                 $align = $cfg['align'] ?? 'C';
                 if ($align === 'C') $style .= "transform: translate(-50%, -50%); text-align: center;";
@@ -100,16 +137,12 @@ if (!isset($certificate) || !isset($template)) {
             ?>
                 <div class="field" style="<?= $style ?>"><?= e($text) ?></div>
             <?php endforeach; ?>
-
-            <?php if (!empty($template['show_qr'])): ?>
-                <div id="qrcode" style="position: absolute; left: <?= $layout['qrcode']['x'] ?? 240 ?>mm; top: <?= $layout['qrcode']['y'] ?? 140 ?>mm; transform: translate(-50%, -50%); width: <?= $layout['qrcode']['w'] ?? 28 ?>mm; height: <?= $layout['qrcode']['w'] ?? 28 ?>mm; background: white; padding: 1.5mm; display: flex; align-items: center; justify-content: center;"></div>
-            <?php endif; ?>
         </div>
     </div>
 
     <!-- UI Overlay for direct access (Will be hidden in PDF) -->
     <div id="ui-overlay" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px;" class="no-print">
-        <button onclick="window.print()" style="padding: 10px 20px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold;">พิมพ์</button>
+        <button onclick="window.print()" style="padding: 10px 20px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">พิมพ์ / บันทึก PDF</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -151,9 +184,8 @@ if (!isset($certificate) || !isset($template)) {
         }
 
         if (isDownload) {
-            // Wait for images and fonts
             window.onload = () => {
-                setTimeout(generatePDF, 500); 
+                setTimeout(generatePDF, 800); 
             };
         }
     </script>
