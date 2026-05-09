@@ -217,63 +217,96 @@ $timeUsedStr .= $diff->s . " วินาที";
     <div class="bg-white rounded-2xl shadow-card-lg overflow-hidden anim-fade-up d-5">
       <!-- Tab bar -->
       <div class="flex border-b border-gray-100">
-        <!-- Answer review hidden per user request -->
-        <button class="tab-btn active flex-1 py-3 text-sm font-medium text-gray-600" id="tab-btn-primary">
-          <i class="fas <?= $isPass ? 'fa-award' : 'fa-circle-exclamation' ?> mr-1.5 text-xs"></i>
-          <?= $isPass ? 'เกียรติบัตรของคุณ' : 'สรุปผลการทดสอบ' ?>
+        <button class="tab-btn active flex-1 py-3 text-sm font-medium text-gray-600" onclick="switchTab('answers', this)">
+          <i class="fas fa-list-check mr-1.5 text-xs"></i>เฉลยคำตอบ
         </button>
+        <?php if ($isPass): ?>
+        <button class="tab-btn flex-1 py-3 text-sm font-medium text-gray-400" onclick="switchTab('cert', this)">
+          <i class="fas fa-award mr-1.5 text-xs"></i>เกียรติบัตรของคุณ
+        </button>
+        <?php endif; ?>
       </div>
 
       <!-- ── CONTENT ── -->
-      <div class="p-6">
-        <?php if ($isPass): ?>
-        <div id="cert-section" class="cert-wrapper rounded-xl mb-6 anim-scale-in" style="aspect-ratio:1.414/1; min-height:280px;">
-          <div class="cert-border-outer"></div>
-          <div class="cert-corner tl"></div><div class="cert-corner tr"></div>
-          <div class="cert-corner bl"></div><div class="cert-corner br"></div>
-          <div class="cert-shimmer"></div>
-          <div class="relative z-5 flex flex-col items-center justify-center h-full px-10 text-center py-6" style="background: radial-gradient(circle at 50% 0%, rgba(232,119,34,0.05) 0%, transparent 70%), #fff;">
-            <div class="flex items-center gap-2 mb-4">
-              <div class="w-8 h-8 rounded-lg bg-primary-400 flex items-center justify-center">
-                <i class="fas fa-award text-white text-sm"></i>
-              </div>
-              <span class="text-xs font-bold text-gray-500 tracking-wide"><?= e($project['organizer'] ?: 'มหาวิทยาลัยราชภัฏร้อยเอ็ด') ?></span>
+      <div class="p-0">
+        <!-- ── ANSWERS TAB ── -->
+        <div id="tab-answers" class="p-0 divide-y divide-gray-50">
+          <?php foreach ($answerLogs as $index => $log): ?>
+          <div class="answer-row flex items-start gap-3 px-5 py-4 transition-colors hover:bg-gray-50">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 <?= (int)$log['is_correct'] === 1 ? 'bg-green-100' : (empty($log['given_answer']) ? 'bg-gray-100' : 'bg-red-100') ?>">
+              <i class="fas <?= (int)$log['is_correct'] === 1 ? 'fa-check text-green-600' : (empty($log['given_answer']) ? 'fa-minus text-gray-400' : 'fa-xmark text-red-500') ?> text-xs"></i>
             </div>
-            <p class="text-[10px] uppercase tracking-[0.2em] text-primary-400 font-bold mb-1">เกียรติบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</p>
-            <p class="font-bold text-gray-900 mb-2 leading-tight" style="font-size:clamp(16px,4vw,24px)">
-              <?= e($participant['title'] . $participant['first_name'] . ' ' . $participant['last_name']) ?>
-            </p>
-            <p class="text-xs text-gray-400 mb-1">ได้ผ่านการทดสอบระบบออนไลน์ในหลักสูตร</p>
-            <p class="font-bold text-primary-600 mb-4" style="font-size:clamp(12px,3vw,16px)">
-              <?= e($project['name']) ?>
-            </p>
-            <div class="flex items-center justify-between w-full mt-auto">
-              <div class="text-left">
-                <p class="text-[9px] text-gray-400">เลขที่เกียรติบัตร</p>
-                <p class="text-[10px] font-mono font-bold text-gray-700"><?= e($certificate['cert_number'] ?? 'PENDING') ?></p>
-              </div>
-              <div class="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100">
-                <i class="fas fa-qrcode text-gray-300 text-xl"></i>
+            <div class="flex-1 min-w-0">
+              <p class="text-[10px] text-gray-400 mb-0.5">ข้อที่ <?= $index + 1 ?></p>
+              <p class="text-sm text-gray-700 mb-1.5 leading-snug font-medium"><?= e($log['question_text']) ?></p>
+              <div class="flex flex-wrap gap-2 items-center">
+                <span class="text-xs px-2 py-0.5 rounded-md <?= (int)$log['is_correct'] === 1 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600' ?> font-bold">
+                  <?= empty($log['given_answer']) ? 'ไม่ได้ตอบ' : 'คำตอบของคุณ: ' . e($log['given_answer']) ?>
+                </span>
+                <?php if ((int)$log['is_correct'] === 0): ?>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 font-bold">
+                  คำตอบที่ถูก: <?= e($log['correct_answer']) ?>
+                </span>
+                <?php endif; ?>
               </div>
             </div>
           </div>
+          <?php endforeach; ?>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <a href="<?= e(BASE_URL) ?>/public/download-cert.php?token=<?= e($certificate['verify_token'] ?? '') ?>" 
-             class="flex items-center justify-center gap-2 py-3.5 bg-primary-400 hover:bg-primary-500 text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-primary-500/20">
-            <i class="fas fa-download"></i> ดาวน์โหลดเกียรติบัตร
-          </a>
-          <button onclick="shareCert()" class="flex items-center justify-center gap-2 py-3.5 bg-white border-2 border-gray-100 hover:border-primary-100 text-gray-600 font-bold rounded-xl transition-all text-sm">
-            <i class="fas fa-share-nodes text-primary-400"></i> แชร์ลิงก์ตรวจสอบ
-          </button>
+
+        <!-- ── CERTIFICATE TAB ── -->
+        <?php if ($isPass): ?>
+        <div id="tab-cert" class="hidden p-6">
+          <div id="cert-section" class="cert-wrapper rounded-xl mb-6 anim-scale-in" style="aspect-ratio:1.414/1; min-height:280px;">
+            <div class="cert-border-outer"></div>
+            <div class="cert-corner tl"></div><div class="cert-corner tr"></div>
+            <div class="cert-corner bl"></div><div class="cert-corner br"></div>
+            <div class="cert-shimmer"></div>
+            <div class="relative z-5 flex flex-col items-center justify-center h-full px-10 text-center py-6" style="background: radial-gradient(circle at 50% 0%, rgba(232,119,34,0.05) 0%, transparent 70%), #fff;">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-primary-400 flex items-center justify-center">
+                  <i class="fas fa-award text-white text-sm"></i>
+                </div>
+                <span class="text-xs font-bold text-gray-500 tracking-wide"><?= e($project['organizer'] ?: 'มหาวิทยาลัยราชภัฏร้อยเอ็ด') ?></span>
+              </div>
+              <p class="text-[10px] uppercase tracking-[0.2em] text-primary-400 font-bold mb-1">เกียรติบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</p>
+              <p class="font-bold text-gray-900 mb-2 leading-tight" style="font-size:clamp(16px,4vw,24px)">
+                <?= e($participant['title'] . $participant['first_name'] . ' ' . $participant['last_name']) ?>
+              </p>
+              <p class="text-xs text-gray-400 mb-1">ได้ผ่านการทดสอบระบบออนไลน์ในหลักสูตร</p>
+              <p class="font-bold text-primary-600 mb-4" style="font-size:clamp(12px,3vw,16px)">
+                <?= e($project['name']) ?>
+              </p>
+              <div class="flex items-center justify-between w-full mt-auto">
+                <div class="text-left">
+                  <p class="text-[9px] text-gray-400">เลขที่เกียรติบัตร</p>
+                  <p class="text-[10px] font-mono font-bold text-gray-700"><?= e($certificate['cert_number'] ?? 'PENDING') ?></p>
+                </div>
+                <div class="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100">
+                  <i class="fas fa-qrcode text-gray-300 text-xl"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a href="<?= e(BASE_URL) ?>/public/download-cert.php?token=<?= e($certificate['verify_token'] ?? '') ?>" 
+               class="flex items-center justify-center gap-2 py-3.5 bg-primary-400 hover:bg-primary-500 text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-primary-500/20">
+              <i class="fas fa-download"></i> ดาวน์โหลดเกียรติบัตร
+            </a>
+            <button onclick="shareCert()" class="flex items-center justify-center gap-2 py-3.5 bg-white border-2 border-gray-100 hover:border-primary-100 text-gray-600 font-bold rounded-xl transition-all text-sm">
+              <i class="fas fa-share-nodes text-primary-400"></i> แชร์ลิงก์ตรวจสอบ
+            </button>
+          </div>
         </div>
         <?php else: ?>
-        <div class="text-center py-10">
-          <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-circle-info text-red-400 text-xl"></i>
+        <div class="p-8 border-t border-gray-50 bg-gray-50/30">
+          <div class="flex flex-col items-center text-center">
+            <div class="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-4">
+              <i class="fas fa-circle-exclamation text-red-400 text-xl"></i>
+            </div>
+            <p class="text-gray-800 font-bold mb-1">ยังไม่ผ่านเกณฑ์การทดสอบ</p>
+            <p class="text-xs text-gray-400 max-w-[240px]">คุณต้องการคะแนนอย่างน้อย <?= (float)$project['pass_score'] ?>% เพื่อรับเกียรติบัตร สามารถทบทวนคำตอบด้านบนและลองใหม่อีกครั้ง</p>
           </div>
-          <p class="text-gray-600 font-medium mb-1">ขออภัย คุณยังไม่ผ่านเกณฑ์การทดสอบ</p>
-          <p class="text-xs text-gray-400">สามารถทำแบบทดสอบใหม่อีกครั้งเพื่อรับเกียรติบัตร</p>
         </div>
         <?php endif; ?>
       </div>

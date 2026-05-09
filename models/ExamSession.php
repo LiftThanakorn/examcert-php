@@ -5,6 +5,7 @@ require_once ROOT_PATH . '/models/BaseModel.php';
 require_once ROOT_PATH . '/models/Project.php';
 require_once ROOT_PATH . '/models/Participant.php';
 require_once ROOT_PATH . '/models/Question.php';
+require_once ROOT_PATH . '/models/AnswerLog.php';
 
 function getProjectByCodeOrId(string $codeOrId): ?array
 {
@@ -158,11 +159,14 @@ function submitExamSession(int $sessionId, array $answers): array
 
     $expired = !empty($session['expires_at']) && new DateTimeImmutable() > new DateTimeImmutable($session['expires_at']);
     $questions = getSessionQuestions($session);
+    $savedAnswers = getSessionAnswers($sessionId); // Fetch auto-saved answers from DB
     $score = 0.0;
     $total = 0.0;
 
     try {
         $db->beginTransaction();
+        
+        // Delete existing logs to re-insert with correct status and score
         $delete = $db->prepare('DELETE FROM answer_logs WHERE session_id = ?');
         $delete->execute([$sessionId]);
 
@@ -173,12 +177,21 @@ function submitExamSession(int $sessionId, array $answers): array
 
         foreach ($questions as $question) {
             $qid = (int) $question['id'];
-            $given = trim((string) ($answers[$qid] ?? ''));
+            
+            // PRIORITY: Use DB answers first as they are more reliable across refreshes
+            // Only use POST answers if DB answer is missing for that question
+            $given = ($savedAnswers[$qid] ?? '');
+            if (empty($given) && isset($answers[$qid])) {
+                $given = trim((string)$answers[$qid]);
+            }
+            
             $weight = (float) $question['score_weight'];
             $total += $weight;
+            
             $correct = $given !== '' && isAnswerCorrect($question, $given);
             $earned = $correct ? $weight : 0.0;
             $score += $earned;
+            
             $insert->execute([$sessionId, $qid, $given ?: null, $correct ? 1 : 0, $earned]);
         }
 
