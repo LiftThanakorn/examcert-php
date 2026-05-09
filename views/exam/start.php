@@ -11,18 +11,52 @@
     <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/globals.css">
     <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/custom.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .option-input:checked + .option-label {
-            @apply border-primary-500 bg-primary-50 ring-4 ring-primary-500/10;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans Thai', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#FFF3EB', 100: '#FFE4D1', 200: '#FFC8A3', 300: '#FFA56E',
+                            400: '#FF813A', 500: '#E87722', 600: '#C76118', 700: '#A34D10',
+                        }
+                    }
+                }
+            }
         }
-        .option-input:checked + .option-label .option-marker {
-            @apply bg-primary-500 text-white border-primary-500;
-        }
-        .nav-item.active {
-            @apply bg-primary-500 text-white border-primary-500 shadow-lg shadow-primary-500/30;
-        }
-        .nav-item.done {
-            @apply bg-green-50 text-green-600 border-green-200;
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .glass {
+                @apply bg-white/80 backdrop-blur-xl border border-white/20;
+            }
+            .shadow-premium {
+                box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.1);
+            }
+            .shadow-soft {
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            }
+            .card-premium {
+                @apply bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-soft;
+            }
+            .btn-premium {
+                @apply relative overflow-hidden px-6 py-3 bg-primary-500 text-white font-bold rounded-2xl transition-all duration-300 shadow-soft hover:shadow-premium hover:bg-primary-600 active:scale-95;
+            }
+            .option-input:checked + .option-label {
+                @apply border-primary-500 bg-primary-50 ring-4 ring-primary-500/10;
+            }
+            .option-input:checked + .option-label .option-marker {
+                @apply bg-primary-500 text-white border-primary-500;
+            }
+            .nav-item.active {
+                @apply bg-primary-500 text-white border-primary-500 shadow-lg shadow-primary-500/30;
+            }
+            .nav-item.done {
+                @apply bg-green-50 text-green-600 border-green-200;
+            }
         }
     </style>
 </head>
@@ -103,7 +137,7 @@
                 
                 <div id="questions-container">
                     <?php foreach ($questions as $index => $q): ?>
-                    <div class="question-slide space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 <?= $index === 0 ? '' : 'hidden' ?>" 
+                    <div class="question-slide space-y-8 <?= $index === 0 ? '' : 'hidden' ?>" 
                         data-index="<?= $index ?>" 
                         id="q-<?= (int) $q['id'] ?>">
                         

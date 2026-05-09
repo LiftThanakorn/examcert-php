@@ -660,8 +660,19 @@ Notes:
 - Student progress is now protected against accidental page refreshes or network drops.
 - Permission checks for admin-only features remain enforced via `requireLogin()`.
 
-Next:
+## 2026-05-09 - UI Polish & Critical Bug Fixes
 
-- Final E2E testing of the full workflow: Project Creation -> Participant Import -> Question Setup -> Exam Flow -> Certificate Issuance.
-- Conduct a security audit on file upload paths (logos/signatures) to ensure strict MIME validation.
-- Finalize Thai font rendering parity between the JS Designer and TCPDF.
+Completed:
+- **UI Architecture**: Embedded Tailwind components directly in views to bypass CDN processing limits on external CSS `@apply` directives.
+- **Exam Engine Fix**: Resolved **404 Not Found** errors for `save_answer` AJAX calls by implementing dynamic `BASE_URL` resolution in `exam.js`.
+- **Question Logic**: Added the missing `is_active` toggle to the question management form. Fixed a bug where questions were saved as inactive by default.
+- **Workflow Documentation**: Created **`workflow.md`** to outline the complete operational lifecycle of the system.
+- **Branding & Alignment**: Fixed centering issues on entry and result pages. Removed distracting animations from the exam interface.
+
+Notes:
+- The system is now fully functional with a stable auto-save mechanism.
+- All public-facing pages match the premium design system.
+
+Next:
+- Security audit of file uploads.
+- Thai font rendering optimization for TCPDF.

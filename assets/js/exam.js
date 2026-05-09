@@ -21,9 +21,13 @@ function initExam(remainingSeconds, id) {
     syncInterval = setInterval(syncWithServer, 30000);
 }
 
+function getBaseUrl() {
+    return document.querySelector('meta[name="base-url"]')?.content || '';
+}
+
 function syncWithServer() {
     $.ajax({
-        url: window.location.origin + '/api/exam.php?action=check_time',
+        url: getBaseUrl() + '/api/exam.php?action=check_time',
         data: { session_id: sessionId },
         dataType: 'json',
         success: function(res) {
@@ -155,7 +159,7 @@ document.addEventListener('change', (e) => {
 
 function saveAnswer(questionId, answer) {
     $.ajax({
-        url: window.location.origin + '/api/exam.php?action=save_answer',
+        url: getBaseUrl() + '/api/exam.php?action=save_answer',
         type: 'POST',
         data: {
             session_id: sessionId,

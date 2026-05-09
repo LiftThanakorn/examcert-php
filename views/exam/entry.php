@@ -6,28 +6,106 @@
     <title>เข้าสู่ระบบการสอบ | <?= e(APP_NAME) ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/globals.css">
-    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/custom.css">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans Thai', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#FFF3EB', 100: '#FFE4D1', 200: '#FFC8A3', 300: '#FFA56E',
+                            400: '#FF813A', 500: '#E87722', 600: '#C76118', 700: '#A34D10',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #F8FAFC !important; /* Force Light Background */
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(25,100%,93%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(25,100%,93%,1) 0, transparent 50%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-premium {
+            background-color: white !important;
+            border-radius: 2.5rem;
+            padding: 3rem;
+            border: 1px solid #F1F5F9;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+            width: 100%;
+            max-width: 560px;
+        }
+        .btn-premium {
+            background-color: #E87722;
+            color: white;
+            font-weight: 800;
+            border-radius: 1.25rem;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(232, 119, 34, 0.3);
+            width: 100%;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-premium:hover {
+            background-color: #C76118;
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(232, 119, 34, 0.4);
+        }
+        .input-premium {
+            width: 100%;
+            height: 3.5rem;
+            padding: 0 1.5rem;
+            padding-left: 3.5rem;
+            border-radius: 1.25rem;
+            border: 2px solid #F1F5F9;
+            background-color: #F8FAFC;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .input-premium:focus {
+            border-color: #FFA56E;
+            background-color: white;
+            box-shadow: 0 0 0 4px rgba(232, 119, 34, 0.1);
+        }
+    </style>
 </head>
-<body class="bg-mesh min-h-screen flex items-center justify-center p-6 antialiased">
+<body>
 
-    <div class="max-w-xl w-full space-y-8 animate-float">
+    <div class="w-full max-w-[560px] px-6 py-12">
         <!-- Logo & Header -->
-        <div class="text-center space-y-4">
-            <div class="inline-flex items-center justify-center w-24 h-24 bg-white rounded-[2rem] shadow-premium mb-2">
-                <i class="fas fa-user-check text-4xl text-primary-500"></i>
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-white rounded-[2.5rem] shadow-xl mb-6">
+                <i class="fas fa-user-shield text-4xl text-primary-500"></i>
             </div>
-            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">ยืนยันตัวตน</h1>
-            <p class="text-gray-500 font-medium">เข้าสู่ระบบการสอบออนไลน์ มรภ.ร้อยเอ็ด</p>
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">ยืนยันตัวตน</h1>
+            <p class="text-gray-500 font-medium">เพื่อเข้าสู่ระบบการสอบออนไลน์ มรภ.ร้อยเอ็ด</p>
         </div>
 
         <!-- Form Card -->
         <div class="card-premium">
             <?php if (!empty($error)): ?>
-                <div class="mb-8 p-4 rounded-2xl bg-danger/10 border border-danger/20 text-danger text-sm font-bold flex items-center gap-3">
+                <div class="mb-8 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold flex items-center gap-3">
                     <i class="fas fa-exclamation-circle text-lg"></i>
                     <?= e($error) ?>
                 </div>
@@ -42,45 +120,46 @@
                 <input type="hidden" name="project_code" value="<?= e($projectCode) ?>">
 
                 <div class="space-y-2">
-                    <label class="text-xs font-extrabold text-gray-400 uppercase tracking-widest ml-1">ค้นหารายชื่อผู้เข้าสอบ</label>
-                    <div class="relative group">
-                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors">
+                    <label class="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">ค้นหารายชื่อผู้เข้าสอบ</label>
+                    <div class="relative">
+                        <div class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">
                             <i class="fas fa-search"></i>
                         </div>
-                        <input type="text" id="name_search" list="participants_list" placeholder="พิมพ์ชื่อหรือนามสกุลเพื่อค้นหา..." 
-                            class="w-full h-14 pl-12 pr-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-[6px] focus:ring-primary-500/10 transition-all outline-none text-base font-medium" 
-                            required autocomplete="off">
+                        <input type="text" id="name_search" list="participants_list" placeholder="พิมพ์ชื่อหรือนามสกุล..." 
+                            class="input-premium" required autocomplete="off">
                         <datalist id="participants_list"></datalist>
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-xs font-extrabold text-gray-400 uppercase tracking-widest ml-1">รหัสผ่านเข้าสอบ (TOKEN)</label>
-                    <div class="relative group">
-                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors">
+                    <label class="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">รหัสผ่านเข้าสอบ (TOKEN)</label>
+                    <div class="relative">
+                        <div class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">
                             <i class="fas fa-key"></i>
                         </div>
                         <input type="text" name="access_token" placeholder="ระบุรหัส 6 หลัก" 
-                            class="w-full h-14 pl-12 pr-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-[6px] focus:ring-primary-500/10 transition-all outline-none text-xl font-bold tracking-[0.5em] text-center" 
-                            maxlength="6" required>
+                            class="input-premium text-center font-bold tracking-[0.3em]" maxlength="6" required>
                     </div>
                 </div>
 
                 <div class="pt-4">
-                    <button type="submit" class="btn-premium w-full h-14 text-lg flex items-center justify-center gap-3">
-                        เข้าสู่ห้องสอบ <i class="fas fa-sign-in-alt text-sm"></i>
+                    <button type="submit" class="btn-premium">
+                        เข้าสู่ห้องสอบ <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
             </form>
         </div>
 
         <!-- Info Footer -->
-        <div class="text-center space-y-2">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">โครงการ: <?= e($project ? $project['name'] : '-') ?></p>
-            <div class="h-px w-12 bg-gray-200 mx-auto"></div>
-            <p class="text-[10px] text-gray-300 font-medium leading-relaxed">
-                กรณีไม่พบรายชื่อหรือรหัสผ่านผิดพลาด<br>กรุณาติดต่อเจ้าหน้าที่ผู้ดูแลโครงการ
+        <div class="text-center mt-10 space-y-4">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                โครงการ: <span class="text-gray-600"><?= e($project ? $project['name'] : '-') ?></span>
             </p>
+            <div class="flex items-center justify-center gap-2 text-[10px] text-gray-300 font-bold uppercase tracking-widest">
+                <span>RERU EXAM SYSTEM</span>
+                <span class="w-1 h-1 bg-gray-200 rounded-full"></span>
+                <span>SECURED ACCESS</span>
+            </div>
         </div>
     </div>
 
@@ -139,11 +218,7 @@
                     title: 'กรุณาเลือกชื่อจากรายการ',
                     text: 'โปรดเลือกชื่อ-นามสกุลที่ปรากฏในรายการค้นหาเพื่อให้ข้อมูลถูกต้อง',
                     icon: 'warning',
-                    confirmButtonColor: '#E87722',
-                    customClass: {
-                        popup: 'rounded-[2rem]',
-                        confirmButton: 'rounded-xl'
-                    }
+                    confirmButtonColor: '#E87722'
                 });
             }
         });

@@ -26,12 +26,62 @@
                         primary: {
                             50: '#FFF3EB', 100: '#FFE4D1', 200: '#FFC8A3', 300: '#FFA56E',
                             400: '#FF813A', 500: '#E87722', 600: '#C76118', 700: '#A34D10',
-                        }
+                        },
+                        danger: '#EF4444',
+                        accent: '#FF813A',
                     }
                 }
             }
         }
     </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .bg-mesh {
+                background-color: #ffffff;
+                background-image: 
+                    radial-gradient(at 0% 0%, hsla(25,100%,93%,1) 0, transparent 50%), 
+                    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
+                    radial-gradient(at 100% 0%, hsla(25,100%,93%,1) 0, transparent 50%);
+            }
+            .glass {
+                @apply bg-white/80 backdrop-blur-xl border border-white/20;
+            }
+            .shadow-soft {
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            }
+            .shadow-premium {
+                box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.1);
+            }
+            .hover-lift {
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+            }
+            .hover-lift:hover {
+                @apply -translate-y-2;
+                box-shadow: 0 20px 40px -15px rgba(232, 119, 34, 0.2);
+            }
+            .btn-premium {
+                @apply relative overflow-hidden px-8 py-4 bg-primary-500 text-white font-bold rounded-2xl transition-all duration-300 shadow-soft hover:shadow-premium hover:bg-primary-600 active:scale-95 flex items-center justify-center gap-3;
+            }
+            .btn-premium::after {
+                content: '';
+                @apply absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full transition-transform duration-500;
+            }
+            .btn-premium:hover::after {
+                @apply translate-x-full;
+            }
+            .card-premium {
+                @apply bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-soft hover-lift;
+            }
+            .animate-float {
+                animation: float 6s ease-in-out infinite;
+            }
+            @keyframes float {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-15px); }
+                100% { transform: translateY(0px); }
+            }
+        }
+    </style>
 </head>
 <body class="bg-mesh min-h-screen font-sans antialiased">
 

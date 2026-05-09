@@ -81,6 +81,17 @@ $projectId = (int) ($projectId ?? $question['project_id']);
             <textarea name="explanation" rows="2" class="w-full px-5 py-4 text-sm bg-gray-50/30 border border-gray-200 rounded-2xl focus:outline-none focus:border-primary-400 focus:ring-[4px] focus:ring-orange-100 transition-all outline-none" placeholder="คำอธิบายเพิ่มเติมเกี่ยวกับข้อนี้..."><?= e($question['explanation'] ?? '') ?></textarea>
         </div>
 
+        <!-- Status Toggle -->
+        <div class="pt-4 border-t border-gray-50">
+            <label class="flex items-center gap-3 cursor-pointer group">
+                <div class="relative">
+                    <input type="checkbox" name="is_active" value="1" <?= (int)$question['is_active'] === 1 ? 'checked' : '' ?> class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-400"></div>
+                </div>
+                <span class="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">เปิดใช้งานข้อสอบนี้ (พร้อมใช้งานในระบบสอบ)</span>
+            </label>
+        </div>
+
     </div>
     <div class="px-8 md:px-10 py-6 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
         <p class="text-xs text-gray-400 font-medium italic">ตรวจสอบความถูกต้องก่อนกดบันทึก</p>

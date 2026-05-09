@@ -11,10 +11,53 @@
     <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/globals.css">
     <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/custom.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans Thai', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#FFF3EB', 100: '#FFE4D1', 200: '#FFC8A3', 300: '#FFA56E',
+                            400: '#FF813A', 500: '#E87722', 600: '#C76118', 700: '#A34D10',
+                        },
+                        danger: '#EF4444',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .bg-mesh {
+                background-color: #ffffff;
+                background-image: 
+                    radial-gradient(at 0% 0%, hsla(25,100%,93%,1) 0, transparent 50%), 
+                    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
+                    radial-gradient(at 100% 0%, hsla(25,100%,93%,1) 0, transparent 50%);
+            }
+            .card-premium {
+                @apply bg-white rounded-[2.5rem] p-0 border border-gray-100 shadow-soft overflow-hidden transition-all duration-300;
+            }
+            .btn-premium {
+                @apply relative overflow-hidden px-8 py-4 bg-primary-500 text-white font-bold rounded-2xl transition-all duration-300 shadow-soft hover:shadow-premium hover:bg-primary-600 active:scale-95 flex items-center justify-center gap-3;
+            }
+            .animate-float {
+                animation: float 6s ease-in-out infinite;
+            }
+            @keyframes float {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-15px); }
+                100% { transform: translateY(0px); }
+            }
+        }
+    </style>
 </head>
 <body class="bg-mesh min-h-screen flex items-center justify-center p-6 antialiased">
 
-    <div class="max-w-2xl w-full animate-float">
+    <div class="max-w-2xl w-full">
         <div class="card-premium overflow-hidden !p-0">
             <!-- Header Background based on result -->
             <?php if ($session['result'] === 'pass'): ?>
