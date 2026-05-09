@@ -704,3 +704,10 @@ Notes:
 Next:
 - Re-enable and style the "Answer Review" section when requested.
 - Optimize certificate PDF generation to match the high-fidelity web preview.
+
+## 2026-05-09 - Bug Fix: Answer Verification Case Sensitivity
+
+Completed:
+- **Fixed Answer Logic**: Updated `isAnswerCorrect()` in `models/ExamSession.php` to be case-insensitive using `mb_strtolower()`.
+- **Improved Robustness**: Standardized answer comparison to handle variations in case (e.g., 'a' vs 'A') which previously caused correct multiple-choice answers to be marked as wrong if the database used a different case than the frontend keys.
+- **Unicode Support**: Ensured UTF-8 compatibility for case-insensitive comparisons in fill-in-the-blank questions.

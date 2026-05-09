@@ -137,12 +137,10 @@ function getSessionQuestions(array $session): array
 
 function isAnswerCorrect(array $question, string $answer): bool
 {
-    $expected = trim((string) $question['correct_answer']);
-    if ($question['type'] === 'fill_blank') {
-        return mb_strtolower(trim($answer)) === mb_strtolower($expected);
-    }
-
-    return trim($answer) === $expected;
+    $expected = mb_strtolower(trim((string) $question['correct_answer']), 'UTF-8');
+    $given = mb_strtolower(trim((string) $answer), 'UTF-8');
+    
+    return $given === $expected;
 }
 
 function submitExamSession(int $sessionId, array $answers): array
