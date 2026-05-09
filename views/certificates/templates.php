@@ -164,6 +164,9 @@ $template = array_merge(templateDefaults(), $template ?? []);
                     <div class="bg-white rounded-2xl border border-gray-100 p-5 space-y-3 shadow-sm">
                         <?php 
                         $opts = [
+                            'show_name' => ['label' => 'ชื่อผู้สอบ', 'icon' => 'fa-user'],
+                            'show_course' => ['label' => 'ชื่อหลักสูตร', 'icon' => 'fa-book'],
+                            'show_certno' => ['label' => 'เลขที่ใบเซอร์', 'icon' => 'fa-id-card'],
                             'show_qr' => ['label' => 'QR Code', 'icon' => 'fa-qrcode'],
                             'show_date' => ['label' => 'วันที่', 'icon' => 'fa-calendar'],
                             'show_score' => ['label' => 'คะแนน', 'icon' => 'fa-star'],
@@ -412,7 +415,13 @@ $template = array_merge(templateDefaults(), $template ?? []);
             if (!el) return;
             if (!layout[id]) layout[id] = { size: (id==='name'?38:18), align: 'C', bold: (id==='name') };
             
-            const xMm = parseFloat((parseFloat(el.style.left) * ratio).toFixed(2));
+            // Calculate anchor point based on alignment
+            let xOffset = 0;
+            const align = layout[id].align || 'L';
+            if (align === 'C') xOffset = el.offsetWidth / 2;
+            else if (align === 'R') xOffset = el.offsetWidth;
+
+            const xMm = parseFloat(((parseFloat(el.style.left) + xOffset) * ratio).toFixed(2));
             const yMm = parseFloat((parseFloat(el.style.top) * ratio).toFixed(2));
             
             layout[id].x = xMm;
@@ -468,13 +477,20 @@ $template = array_merge(templateDefaults(), $template ?? []);
         ['name', 'course', 'date', 'certno', 'qrcode', 'logo', 'sign1', 'sign2'].forEach(id => {
             const el = document.getElementById('drag-' + id);
             if (!el || !layout[id]) return;
-            el.style.left = (layout[id].x * ratio) + 'px';
+
+            // Positioning based on anchor point
+            const align = layout[id].align || 'L';
+            let xOffset = 0;
+            if (align === 'C') xOffset = el.offsetWidth / 2;
+            else if (align === 'R') xOffset = el.offsetWidth;
+
+            el.style.left = (layout[id].x * ratio - xOffset) + 'px';
             el.style.top = (layout[id].y * ratio) + 'px';
             if (id === 'qrcode' || id === 'logo') {
                 el.style.width = ((layout[id].w || (id==='logo'?40:28)) * ratio) + 'px';
                 el.style.height = ((layout[id].h || (id==='logo'?40:28)) * ratio) + 'px';
             } else if (!id.startsWith('sign')) {
-                el.style.fontSize = ((layout[id].size || 20) * fontRatio) + 'px'; // Fixed initial font size
+                el.style.fontSize = ((layout[id].size || 20) * fontRatio) + 'px';
             }
             drag(el);
         });

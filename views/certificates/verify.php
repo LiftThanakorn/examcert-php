@@ -155,12 +155,22 @@
             <!-- Dynamic Content based on Layout JSON -->
             <?php foreach ($layout as $field => $cfg): 
                 $text = '';
-                if ($field === 'name') $text = $fullName;
-                elseif ($field === 'course') $text = $certificate['project_name'];
-                elseif ($field === 'date') $text = date('d/m/Y', strtotime($certificate['issued_date']));
-                elseif ($field === 'certno') $text = $certificate['cert_number'];
+                $show = true;
+                if ($field === 'name') {
+                    $text = $fullName;
+                    $show = !empty($template['show_name']);
+                } elseif ($field === 'course') {
+                    $text = $certificate['project_name'];
+                    $show = !empty($template['show_course']);
+                } elseif ($field === 'date') {
+                    $text = date('d/m/Y', strtotime($certificate['issued_date']));
+                    $show = !empty($template['show_date']);
+                } elseif ($field === 'certno') {
+                    $text = $certificate['cert_number'];
+                    $show = !empty($template['show_certno']);
+                }
                 
-                if (!$text) continue;
+                if (!$text || !$show) continue;
 
                 $style = "position: absolute; ";
                 $style .= "left: " . ($cfg['x'] ?? 0) . "mm; ";

@@ -19,6 +19,9 @@ function templateDefaults(): array
         'bg_image' => null,
         'logo_path' => null,
         'signature_paths' => '[]',
+        'show_name' => 1,
+        'show_course' => 1,
+        'show_certno' => 1,
     ];
 }
 
@@ -59,6 +62,9 @@ function saveCertificateTemplate(array $data, ?int $adminId, ?int $id = null): a
         'show_date' => !empty($data['show_date']) ? 1 : 0,
         'color_primary' => preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($data['color_primary'] ?? '')) ? $data['color_primary'] : '#E87722',
         'is_active' => !empty($data['is_active']) ? 1 : 0,
+        'show_name' => !empty($data['show_name']) ? 1 : 0,
+        'show_course' => !empty($data['show_course']) ? 1 : 0,
+        'show_certno' => !empty($data['show_certno']) ? 1 : 0,
         'layout_json' => trim((string) ($data['layout_json'] ?? '')) ?: null,
     ];
 
@@ -105,27 +111,32 @@ function saveCertificateTemplate(array $data, ?int $adminId, ?int $id = null): a
             $stmt = getDB()->prepare('
                 INSERT INTO cert_templates (
                     name, description, orientation, font_name, show_score, show_qr,
-                    show_date, color_primary, is_active, layout_json, bg_image, 
+                    show_date, show_name, show_course, show_certno,
+                    color_primary, is_active, layout_json, bg_image, 
                     logo_path, signature_paths, created_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ');
             $stmt->execute([
                 $payload['name'], $payload['description'], $payload['orientation'], $payload['font_name'],
-                $payload['show_score'], $payload['show_qr'], $payload['show_date'], $payload['color_primary'],
-                $payload['is_active'], $payload['layout_json'], $payload['bg_image'] ?? null,
-                $payload['logo_path'] ?? null, $payload['signature_paths'], $adminId,
+                $payload['show_score'], $payload['show_qr'], $payload['show_date'],
+                $payload['show_name'], $payload['show_course'], $payload['show_certno'],
+                $payload['color_primary'], $payload['is_active'], $payload['layout_json'], 
+                $payload['bg_image'] ?? null, $payload['logo_path'] ?? null, 
+                $payload['signature_paths'], $adminId,
             ]);
             return ['success' => true, 'id' => (int) getDB()->lastInsertId()];
         }
 
         // For update
         $sql = 'UPDATE cert_templates SET name = ?, description = ?, orientation = ?, font_name = ?, 
-                show_score = ?, show_qr = ?, show_date = ?, color_primary = ?, is_active = ?, 
-                layout_json = ?, signature_paths = ?';
+                show_score = ?, show_qr = ?, show_date = ?, 
+                show_name = ?, show_course = ?, show_certno = ?,
+                color_primary = ?, is_active = ?, layout_json = ?, signature_paths = ?';
         $params = [
             $payload['name'], $payload['description'], $payload['orientation'], $payload['font_name'],
-            $payload['show_score'], $payload['show_qr'], $payload['show_date'], $payload['color_primary'],
-            $payload['is_active'], $payload['layout_json'], $payload['signature_paths']
+            $payload['show_score'], $payload['show_qr'], $payload['show_date'],
+            $payload['show_name'], $payload['show_course'], $payload['show_certno'],
+            $payload['color_primary'], $payload['is_active'], $payload['layout_json'], $payload['signature_paths']
         ];
 
         // Background image
