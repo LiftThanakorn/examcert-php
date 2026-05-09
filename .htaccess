@@ -1,16 +1,12 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
-    # ปิดการแสดงรายชื่อไฟล์ในโฟลเดอร์
+    # ปิดการแสดงรายชื่อไฟล์
     Options -Indexes
 
-    # กรณีเข้าผ่านโฟลเดอร์ย่อย (เช่น localhost/examcert-php) 
-    # หรือ Virtual Host (เช่น examcert.test) ก็ทำงานได้
-    # ไม่ต้องมี RewriteBase เพื่อความยืดหยุ่น
-
-    # ถ้าไม่ใช่ไฟล์จริง และไม่ใช่โฟลเดอร์จริง ให้ส่งไปที่ index.php ทั้งหมด
-    # และพ่วงค่า Query String (?...) ไปด้วย [QSA]
+    # บังคับให้ทุกอย่างวิ่งเข้า index.php ทันที 
+    # โดยไม่สนใจว่าจะมีโฟลเดอร์ชื่อนั้นอยู่จริงหรือไม่ (เพื่อแก้ปัญหา Forbidden)
+    # ยกเว้นกรณีเป็นไฟล์จริงๆ (เช่น css, js, jpg) ให้เปิดได้ปกติ
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^ index.php [L,QSA]
 </IfModule>
