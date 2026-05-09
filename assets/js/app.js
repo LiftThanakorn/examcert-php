@@ -1,8 +1,8 @@
 // ========================
 // GLOBAL CONFIG
 // ========================
-const BASE_URL   = document.querySelector('meta[name="base-url"]')?.content ?? '';
-const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+window.BASE_URL   = window.BASE_URL || document.querySelector('meta[name="base-url"]')?.content || '';
+window.CSRF_TOKEN = window.CSRF_TOKEN || document.querySelector('meta[name="csrf-token"]')?.content || '';
 
 // ========================
 // AJAX HELPER

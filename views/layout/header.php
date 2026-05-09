@@ -43,7 +43,9 @@ $bodyAttrs = $bodyAttrs ?? '';
           boxShadow: {
             card: '0 1px 4px rgba(0,0,0,0.07)',
             'card-hover': '0 4px 16px rgba(0,0,0,0.10)',
-            orange: '0 0 0 3px rgba(232,119,34,0.18)'
+            orange: '0 0 0 3px rgba(232,119,34,0.18)',
+            'soft': '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
+            'premium': '0 20px 50px -12px rgba(0, 0, 0, 0.1)'
           }
         }
       }

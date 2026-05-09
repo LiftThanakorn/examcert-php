@@ -663,15 +663,16 @@ Notes:
 ## 2026-05-09 - UI Polish & Critical Bug Fixes
 
 Completed:
-- **UI Architecture**: Embedded Tailwind components directly in views to bypass CDN processing limits on external CSS `@apply` directives.
-- **Exam Engine Fix**: Resolved **404 Not Found** errors for `save_answer` AJAX calls by implementing dynamic `BASE_URL` resolution in `exam.js`.
+- **UI Architecture**: Embedded Tailwind components directly in views to bypass CDN processing limits. Added premium shadows to global `header.php` config to prevent `@apply` errors.
+- **Exam Engine Fix**: Resolved **404 Not Found** errors for `save_answer` AJAX calls by implementing dynamic `BASE_URL` resolution.
+- **JS Stability**: Fixed "Identifier 'BASE_URL' has already been declared" by moving global constants to `window` properties in `app.js`.
 - **Question Logic**: Added the missing `is_active` toggle to the question management form. Fixed a bug where questions were saved as inactive by default.
 - **Workflow Documentation**: Created **`workflow.md`** to outline the complete operational lifecycle of the system.
-- **Branding & Alignment**: Fixed centering issues on entry and result pages. Removed distracting animations from the exam interface.
+- **Branding & Alignment**: Fixed centering issues and background rendering on entry and result pages.
 
 Notes:
-- The system is now fully functional with a stable auto-save mechanism.
-- All public-facing pages match the premium design system.
+- The system is now significantly more robust against Tailwind CDN quirks.
+- All core exam flows are verified and stable.
 
 Next:
 - Security audit of file uploads.
