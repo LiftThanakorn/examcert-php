@@ -119,6 +119,13 @@ function createParticipant(int $projectId, array $data, ?int $adminId): array
             $adminId,
         ]);
 
+        return ['success' => true, 'id' => (int) getDB()->lastInsertId()];
+    } catch (Throwable $e) {
+        logError('Create participant failed', ['project_id' => $projectId, 'error' => $e->getMessage()]);
+        return ['success' => false, 'errors' => ['เกิดข้อผิดพลาดในการเพิ่มผู้มีสิทธิ์สอบ']];
+    }
+}
+
 function importParticipants(int $projectId, array $rows, int $adminId): array
 {
     $created = 0;
