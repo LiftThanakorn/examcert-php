@@ -138,19 +138,22 @@ $template = array_merge(templateDefaults(), $template ?? []);
 
             <!-- Main Canvas -->
             <div class="flex-1 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center justify-center relative overflow-hidden p-10 shadow-inner">
-                <div id="designer-container" class="relative bg-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] transition-all overflow-hidden origin-center" 
-                     style="width: <?= $template['orientation'] === 'L' ? '1123px' : '794px' ?>; height: <?= $template['orientation'] === 'L' ? '794px' : '1123px' ?>; transform: scale(0.6);">
-                    <img id="designer-bg" src="<?= !empty($template['bg_image']) ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="absolute inset-0 w-full h-full block select-none pointer-events-none <?= empty($template['bg_image']) ? 'hidden' : '' ?>">
-                    <div id="designer-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-200 border-4 border-double border-slate-50 <?= !empty($template['bg_image']) ? 'hidden' : '' ?>">
-                        <p class="font-black text-xs uppercase tracking-[0.3em] opacity-30">Certificate Canvas Area</p>
-                    </div>
+                <!-- Wrapper for maintaining scale and centering without layout collapse -->
+                <div class="designer-wrapper">
+                    <div id="designer-container" class="relative bg-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] overflow-hidden" 
+                         style="width: <?= $template['orientation'] === 'L' ? '1123px' : '794px' ?>; height: <?= $template['orientation'] === 'L' ? '794px' : '1123px' ?>;">
+                        <img id="designer-bg" src="<?= !empty($template['bg_image']) ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="absolute inset-0 w-full h-full block select-none pointer-events-none object-fill <?= empty($template['bg_image']) ? 'hidden' : '' ?>">
+                        <div id="designer-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-200 border-4 border-double border-slate-50 <?= !empty($template['bg_image']) ? 'hidden' : '' ?>">
+                            <p class="font-black text-xs uppercase tracking-[0.3em] opacity-30">Certificate Canvas Area</p>
+                        </div>
 
-                    <!-- Draggable Elements -->
-                    <div id="drag-name" class="designer-tag" data-id="name">ชื่อผู้เข้าสอบ</div>
-                    <div id="drag-course" class="designer-tag tag-blue" data-id="course">ชื่อโครงการ / หลักสูตร</div>
-                    <div id="drag-date" class="designer-tag tag-green" data-id="date">วันที่</div>
-                    <div id="drag-certno" class="designer-tag tag-purple" data-id="certno">เลขที่ใบเซอร์</div>
-                    <div id="drag-qrcode" class="designer-tag tag-dark" data-id="qrcode" style="width: 100px; height: 100px;">QR</div>
+                        <!-- Draggable Elements -->
+                        <div id="drag-name" class="designer-tag" data-id="name">ชื่อผู้เข้าสอบ</div>
+                        <div id="drag-course" class="designer-tag tag-blue" data-id="course">ชื่อโครงการ / หลักสูตร</div>
+                        <div id="drag-date" class="designer-tag tag-green" data-id="date">วันที่</div>
+                        <div id="drag-certno" class="designer-tag tag-purple" data-id="certno">เลขที่ใบเซอร์</div>
+                        <div id="drag-qrcode" class="designer-tag tag-dark" data-id="qrcode" style="width: 100px; height: 100px;">QR</div>
+                    </div>
                 </div>
             </div>
 
@@ -213,12 +216,19 @@ $template = array_merge(templateDefaults(), $template ?? []);
     </div>
 
     <style>
+        .designer-wrapper {
+            transform: scale(0.6);
+            transform-origin: center center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .designer-tag {
             position: absolute; z-index: 100; cursor: grab; user-select: none;
-            padding: 4px 8px; background: #E87722; color: white; border-radius: 4px;
-            font-weight: 800; border: 2px solid white; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15); white-space: nowrap;
-            line-height: 1; text-align: center;
+            padding: 4px 12px; background: #E87722; color: white; border-radius: 6px;
+            font-weight: 800; border: 2.5px solid white; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); white-space: nowrap;
+            line-height: 1.1; text-align: center;
         }
         .designer-tag.tag-blue { background: #3B82F6; }
         .designer-tag.tag-green { background: #10B981; }
@@ -241,7 +251,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
     
     // Scale Logic: 1mm = 3.78px (at 96dpi)
     const MM_TO_PX = 3.7795275591;
-    const DESIGN_SCALE = 0.6; // Matches CSS transform: scale(0.6)
+    const DESIGN_SCALE = 0.6; 
     const PT_TO_PX = 1.333333; // 1pt = 1.33px
 
     let layout = {};
@@ -252,7 +262,6 @@ $template = array_merge(templateDefaults(), $template ?? []);
             const el = document.getElementById('drag-' + id);
             if (!el) return;
             
-            // Current input values (X, Y in mm)
             layout[id].x = parseFloat(document.getElementById(`input-${id}-x`).value || 0);
             layout[id].y = parseFloat(document.getElementById(`input-${id}-y`).value || 0);
             
@@ -277,11 +286,9 @@ $template = array_merge(templateDefaults(), $template ?? []);
             else if (align === 'R') el.style.transform = 'translate(-100%, -50%)';
             else el.style.transform = 'translate(0, -50%)';
 
-            // Position in PX
             el.style.left = (layout[id].x * MM_TO_PX) + 'px';
             el.style.top = (layout[id].y * MM_TO_PX) + 'px';
             
-            // Size
             if (id === 'qrcode') {
                 el.style.width = (layout[id].w * MM_TO_PX) + 'px';
                 el.style.height = (layout[id].w * MM_TO_PX) + 'px';
@@ -289,7 +296,6 @@ $template = array_merge(templateDefaults(), $template ?? []);
                 el.style.fontSize = (layout[id].size * PT_TO_PX) + 'px';
             }
             
-            // Sync inputs
             document.getElementById(`input-${id}-x`).value = layout[id].x;
             document.getElementById(`input-${id}-y`).value = layout[id].y;
             document.getElementById(`input-${id}-size`).value = layout[id].size || layout[id].w || 20;
@@ -341,15 +347,12 @@ $template = array_merge(templateDefaults(), $template ?? []);
             y2 = e.clientY;
             
             document.onmousemove = (ev) => {
-                // Calculate movement in SCREEN pixels
                 let dx = ev.clientX - x2;
                 let dy = ev.clientY - y2;
                 
-                // ADJUST FOR SCALE: Move screen pixels / design scale
                 let moveX = dx / DESIGN_SCALE;
                 let moveY = dy / DESIGN_SCALE;
                 
-                // Get current pixel positions
                 let currentLeft = parseFloat(el.style.left) || 0;
                 let currentTop = parseFloat(el.style.top) || 0;
                 
@@ -359,11 +362,9 @@ $template = array_merge(templateDefaults(), $template ?? []);
                 el.style.left = newLeft + "px";
                 el.style.top = newTop + "px";
                 
-                // Update tracker
                 x2 = ev.clientX;
                 y2 = ev.clientY;
                 
-                // Convert back to MM for inputs
                 document.getElementById(`input-${id}-x`).value = (newLeft / MM_TO_PX).toFixed(1);
                 document.getElementById(`input-${id}-y`).value = (newTop / MM_TO_PX).toFixed(1);
                 sync();
