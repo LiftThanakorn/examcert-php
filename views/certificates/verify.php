@@ -155,9 +155,9 @@
     $h = ($template['orientation'] ?? 'L') === 'L' ? '210mm' : '297mm';
 ?>
     <div id="pdf-render-box" style="position: fixed; top: 0; left: 0; width: 0; height: 0; overflow: hidden; opacity: 0; pointer-events: none;">
-        <div id="pdf-area" style="width: <?= $w ?>; height: <?= $h ?>; position: relative; background-color: white;">
+        <div id="pdf-area" style="width: <?= $w ?>; height: <?= $h ?>; position: relative; background-color: white; margin: 0; padding: 0; border: none; overflow: hidden;">
             <?php if (!empty($template['bg_image'])): ?>
-                <img src="<?= e(BASE_URL . '/' . $template['bg_image']) ?>" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill;">
+                <img src="<?= e(BASE_URL . '/' . $template['bg_image']) ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; display: block; border: none; margin: 0; padding: 0;">
             <?php endif; ?>
 
             <?php foreach ($layout as $field => $cfg): 
@@ -219,7 +219,15 @@
             margin: 0,
             filename: '<?= e($certificate['cert_number']) ?>.pdf',
             image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 3, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
+            html2canvas: { 
+                scale: 3, 
+                useCORS: true, 
+                logging: false, 
+                scrollX: 0, 
+                scrollY: 0,
+                x: 0,
+                y: 0
+            },
             jsPDF: { unit: 'mm', format: 'a4', orientation: '<?= ($template['orientation'] ?? 'L') === 'L' ? 'landscape' : 'portrait' ?>', compress: true }
         };
 
