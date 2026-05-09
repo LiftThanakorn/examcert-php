@@ -71,6 +71,12 @@ $bodyAttrs = $bodyAttrs ?? '';
     .fade-up-3 { animation-delay: 0.15s; }
     .fade-up-4 { animation-delay: 0.20s; }
     .fade-up-5 { animation-delay: 0.25s; }
+    .bg-mesh {
+        background-color: #ffffff;
+        background-image: 
+            radial-gradient(at 0% 0%, hsla(25,100%,93%,1) 0, transparent 50%), 
+            radial-gradient(at 100% 0%, hsla(25,100%,93%,1) 0, transparent 50%);
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/app.css?v=<?= time() ?>">

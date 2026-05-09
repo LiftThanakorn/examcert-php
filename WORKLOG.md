@@ -666,8 +666,10 @@ Completed:
 - **UI Architecture**: Embedded Tailwind components directly in views to bypass CDN processing limits. Added premium shadows to global `header.php` config to prevent `@apply` errors.
 - **Exam Engine Fix**: Resolved **404 Not Found** errors for `save_answer` AJAX calls by implementing dynamic `BASE_URL` resolution.
 - **JS Stability**: Fixed "Identifier 'BASE_URL' has already been declared" by moving global constants to `window` properties in `app.js`.
-- **Exam Session Management**: Added the ability for admins to delete individual exam sessions and their associated logs to clear test data.
-- **Question Logic**: Added the missing `is_active` toggle to the question management form. Fixed a bug where questions were saved as inactive by default.
+- **Exam Session Management**: Added the ability for admins to delete individual exam sessions and their associated logs.
+- **Auto-Issuance**: Implemented automatic certificate generation upon passing an exam, ensuring immediate availability on the result page.
+- **UI Refactoring**: Cleaned up redundant HTML structures in `result.php` and `verify.php` and standardized centering via global `bg-mesh` and flex-box body classes.
+- **Question Logic**: Added the missing `is_active` toggle to the question management form.
 - **Workflow Documentation**: Created **`workflow.md`** to outline the complete operational lifecycle of the system.
 - **Branding & Alignment**: Fixed centering issues and background rendering on entry and result pages.
 
