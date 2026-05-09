@@ -3,31 +3,33 @@ name: examcert-php
 description: Use when developing the ExamCert PHP/MySQL standalone exam and certificate system.
 ---
 
-# 🛡️ ExamCert PHP - Mandatory Enforcement
+# 🛡️ ExamCert PHP - Mandatory Enforcement v2
 
-Use this skill for ALL work inside the ExamCert project.
+Use this skill for ALL work. These rules are BINDING and non-negotiable.
 
 ## 🚀 Mandatory Pre-Flight Check (AI MUST DO THIS)
 Before performing ANY code modification, the AI assistant MUST:
-1.  **Read the Source of Truth**: Read `PROJECT.md` to understand current status.
-2.  **Read Modular Rules**: Read relevant files in `.agents/rules/` (`ui.md`, `routing.md`, `security.md`).
-3.  **Chain of Thought (Plan)**: Summarize the relevant rules for the current task before proposing code.
-4.  **Confirm Git Status**: Ensure the working tree is ready for changes.
+1.  **Read Source of Truth**: `PROJECT.md`
+2.  **Read Architecture & DB**: `docs/architecture.md`, `docs/database.md`
+3.  **Read Modular Rules**: All files in `.agents/rules/` (`ui.md`, `routing.md`, `security.md`, `workflow.md`).
+4.  **Chain of Thought (Planning)**: Summarize the task and relevant rules in the response BEFORE writing code.
+5.  **Confirm Git Status**: Ensure a clean working tree or get explicit approval for dirty states.
 
 ---
 
-## 🏗️ Core Architecture Reference
-- **Frontend Controller**: `index.php`
-- **Rules Directory**: `.agents/rules/`
-- **Design System**: Solid Orange Premium (See `.agents/rules/ui.md`)
+## 🏛️ Knowledge Repository
+- **Current Status**: `PROJECT.md`
+- **Architectural Guidelines**: `docs/architecture.md`
+- **Database Schema Rules**: `docs/database.md`
+- **Modular Rule Files**: `.agents/rules/*.md`
 
 ---
 
-## 🔄 Workflow & Git
-- **Checkpoint**: Commit with `checkpoint: <description>`.
-- **Worklog**: Log daily progress.
-- **Rules Enforcement**: If a user request contradicts the rules in `.agents/rules/`, point it out before proceeding.
+## 🔄 Workflow Policy
+- Follow the **Git Checkpoint Workflow** strictly (See `rules/workflow.md`).
+- Update **WORKLOG.md** daily.
+- Maintain **Negative Constraints** (e.g., No gradients, Solid colors).
 
 ---
-## ⚠️ Enforcement Policy
-Failure to read `PROJECT.md` and the modular rules before acting is considered a **CRITICAL FAILURE**. Always maintain "Context as Code" by updating these rules as the project evolves.
+## ⚠️ Critical Reminder
+Failure to strictly follow these context files and rules is considered a **CRITICAL FAILURE**. Always prioritize project stability and design consistency over speed.
