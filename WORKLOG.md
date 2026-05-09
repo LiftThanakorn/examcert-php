@@ -793,5 +793,10 @@ Notes:
 - Verified that logging back in after navigating away resumes the existing session.
 - Performed final code audit for redundant HTML boilerplate: all public views now share a single, clean header/footer system.
 
+- **Landing Page Refinements**:
+  - Updated hero text and badges to match organizational branding ("งานบริหารทรัพยากรบุคคลและนิติการ").
+  - Implemented **Smooth Scrolling** for the "Enter Exam Room" navigation button.
+  - Standardized landing page styles and animations for a more premium feel.
+
 Next:
 - Production deployment and load testing.

@@ -4,6 +4,9 @@ require VIEWS_PATH . '/layout/header.php';
 ?>
 
 <style>
+    html {
+        scroll-behavior: smooth;
+    }
     .bg-mesh {
         background-color: #ffffff;
         background-image: 
@@ -105,11 +108,11 @@ require VIEWS_PATH . '/layout/header.php';
         <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
             <div class="space-y-8 text-center lg:text-left">
                 <div class="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-600 rounded-full text-xs font-extrabold uppercase tracking-widest animate-bounce">
-                    <i class="fas fa-star text-[10px]"></i> แพลตฟอร์มสอบออนไลน์ยอดนิยม
+                    <i class="fas fa-star text-[10px]"></i> งานบริหารทรัพยากรบุคคลและนิติการ
                 </div>
                 <h1 class="text-5xl md:text-7xl font-extrabold text-gray-900 leading-[1.1] tracking-tighter">
-                    ยกระดับการสอบ<br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-accent">สู่ความเป็นเลิศ</span>
+                    ระบบทำข้อสอบ<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-accent">พร้อมรับเกียรติบัตร</span>
                 </h1>
                 <p class="text-lg text-gray-500 font-medium max-w-xl mx-auto lg:mx-0 leading-relaxed">
                     ระบบสอบออนไลน์และออกใบประกาศนียบัตรอัตโนมัติ สำหรับบุคลากรมหาวิทยาลัยราชภัฏร้อยเอ็ด พัฒนามาเพื่อความแม่นยำ รวดเร็ว และเป็นสากล
