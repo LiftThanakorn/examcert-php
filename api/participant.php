@@ -26,6 +26,24 @@ if ($action === 'import') {
     jsonResponse(true, 'Import completed.', $result);
 }
 
+if ($action === 'list') {
+    $projectId = (int) ($_GET['project_id'] ?? 0);
+    if ($projectId <= 0) {
+        jsonResponse(false, 'Invalid project ID.', [], 400);
+    }
+    
+    $participants = getParticipantsByProject($projectId);
+    $data = array_map(function($p) {
+        return [
+            'full_name' => trim(($p['title'] ? $p['title'] . ' ' : '') . $p['first_name'] . ' ' . $p['last_name']),
+            'first_name' => $p['first_name'],
+            'last_name' => $p['last_name']
+        ];
+    }, $participants);
+    
+    jsonResponse(true, 'OK', $data);
+}
+
 if ($action === 'lookup') {
     $projectId = (int) ($_GET['project_id'] ?? 0);
     $token = trim((string) ($_GET['token'] ?? ''));

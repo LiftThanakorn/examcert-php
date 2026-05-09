@@ -16,28 +16,28 @@
                 </div>
             <?php endif; ?>
 
-            <form method="post" action="<?= e(BASE_URL) ?>/public/exam.php?project=<?= e($projectCode) ?>" class="space-y-5">
+            <form method="post" action="<?= e(BASE_URL) ?>/public/exam.php?project=<?= e($projectCode) ?>" class="space-y-5" id="entry_form">
                 <?= csrfField() ?>
                 
+                <!-- Title is now hidden and auto-filled -->
+                <input type="hidden" name="title" id="hidden_title">
+
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">คำนำหน้า</label>
-                    <input type="text" name="title" placeholder="นาย / นาง / นางสาว" class="w-full h-12 px-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-[4px] focus:ring-primary-400/10 transition-all outline-none text-sm" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">ค้นหาชื่อ-นามสกุลของคุณ</label>
+                    <div class="relative">
+                        <input type="text" id="name_search" list="participants_list" placeholder="พิมพ์ชื่อหรือนามสกุลเพื่อค้นหา..." class="w-full h-12 px-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-[4px] focus:ring-primary-400/10 transition-all outline-none text-sm" required autocomplete="off">
+                        <datalist id="participants_list"></datalist>
+                        <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none"></i>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">ชื่อ</label>
-                        <input type="text" name="first_name" placeholder="ชื่อจริง" class="w-full h-12 px-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-[4px] focus:ring-primary-400/10 transition-all outline-none text-sm" required>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">นามสกุล</label>
-                        <input type="text" name="last_name" placeholder="นามสกุล" class="w-full h-12 px-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-[4px] focus:ring-primary-400/10 transition-all outline-none text-sm" required>
-                    </div>
-                </div>
+                <!-- Hidden fields for backend compatibility -->
+                <input type="hidden" name="first_name" id="hidden_first_name">
+                <input type="hidden" name="last_name" id="hidden_last_name">
 
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">รหัสผ่านเข้าสอบ (Token)</label>
-                    <input type="text" name="access_token" placeholder="ระบุรหัสผ่านที่ได้รับจากผู้ดูแล" class="w-full h-12 px-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-[4px] focus:ring-primary-400/10 transition-all outline-none text-sm" required>
+                    <input type="text" name="access_token" placeholder="ระบุรหัสผ่าน 6 หลัก" class="w-full h-12 px-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-[4px] focus:ring-primary-400/10 transition-all outline-none text-sm font-bold tracking-widest text-center" required>
                 </div>
 
                 <input type="hidden" name="project_code" value="<?= e($projectCode) ?>">
@@ -55,3 +55,69 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const projectId = <?= json_encode($project ? (int)$project['id'] : 0) ?>;
+    const nameSearch = document.getElementById('name_search');
+    const dataList = document.getElementById('participants_list');
+    const hiddenTitle = document.getElementById('hidden_title');
+    const hiddenFirstName = document.getElementById('hidden_first_name');
+    const hiddenLastName = document.getElementById('hidden_last_name');
+    const entryForm = document.getElementById('entry_form');
+
+    let participantsData = [];
+
+    // Fetch participants for this project
+    if (projectId > 0) {
+        fetch(`<?= e(BASE_URL) ?>/api/participant.php?action=list&project_id=${projectId}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    participantsData = res.data;
+                    participantsData.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.full_name;
+                        dataList.appendChild(option);
+                    });
+                }
+            })
+            .catch(err => console.error('Failed to load participants', err));
+    }
+
+    // Handle name selection
+    nameSearch.addEventListener('input', function() {
+        const val = this.value;
+        const match = participantsData.find(p => p.full_name === val);
+        if (match) {
+            hiddenFirstName.value = match.first_name;
+            hiddenLastName.value = match.last_name;
+            // Extract title if possible
+            const parts = match.full_name.split(' ');
+            if (parts.length >= 1) {
+                const titles = ['นาย', 'นาง', 'นางสาว', 'ดร.', 'ผศ.', 'รศ.', 'ศ.'];
+                if (titles.includes(parts[0])) {
+                    hiddenTitle.value = parts[0];
+                }
+            }
+        } else {
+            hiddenFirstName.value = '';
+            hiddenLastName.value = '';
+            hiddenTitle.value = '';
+        }
+    });
+
+    // Form validation
+    entryForm.addEventListener('submit', function(e) {
+        if (!hiddenFirstName.value || !hiddenLastName.value) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'กรุณาเลือกชื่อจากรายการ',
+                text: 'โปรดเลือกชื่อ-นามสกุลที่ปรากฏในรายการค้นหาเพื่อให้ข้อมูลถูกต้อง',
+                icon: 'warning',
+                confirmButtonColor: '#E87722'
+            });
+        }
+    });
+});
+</script>
