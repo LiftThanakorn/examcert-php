@@ -273,26 +273,55 @@ function saveAnswer(questionId, answer) {
     });
 }
 
-// ── TIMER ─────────────────────────────────────────────────────────
+// ── TIMER & HEARTBEAT ─────────────────────────────────────────────
 function startTimer() {
+  // Initial sync
+  checkStatus();
+
   timerInterval = setInterval(() => {
     totalSec--;
     updateTimerDisplay();
 
-    if (totalSec === 600) showWarningBanner(10);
-
-    if (totalSec === 300) {
-      $('#timer-display').addClass('timer-danger text-red-600');
-      $('#timer-box').addClass('border-red-200 bg-red-50');
-      $('#timer-icon').removeClass('text-primary-400').addClass('text-red-500');
-      showWarningBanner(5);
-    }
-
+    // Secondary local check (server check is every 30s)
     if (totalSec <= 0) {
       clearInterval(timerInterval);
       autoSubmit();
     }
   }, 1000);
+
+  // Heartbeat every 30 seconds to sync status and enforce project schedule
+  setInterval(checkStatus, 30000);
+}
+
+function checkStatus() {
+  $.ajax({
+    url: getBaseUrl() + '/api/exam.php?action=check_time',
+    type: 'GET',
+    data: { session_id: sessionId },
+    dataType: 'json',
+    success: function(res) {
+      if (res.success && res.data) {
+        const data = res.data;
+        
+        // Sync time if server reports lower seconds_left
+        if (data.seconds_left !== null && data.seconds_left < totalSec) {
+          totalSec = data.seconds_left;
+          updateTimerDisplay();
+        }
+
+        // Handle auto-submit (Project closed, time out, etc.)
+        if (data.should_submit && !window.isSubmitting) {
+          clearInterval(timerInterval);
+          autoSubmit(data.message || 'โครงการปิดการเข้าสอบแล้ว ระบบกำลังส่งคำตอบ...');
+        }
+
+        // Handle Warning banner
+        if (data.warning) {
+          showWarningBanner(Math.ceil(totalSec / 60));
+        }
+      }
+    }
+  });
 }
 
 function updateTimerDisplay() {
@@ -520,15 +549,15 @@ function submitExam() {
   $('#exam-form').submit();
 }
 
-function autoSubmit() {
+function autoSubmit(msg = 'ระบบกำลังส่งคำตอบให้อัตโนมัติ...') {
   window.isSubmitting = true;
   Swal.fire({
     icon: 'info',
-    title: 'หมดเวลา!',
-    text: 'ระบบกำลังส่งคำตอบให้อัตโนมัติ...',
+    title: 'หมดเวลาหรือโครงการปิดแล้ว!',
+    text: msg,
     allowOutsideClick: false,
     allowEscapeKey: false,
-    timer: 2000,
+    timer: 3000,
     showConfirmButton: false,
     customClass: { popup: 'rounded-2xl font-sans' },
   }).then(() => submitExam());

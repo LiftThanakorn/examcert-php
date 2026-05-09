@@ -224,19 +224,7 @@ function getProjectRuntimeStatus(array $project, ?DateTimeImmutable $now = null)
     $status = (string) ($project['status'] ?? 'draft');
     $manual = (int) ($project['manual_override'] ?? 0) === 1;
 
-    // 1. Manual Override Check (Highest Priority)
-    if ($manual) {
-        $allowed = $status === 'active';
-        return [
-            'allowed' => $allowed,
-            'status' => $status,
-            'message' => $allowed ? 'เปิดใช้งาน (Manual)' : 'ปิดการเข้าสอบชั่วคราว',
-            'seconds_left' => null,
-            'warning' => false,
-        ];
-    }
-
-    // 2. Base Status Check
+    // 1. Base Status Check
     if ($status !== 'active') {
         return [
             'allowed' => false,
@@ -247,21 +235,7 @@ function getProjectRuntimeStatus(array $project, ?DateTimeImmutable $now = null)
         ];
     }
 
-    // 3. Exam Start Time Check
-    if (!empty($project['exam_start']) && (int) ($project['allow_early_login'] ?? 0) !== 1) {
-        $start = new DateTimeImmutable((string) $project['exam_start']);
-        if ($now < $start) {
-            return [
-                'allowed' => false,
-                'status' => 'scheduled',
-                'message' => 'ยังไม่ถึงเวลาเปิดสอบ (เริ่ม ' . $start->format('H:i') . ')',
-                'seconds_left' => $start->getTimestamp() - $now->getTimestamp(),
-                'warning' => false,
-            ];
-        }
-    }
-
-    // 4. Exam End Time Check
+    // 2. Exam End Time Check (Highest Priority - Even Manual Override shouldn't keep it open after end time)
     $secondsLeft = null;
     if (!empty($project['exam_end'])) {
         $end = new DateTimeImmutable((string) $project['exam_end']);
@@ -271,9 +245,34 @@ function getProjectRuntimeStatus(array $project, ?DateTimeImmutable $now = null)
             return [
                 'allowed' => false, 
                 'status' => 'closed', 
-                'message' => 'หมดเวลาเข้าสอบแล้ว', 
+                'message' => 'หมดเวลาการสอบแล้ว', 
                 'seconds_left' => 0, 
                 'warning' => false
+            ];
+        }
+    }
+
+    // 3. Manual Override Check (For emergency closing or early opening)
+    if ($manual) {
+        return [
+            'allowed' => true,
+            'status' => 'active',
+            'message' => 'เปิดใช้งาน (Manual)',
+            'seconds_left' => $secondsLeft,
+            'warning' => false,
+        ];
+    }
+
+    // 4. Exam Start Time Check
+    if (!empty($project['exam_start']) && (int) ($project['allow_early_login'] ?? 0) !== 1) {
+        $start = new DateTimeImmutable((string) $project['exam_start']);
+        if ($now < $start) {
+            return [
+                'allowed' => false,
+                'status' => 'scheduled',
+                'message' => 'ยังไม่ถึงเวลาเปิดสอบ (เริ่ม ' . $start->format('H:i') . ')',
+                'seconds_left' => $start->getTimestamp() - $now->getTimestamp(),
+                'warning' => false,
             ];
         }
     }
