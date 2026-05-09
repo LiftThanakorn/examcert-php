@@ -161,7 +161,7 @@ function createParticipant(int $projectId, array $data, ?int $adminId): array
             $payload['email'],
             $payload['phone'],
             $payload['id_card'],
-            generateToken(6),
+            bin2hex(random_bytes(32)),
             $payload['note'],
             $payload['import_batch'],
             $adminId,
@@ -176,52 +176,70 @@ function createParticipant(int $projectId, array $data, ?int $adminId): array
 
 function importParticipants(int $projectId, array $rows, int $adminId): array
 {
-    $created = 0;
-    $skipped = 0;
-    $results = [];
-    $batch = 'IMPORT-' . date('Ymd-His');
-    $db = getDB();
+    $created  = 0;
+    $skipped  = 0;
+    $results  = [];
+    $batch    = 'IMPORT-' . date('Ymd-His');
+    $db       = getDB();
 
-    foreach ($rows as $index => $row) {
-        $rowNum = $index + 1;
-        // Map common Excel column names or indices
-        $firstName = trim((string) ($row['ชื่อ'] ?? $row['first_name'] ?? $row[0] ?? ''));
-        $lastName = trim((string) ($row['นามสกุล'] ?? $row['last_name'] ?? $row[1] ?? ''));
-        $email = trim((string) ($row['อีเมล'] ?? $row['email'] ?? $row[2] ?? ''));
-        
-        if (empty($firstName) || empty($lastName)) {
-            $skipped++;
-            $results[] = ['row' => $rowNum, 'status' => 'skipped', 'message' => 'ชื่อหรือนามสกุลว่าง'];
-            continue;
+    try {
+        $db->beginTransaction();
+
+        foreach ($rows as $index => $row) {
+            $rowNum    = $index + 1;
+            $firstName = trim((string) ($row['ชื่อ'] ?? $row['first_name'] ?? $row[0] ?? ''));
+            $lastName  = trim((string) ($row['นามสกุล'] ?? $row['last_name'] ?? $row[1] ?? ''));
+            $email     = trim((string) ($row['อีเมล'] ?? $row['email'] ?? $row[2] ?? ''));
+
+            if ($firstName === '' || $lastName === '') {
+                $skipped++;
+                $results[] = ['row' => $rowNum, 'status' => 'skipped', 'message' => 'ชื่อหรือนามสกุลว่าง'];
+                continue;
+            }
+
+            $savepoint = 'participant_import_row_' . $rowNum;
+            $db->exec('SAVEPOINT ' . $savepoint);
+
+            try {
+                $stmt = $db->prepare('
+                    INSERT INTO participants (
+                        project_id, first_name, last_name, email,
+                        organization, position, phone, id_card, note,
+                        access_token, import_batch, created_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ');
+
+                $stmt->execute([
+                    $projectId, $firstName, $lastName, $email ?: null,
+                    trim((string) ($row['องค์กร'] ?? $row['organization'] ?? $row[3] ?? '')) ?: null,
+                    trim((string) ($row['ตำแหน่ง'] ?? $row['position'] ?? $row[4] ?? '')) ?: null,
+                    trim((string) ($row['โทรศัพท์'] ?? $row['phone'] ?? $row[5] ?? '')) ?: null,
+                    trim((string) ($row['เลขบัตรประชาชน'] ?? $row['id_card'] ?? $row[6] ?? '')) ?: null,
+                    trim((string) ($row['หมายเหตุ'] ?? $row['note'] ?? $row[7] ?? '')) ?: null,
+                    bin2hex(random_bytes(32)),
+                    $batch,
+                    $adminId,
+                ]);
+
+                $db->exec('RELEASE SAVEPOINT ' . $savepoint);
+
+                $created++;
+                $results[] = ['row' => $rowNum, 'status' => 'created', 'message' => 'สำเร็จ'];
+            } catch (Throwable $rowErr) {
+                $db->exec('ROLLBACK TO SAVEPOINT ' . $savepoint);
+                $db->exec('RELEASE SAVEPOINT ' . $savepoint);
+                $skipped++;
+                $results[] = ['row' => $rowNum, 'status' => 'error', 'message' => 'ซ้ำหรือข้อมูลไม่ถูกต้อง'];
+            }
         }
 
-        try {
-            $stmt = $db->prepare('
-                INSERT INTO participants (
-                    project_id, first_name, last_name, email, 
-                    organization, position, phone, id_card, note,
-                    access_token, import_batch, created_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ');
-            
-            $stmt->execute([
-                $projectId, $firstName, $lastName, $email,
-                trim((string) ($row['องค์กร'] ?? $row['organization'] ?? $row[3] ?? '')),
-                trim((string) ($row['ตำแหน่ง'] ?? $row['position'] ?? $row[4] ?? '')),
-                trim((string) ($row['โทรศัพท์'] ?? $row['phone'] ?? $row[5] ?? '')),
-                trim((string) ($row['เลขบัตรประชาชน'] ?? $row['id_card'] ?? $row[6] ?? '')),
-                trim((string) ($row['หมายเหตุ'] ?? $row['note'] ?? $row[7] ?? '')),
-                generateToken(6),
-                $batch,
-                $adminId
-            ]);
-            
-            $created++;
-            $results[] = ['row' => $rowNum, 'status' => 'created', 'message' => 'สำเร็จ'];
-        } catch (Throwable $e) {
-            $skipped++;
-            $results[] = ['row' => $rowNum, 'status' => 'error', 'message' => 'ผิดพลาด: ' . $e->getMessage()];
+        $db->commit();
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
         }
+        logError('Import participants failed', ['project_id' => $projectId, 'error' => $e->getMessage()]);
+        return ['success' => false, 'created' => 0, 'skipped' => count($rows), 'batch' => $batch, 'rows' => []];
     }
 
     return [

@@ -104,13 +104,24 @@ function issueCertificateFromSession(int $sessionId, ?int $adminId): array
     }
 
     $db = getDB();
-    $certNumber = nextCertificateNumber($project);
-    $verifyToken = generateToken(32);
-    $verifyUrl = BASE_URL . '/public/verify.php?token=' . $verifyToken;
-    $filePath = 'uploads/certificates/' . preg_replace('/[^A-Za-z0-9._-]/', '-', $certNumber) . '.pdf';
 
     try {
         $db->beginTransaction();
+
+        $stmtProject = $db->prepare('SELECT * FROM projects WHERE id = ? LIMIT 1 FOR UPDATE');
+        $stmtProject->execute([(int) $session['project_id']]);
+        $project = $stmtProject->fetch();
+
+        if (!$project) {
+            $db->rollBack();
+            return ['success' => false, 'message' => 'ไม่พบโครงการสอบ'];
+        }
+
+        $certNumber = nextCertificateNumber($project);
+        $verifyToken = bin2hex(random_bytes(32));
+        $verifyUrl = BASE_URL . '/public/verify.php?token=' . $verifyToken;
+        $filePath = 'uploads/certificates/' . preg_replace('/[^A-Za-z0-9._-]/', '-', $certNumber) . '.pdf';
+
         $stmt = $db->prepare('
             INSERT INTO certificates (
                 cert_number, participant_id, project_id, session_id, template_id,
@@ -134,7 +145,14 @@ function issueCertificateFromSession(int $sessionId, ?int $adminId): array
         $update->execute([(int) $project['id']]);
         $db->commit();
 
-        writeCertificatePdf($verifyToken);
+        try {
+            writeCertificatePdf($verifyToken);
+        } catch (Throwable $pdfErr) {
+            logError('PDF generation failed (cert still issued)', [
+                'cert_number' => $certNumber,
+                'error' => $pdfErr->getMessage(),
+            ]);
+        }
         return ['success' => true, 'certificate_id' => $certificateId, 'message' => 'ออกใบเกียรติบัตรสำเร็จ'];
     } catch (Throwable $e) {
         if ($db->inTransaction()) {

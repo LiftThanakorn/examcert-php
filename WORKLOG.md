@@ -2,6 +2,27 @@
 
 
 
+## 2026-05-10 - Priority 1 Security Token and Certificate Race Hotfix
+
+Completed:
+
+- Replaced participant access token generation in `createParticipant()` and `importParticipants()` with `bin2hex(random_bytes(32))`.
+- Wrapped `importParticipants()` in a transaction and added per-row savepoints so failed rows can be skipped without committing a partial broken import state.
+- Replaced certificate `verify_token` generation with 64-character secure random hex tokens.
+- Added `SELECT ... FOR UPDATE` locking around project certificate sequence reads before certificate number generation.
+- Changed `setup/reset-tokens.php` to update only legacy participant tokens shorter than 32 characters to new secure 64-character tokens.
+- Verified `database/schema.sql` already defines `access_token VARCHAR(64)` and `verify_token VARCHAR(64)`.
+
+Verification:
+
+- Ran PHP lint on `models/Participant.php`, `models/Certificate.php`, and `setup/reset-tokens.php`: passed.
+- Ran `git diff --check`: passed; only existing Windows LF/CRLF conversion warnings remain.
+- Confirmed no `generateToken(6)` or `generateToken(32)` calls remain in `models/` or `setup/`.
+
+Next:
+
+- Run `php setup/reset-tokens.php` once in the target database environment before go-live to migrate old short participant tokens.
+
 ## 2026-05-09 - Master Prompt Structure Alignment Pass 2
 
 Completed:
