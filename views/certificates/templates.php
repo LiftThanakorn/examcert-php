@@ -123,7 +123,9 @@ $template = array_merge(templateDefaults(), $template ?? []);
                                 <span class="text-xs font-bold text-slate-500"><?= $v ?></span>
                                 <div class="relative inline-flex items-center">
                                     <input type="checkbox" name="<?= $k ?>" value="1" <?= !empty($template[$k]) ? 'checked' : '' ?> class="sr-only peer">
-                                    <div class="w-8 h-4.5 bg-slate-100 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-primary-500"></div>
+                                    <div class="w-10 h-5 bg-slate-100 rounded-full peer-checked:bg-primary-500 transition-colors relative">
+                                        <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-all peer-checked:left-6"></div>
+                                    </div>
                                 </div>
                             </label>
                         <?php endforeach; ?>
@@ -136,7 +138,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
 
             <!-- Main Canvas -->
             <div class="flex-1 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center justify-center relative overflow-hidden p-10 shadow-inner">
-                <div id="designer-container" class="relative bg-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] transition-all overflow-hidden" 
+                <div id="designer-container" class="relative bg-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] transition-all overflow-hidden origin-center" 
                      style="width: <?= $template['orientation'] === 'L' ? '1123px' : '794px' ?>; height: <?= $template['orientation'] === 'L' ? '794px' : '1123px' ?>; transform: scale(0.6);">
                     <img id="designer-bg" src="<?= !empty($template['bg_image']) ? e(BASE_URL . '/' . $template['bg_image']) : '' ?>" class="absolute inset-0 w-full h-full block select-none pointer-events-none <?= empty($template['bg_image']) ? 'hidden' : '' ?>">
                     <div id="designer-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-200 border-4 border-double border-slate-50 <?= !empty($template['bg_image']) ? 'hidden' : '' ?>">
@@ -225,6 +227,10 @@ $template = array_merge(templateDefaults(), $template ?? []);
         
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        /* Robust Toggle Styles */
+        .peer:checked ~ div .absolute { left: 1.5rem !important; }
+        .peer:checked ~ div { background-color: #E87722 !important; }
     </style>
 
     <script>
@@ -235,7 +241,7 @@ $template = array_merge(templateDefaults(), $template ?? []);
     
     // Scale Logic: 1mm = 3.78px (at 96dpi)
     const MM_TO_PX = 3.7795275591;
-    const A4_W = <?= $template['orientation'] === 'L' ? '297' : '210' ?>;
+    const DESIGN_SCALE = 0.6; // Matches CSS transform: scale(0.6)
     const PT_TO_PX = 1.333333; // 1pt = 1.33px
 
     let layout = {};
@@ -280,7 +286,6 @@ $template = array_merge(templateDefaults(), $template ?? []);
                 el.style.width = (layout[id].w * MM_TO_PX) + 'px';
                 el.style.height = (layout[id].w * MM_TO_PX) + 'px';
             } else {
-                // Set font size in PX that matches PT
                 el.style.fontSize = (layout[id].size * PT_TO_PX) + 'px';
             }
             
@@ -311,7 +316,6 @@ $template = array_merge(templateDefaults(), $template ?? []);
             layout[id].align = document.getElementById(`input-${id}-align`).value;
         }
         
-        // Immediate Re-render for visual feedback
         const el = document.getElementById('drag-' + id);
         const align = layout[id].align || 'C';
         if (align === 'C') el.style.transform = 'translate(-50%, -50%)';
@@ -330,19 +334,34 @@ $template = array_merge(templateDefaults(), $template ?? []);
     }
 
     function drag(el, id) {
-        let x1=0, y1=0, x2=0, y2=0;
+        let x2 = 0, y2 = 0;
         el.onmousedown = (e) => {
-            x2 = e.clientX; y2 = e.clientY;
-            document.onmousemove = (e) => {
-                x1 = x2 - e.clientX; y1 = y2 - e.clientY;
-                x2 = e.clientX; y2 = e.clientY;
+            e.preventDefault();
+            x2 = e.clientX; 
+            y2 = e.clientY;
+            
+            document.onmousemove = (ev) => {
+                // Calculate movement in SCREEN pixels
+                let dx = ev.clientX - x2;
+                let dy = ev.clientY - y2;
                 
-                // New left/top in pixels
-                let newLeft = el.offsetLeft - x1;
-                let newTop = el.offsetTop - y1;
+                // ADJUST FOR SCALE: Move screen pixels / design scale
+                let moveX = dx / DESIGN_SCALE;
+                let moveY = dy / DESIGN_SCALE;
+                
+                // Get current pixel positions
+                let currentLeft = parseFloat(el.style.left) || 0;
+                let currentTop = parseFloat(el.style.top) || 0;
+                
+                let newLeft = currentLeft + moveX;
+                let newTop = currentTop + moveY;
                 
                 el.style.left = newLeft + "px";
                 el.style.top = newTop + "px";
+                
+                // Update tracker
+                x2 = ev.clientX;
+                y2 = ev.clientY;
                 
                 // Convert back to MM for inputs
                 document.getElementById(`input-${id}-x`).value = (newLeft / MM_TO_PX).toFixed(1);
