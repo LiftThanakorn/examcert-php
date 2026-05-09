@@ -35,6 +35,13 @@
                     </div>
                 </div>
 
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">รหัสผ่านเข้าสอบ (Token)</label>
+                    <input type="text" name="access_token" placeholder="ระบุรหัสผ่านที่ได้รับจากผู้ดูแล" class="w-full h-12 px-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-[4px] focus:ring-primary-400/10 transition-all outline-none text-sm" required>
+                </div>
+
+                <input type="hidden" name="project_code" value="<?= e($projectCode) ?>">
+
                 <button type="submit" class="w-full h-14 mt-4 bg-primary-400 hover:bg-primary-500 text-white font-bold rounded-2xl shadow-orange transition-all flex items-center justify-center gap-3 group">
                     ยืนยันตัวตนเพื่อเข้าสอบ
                     <i class="fas fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>

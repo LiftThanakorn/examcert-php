@@ -82,6 +82,22 @@ function getParticipant(int $id): ?array
     return $participant ?: null;
 }
 
+function getParticipantByAuth(int $projectId, string $firstName, string $lastName, string $token): ?array
+{
+    $stmt = getDB()->prepare('
+        SELECT * FROM participants 
+        WHERE project_id = ? 
+        AND first_name = ? 
+        AND last_name = ? 
+        AND access_token = ? 
+        LIMIT 1
+    ');
+    $stmt->execute([$projectId, $firstName, $lastName, $token]);
+    $participant = $stmt->fetch();
+
+    return $participant ?: null;
+}
+
 function createParticipant(int $projectId, array $data, ?int $adminId): array
 {
     $errors = validateParticipantInput($data);

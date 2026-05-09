@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 require_once ROOT_PATH . '/models/ExamSession.php';
 require_once ROOT_PATH . '/models/Certificate.php';
+require_once ROOT_PATH . '/models/Participant.php';
+require_once ROOT_PATH . '/models/Project.php';
 
 class PublicExamController
 {
@@ -16,12 +18,17 @@ class PublicExamController
             if (!validateCsrfToken($_POST['csrf_token'] ?? null)) {
                 $error = 'คำขอไม่ถูกต้อง กรุณาลองใหม่';
             } else {
-                $code = trim((string) ($_POST['project'] ?? ''));
+                $code = trim((string) ($_POST['project_code'] ?? ''));
                 $project = getProjectByCodeOrId($code);
-                $participant = $project ? getParticipantByToken((int) $project['id'], trim((string) ($_POST['access_token'] ?? ''))) : null;
+                
+                $firstName = trim((string) ($_POST['first_name'] ?? ''));
+                $lastName = trim((string) ($_POST['last_name'] ?? ''));
+                $token = trim((string) ($_POST['access_token'] ?? ''));
+
+                $participant = $project ? getParticipantByAuth((int) $project['id'], $firstName, $lastName, $token) : null;
 
                 if (!$project || !$participant) {
-                    $error = 'ไม่พบโครงการหรือ Token ไม่ถูกต้อง';
+                    $error = 'ไม่พบโครงการหรือข้อมูลยืนยันตัวตนไม่ถูกต้อง';
                 } else {
                     $result = startExamSession($project, $participant);
                     if ($result['success']) {
