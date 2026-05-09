@@ -66,14 +66,8 @@ $timeUsedStr .= $diff->s . " วินาที";
   from { opacity:0; transform:scale(0.7); }
   to   { opacity:1; transform:scale(1); }
 }
-@keyframes slideDown {
-  from { opacity:0; transform:translateY(-16px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-
 .anim-fade-up   { animation: fadeUp   0.5s ease both; }
 .anim-scale-in  { animation: scaleIn  0.5s cubic-bezier(.34,1.56,.64,1) both; }
-.anim-slide-down{ animation: slideDown 0.4s ease both; }
 
 .d-1 { animation-delay:.10s; }
 .d-2 { animation-delay:.20s; }
@@ -82,9 +76,8 @@ $timeUsedStr .= $diff->s . " วินาที";
 .d-5 { animation-delay:.60s; }
 .d-6 { animation-delay:.75s; }
 
-/* ── Answer review row ── */
-.answer-row { transition: background .15s; }
-.answer-row:hover { background:#FFF3E8; }
+.shadow-card-lg { box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+.shadow-cert { box-shadow: 0 20px 60px rgba(0,0,0,0.18); }
 
 /* ── Certificate styles ── */
 .cert-wrapper {
@@ -92,7 +85,7 @@ $timeUsedStr .= $diff->s . " วินาที";
   background: #fff;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
 }
 .cert-border-outer {
   position:absolute; inset:10px;
@@ -110,7 +103,6 @@ $timeUsedStr .= $diff->s . " วินาที";
 .cert-corner.bl { bottom:6px; left:6px;  border-bottom:3px solid #E87722; border-left:3px solid #E87722;  }
 .cert-corner.br { bottom:6px; right:6px; border-bottom:3px solid #E87722; border-right:3px solid #E87722; }
 
-/* ── Tab ── */
 .tab-btn { transition: all .15s; border-bottom:2px solid transparent; }
 .tab-btn.active { border-color:#E87722; color:#E87722; }
 
@@ -134,12 +126,12 @@ $timeUsedStr .= $diff->s . " วินาที";
 <!-- Confetti (pass only) -->
 <div class="confetti-wrap" id="confetti-wrap"></div>
 
-<div class="w-full max-w-2xl relative z-10">
+<div class="w-full max-w-2xl relative z-10 pt-4">
 
     <!-- Icon + headline -->
     <div class="text-center mb-8 anim-scale-in">
       <div id="result-icon"
-        class="w-24 h-24 rounded-full mx-auto mb-5 flex items-center justify-center shadow-lg transition-all duration-700 <?= $isPass ? 'bg-gradient-to-br from-primary-400 to-primary-600' : 'bg-gradient-to-br from-red-400 to-red-600' ?>">
+        class="w-24 h-24 rounded-full mx-auto mb-5 flex items-center justify-center shadow-cert transition-all duration-700 <?= $isPass ? 'bg-gradient-to-br from-primary-400 to-primary-600' : 'bg-gradient-to-br from-red-400 to-red-600' ?>">
         <i class="text-4xl text-white fas <?= $isPass ? 'fa-trophy' : 'fa-rotate-right' ?>"></i>
       </div>
       <h1 class="text-3xl font-bold mb-2 <?= $isPass ? 'text-gray-800' : 'text-gray-700' ?>">
@@ -151,7 +143,7 @@ $timeUsedStr .= $diff->s . " วินาที";
     </div>
 
     <!-- Score ring card -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4 anim-fade-up d-2">
+    <div class="bg-white rounded-2xl shadow-card-lg p-6 mb-4 anim-fade-up d-2">
       <div class="flex flex-col sm:flex-row items-center gap-8">
         <!-- Ring -->
         <div class="relative flex-shrink-0 anim-scale-in d-3">
@@ -200,6 +192,10 @@ $timeUsedStr .= $diff->s . " วินาที";
                   <?= $isPass ? '✓ ผ่าน' : '✕ ไม่ผ่าน' ?>
               </span>
             </div>
+            <div class="relative h-2 bg-gray-100 rounded-full overflow-visible mt-1">
+              <div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-0.5 h-4 bg-red-400 rounded z-10" style="left:<?= (float)$project['pass_score'] ?>%"></div>
+              <div id="pass-bar" class="h-full rounded-full transition-all duration-[1.4s] ease-out <?= $isPass ? 'bg-primary-400' : 'bg-red-400' ?>" style="width:0%"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -218,48 +214,19 @@ $timeUsedStr .= $diff->s . " วินาที";
     </div>
 
     <!-- ── TABS ── -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden anim-fade-up d-5">
+    <div class="bg-white rounded-2xl shadow-card-lg overflow-hidden anim-fade-up d-5">
       <!-- Tab bar -->
       <div class="flex border-b border-gray-100">
-        <button class="tab-btn active flex-1 py-3 text-sm font-medium text-gray-600" onclick="switchTab('answers', this)">
-          <i class="fas fa-list-check mr-1.5 text-xs"></i>เฉลยคำตอบ
+        <!-- Answer review hidden per user request -->
+        <button class="tab-btn active flex-1 py-3 text-sm font-medium text-gray-600" id="tab-btn-primary">
+          <i class="fas <?= $isPass ? 'fa-award' : 'fa-circle-exclamation' ?> mr-1.5 text-xs"></i>
+          <?= $isPass ? 'เกียรติบัตรของคุณ' : 'สรุปผลการทดสอบ' ?>
         </button>
+      </div>
+
+      <!-- ── CONTENT ── -->
+      <div class="p-6">
         <?php if ($isPass): ?>
-        <button class="tab-btn flex-1 py-3 text-sm font-medium text-gray-400" onclick="switchTab('cert', this)">
-          <i class="fas fa-award mr-1.5 text-xs"></i>เกียรติบัตร
-        </button>
-        <?php endif; ?>
-      </div>
-
-      <!-- ── ANSWERS TAB ── -->
-      <div id="tab-answers" class="p-0">
-        <div class="divide-y divide-gray-50">
-          <?php foreach ($answerLogs as $index => $log): ?>
-          <div class="answer-row flex items-start gap-3 px-5 py-4">
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 <?= (int)$log['is_correct'] === 1 ? 'bg-green-100' : (empty($log['given_answer']) ? 'bg-gray-100' : 'bg-red-100') ?>">
-              <i class="fas <?= (int)$log['is_correct'] === 1 ? 'fa-check text-green-600' : (empty($log['given_answer']) ? 'fa-minus text-gray-400' : 'fa-xmark text-red-500') ?> text-xs"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-[10px] text-gray-400 mb-0.5">ข้อที่ <?= $index + 1 ?></p>
-              <p class="text-sm text-gray-700 mb-1 leading-snug font-medium"><?= e($log['question_text']) ?></p>
-              <p class="text-xs <?= (int)$log['is_correct'] === 1 ? 'text-green-600' : (empty($log['given_answer']) ? 'text-gray-400 italic' : 'text-red-500') ?> font-bold">
-                <i class="fas <?= (int)$log['is_correct'] === 1 ? 'fa-check-circle' : (empty($log['given_answer']) ? 'fa-circle-minus' : 'fa-times-circle') ?> mr-1 text-[10px]"></i>
-                <?= empty($log['given_answer']) ? '— ไม่ได้ตอบ —' : e($log['given_answer']) ?>
-              </p>
-              <?php if ((int)$log['is_correct'] === 0 && !empty($log['correct_answer'])): ?>
-              <p class="text-[10px] text-gray-400 mt-1.5 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                <i class="fas fa-lightbulb text-amber-400 mr-1"></i>เฉลย: <span class="text-green-600 font-bold"><?= e($log['correct_answer']) ?></span>
-              </p>
-              <?php endif; ?>
-            </div>
-          </div>
-          <?php endforeach; ?>
-        </div>
-      </div>
-
-      <!-- ── CERTIFICATE TAB ── -->
-      <?php if ($isPass): ?>
-      <div id="tab-cert" class="hidden p-6">
         <div id="cert-section" class="cert-wrapper rounded-xl mb-6 anim-scale-in" style="aspect-ratio:1.414/1; min-height:280px;">
           <div class="cert-border-outer"></div>
           <div class="cert-corner tl"></div><div class="cert-corner tr"></div>
@@ -300,8 +267,16 @@ $timeUsedStr .= $diff->s . " วินาที";
             <i class="fas fa-share-nodes text-primary-400"></i> แชร์ลิงก์ตรวจสอบ
           </button>
         </div>
+        <?php else: ?>
+        <div class="text-center py-10">
+          <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-circle-info text-red-400 text-xl"></i>
+          </div>
+          <p class="text-gray-600 font-medium mb-1">ขออภัย คุณยังไม่ผ่านเกณฑ์การทดสอบ</p>
+          <p class="text-xs text-gray-400">สามารถทำแบบทดสอบใหม่อีกครั้งเพื่อรับเกียรติบัตร</p>
+        </div>
+        <?php endif; ?>
       </div>
-      <?php endif; ?>
     </div>
 
     <!-- ── FOOTER ACTIONS ── -->
@@ -330,6 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const bar = document.getElementById('score-bar');
         if(bar) bar.style.width = pct + '%';
+
+        const passBar = document.getElementById('pass-bar');
+        if(passBar) passBar.style.width = pct + '%';
         
         // Count up text
         let count = 0;
@@ -364,19 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     <?php endif; ?>
 });
-
-function switchTab(name, btn) {
-    document.querySelectorAll('.tab-btn').forEach(b => {
-        b.classList.remove('active', 'text-gray-600');
-        b.classList.add('text-gray-400');
-    });
-    btn.classList.add('active', 'text-gray-600');
-    btn.classList.remove('text-gray-400');
-    
-    document.getElementById('tab-answers').classList.toggle('hidden', name !== 'answers');
-    const tabCert = document.getElementById('tab-cert');
-    if(tabCert) tabCert.classList.toggle('hidden', name !== 'cert');
-}
 
 function shareCert() {
     const url = '<?= e(BASE_URL) ?>/public/verify.php?token=<?= e($certificate['verify_token'] ?? '') ?>';
