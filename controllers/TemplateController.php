@@ -11,7 +11,6 @@ class TemplateController
         requireLogin();
         $templates = getCertificateTemplates();
         $templateMode = 'list';
-        $flash = getFlash();
         $pageTitle = 'จัดการเทมเพลต';
         $breadcrumb = ['Dashboard', 'ใบเกียรติบัตร', 'เทมเพลต'];
         $viewFile = VIEWS_PATH . '/certificates/templates.php';

@@ -28,7 +28,6 @@ class ParticipantController
         }
 
         $participants = getParticipantsByProject($projectId);
-        $flash = getFlash();
         $participantMode = 'list';
         $pageTitle = 'จัดการรายชื่อผู้มีสิทธิ์สอบ';
         $breadcrumb = ['Dashboard', 'ผู้มีสิทธิ์สอบ', $project['name']];

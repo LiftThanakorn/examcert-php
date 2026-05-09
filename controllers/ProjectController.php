@@ -11,7 +11,6 @@ class ProjectController
     {
         requireLogin();
         $projects = getAllProjects();
-        $flash = getFlash();
         $pageTitle = 'โครงการสอบทั้งหมด';
         $breadcrumb = ['Dashboard', 'โครงการทั้งหมด'];
         $viewFile = VIEWS_PATH . '/projects/index.php';
@@ -90,7 +89,6 @@ class ProjectController
         }
 
         $runtimeStatus = getProjectRuntimeStatus($project);
-        $flash = getFlash();
         $pageTitle = $project['name'];
         $breadcrumb = ['Dashboard', 'โครงการทั้งหมด', $project['name']];
         $viewFile = VIEWS_PATH . '/projects/detail.php';

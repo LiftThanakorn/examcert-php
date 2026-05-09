@@ -11,7 +11,6 @@ class CertificateController
         requireLogin();
 
         $certificates = getCertificates();
-        $flash = getFlash();
         $pageTitle = 'จัดการใบเกียรติบัตร';
         $breadcrumb = ['Dashboard', 'ใบเกียรติบัตร'];
         $viewFile = VIEWS_PATH . '/certificates/index.php';

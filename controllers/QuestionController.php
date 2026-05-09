@@ -107,7 +107,6 @@ class QuestionController
         }
 
         $questions = getQuestionsByProject($projectId);
-        $flash = getFlash();
         $pageTitle = 'จัดการคลังข้อสอบ';
         $breadcrumb = ['Dashboard', 'คลังข้อสอบ', $project['name']];
         $viewFile = VIEWS_PATH . '/questions/index.php';
