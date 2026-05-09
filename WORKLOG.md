@@ -639,3 +639,29 @@ Next:
 - Finalize Thai Font (TTF) installation in `lib/tcpdf/fonts/` to match the Google Fonts selected in the UI.
 - Conduct a full end-to-end test of the PDF generation with the new coordinates.
 - Update documentation for the new Studio workflow.
+## 2026-05-09 - Client-side Excel & System Hardening
+
+Completed:
+
+- Read `.agents/skills/examcert-php/SKILL.md` before starting the work session.
+- **Master Prompt Update**: Changed the Excel processing requirement from server-side (PhpSpreadsheet) to client-side using **SheetJS (xlsx.full.min.js)**.
+- **Global Excel Helpers**: Implemented `window.excel.export()` and `window.excel.parse()` in `assets/js/app.js`.
+- **Excel Export**: Added "Export to Excel" buttons to Participant List and Overall Reports views.
+- **Excel Import**: Rewrote the Participant Import workflow to use client-side file parsing and JSON-based AJAX import, removing the dependency on PhpSpreadsheet for v1.
+- **Security Hardening**: Implemented **Session Fingerprinting** (User-Agent check) in `config/session.php` to prevent session hijacking.
+- **Exam Integrity**: Added **Auto-save** logic to `assets/js/exam.js` that records student answers in real-time via `api/exam.php?action=save_answer`.
+- **Exam Heartbeat**: Improved the exam heartbeat to sync state and detect disconnection.
+- **Validation Feedback**: Updated SweetAlert logic in `app.js` and `footer.php` to support detailed error lists (Array feedback).
+- **Cleanup**: Removed obsolete `$flash` variable checks from views and controllers to prevent PHP warnings.
+
+Notes:
+
+- The system is now significantly more responsive for data-heavy tasks like importing/exporting.
+- Student progress is now protected against accidental page refreshes or network drops.
+- Permission checks for admin-only features remain enforced via `requireLogin()`.
+
+Next:
+
+- Final E2E testing of the full workflow: Project Creation -> Participant Import -> Question Setup -> Exam Flow -> Certificate Issuance.
+- Conduct a security audit on file upload paths (logos/signatures) to ensure strict MIME validation.
+- Finalize Thai font rendering parity between the JS Designer and TCPDF.

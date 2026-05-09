@@ -13,9 +13,9 @@ foreach ($rows as $row) {
         <p class="text-sm text-gray-400 mt-0.5">สรุปสถิติรายโครงการสำหรับติดตามความคืบหน้า</p>
     </div>
     <div class="flex items-center gap-2">
-        <a class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm" href="<?= e(BASE_URL) ?>/admin/reports/export.php">
-            <i class="fas fa-file-export mr-2 text-gray-400"></i> ส่งออกรายงาน (CSV)
-        </a>
+        <button onclick="excel.export('reports-table', 'overall-reports.xlsx')" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm">
+            <i class="fas fa-file-excel mr-2 text-green-600"></i> ส่งออกรายงาน (Excel)
+        </button>
     </div>
 </div>
 
@@ -52,7 +52,7 @@ foreach ($rows as $row) {
 
 <div class="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden fade-up fade-up-2">
     <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse table-row-hover">
+        <table id="reports-table" class="w-full text-left border-collapse table-row-hover">
             <thead>
                 <tr class="bg-gray-50/50 border-b border-gray-100 text-xs font-semibold text-gray-500 tracking-wide uppercase">
                     <th class="px-6 py-4 font-medium">โครงการ</th>

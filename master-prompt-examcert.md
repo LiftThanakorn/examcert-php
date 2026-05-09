@@ -1,4 +1,4 @@
-﻿# Master Prompt — ระบบทำข้อสอบและออกใบเซอร์ (ExamCert Standalone v1)
+# Master Prompt — ระบบทำข้อสอบและออกใบเซอร์ (ExamCert Standalone v1)
 
 ---
 
@@ -69,6 +69,7 @@ Recommended workflow:
 | UI Alerts | SweetAlert2 |
 | PDF Generation | TCPDF หรือ mPDF (สำหรับเกียรติบัตร) |
 | QR Code | phpqrcode หรือ endroid/qr-code |
+| Excel Library | SheetJS (xlsx.full.min.js) - ฝั่ง JavaScript |
 | CSS Framework | Tailwind CSS 3.x + Custom config (Design System ตามที่กำหนด) |
 | Icons | Font Awesome 6 Free |
 | Charts | Chart.js 4.x (เฉพาะหน้า Dashboard/Report) |
@@ -331,8 +332,7 @@ examcert/
 |   `-- signatures/              # Signature images
 |-- lib/
 |   |-- tcpdf/                   # TCPDF library
-|   |-- phpqrcode/               # QR Code library
-|   `-- PhpSpreadsheet/          # For Excel import
+|   `-- phpqrcode/               # QR Code library
 |-- api/
 |   |-- exam.php                 # AJAX endpoints for exam
 |   |-- participant.php          # AJAX participant lookup

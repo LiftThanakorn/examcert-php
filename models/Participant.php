@@ -119,11 +119,63 @@ function createParticipant(int $projectId, array $data, ?int $adminId): array
             $adminId,
         ]);
 
-        return ['success' => true, 'id' => (int) getDB()->lastInsertId()];
-    } catch (Throwable $e) {
-        logError('Create participant failed', ['project_id' => $projectId, 'error' => $e->getMessage()]);
-        return ['success' => false, 'errors' => ['เกิดข้อผิดพลาดในการเพิ่มผู้มีสิทธิ์สอบ']];
+function importParticipants(int $projectId, array $rows, int $adminId): array
+{
+    $created = 0;
+    $skipped = 0;
+    $results = [];
+    $batch = 'IMPORT-' . date('Ymd-His');
+    $db = getDB();
+
+    foreach ($rows as $index => $row) {
+        $rowNum = $index + 1;
+        // Map common Excel column names or indices
+        $firstName = trim((string) ($row['ชื่อ'] ?? $row['first_name'] ?? $row[0] ?? ''));
+        $lastName = trim((string) ($row['นามสกุล'] ?? $row['last_name'] ?? $row[1] ?? ''));
+        $email = trim((string) ($row['อีเมล'] ?? $row['email'] ?? $row[2] ?? ''));
+        
+        if (empty($firstName) || empty($lastName)) {
+            $skipped++;
+            $results[] = ['row' => $rowNum, 'status' => 'skipped', 'message' => 'ชื่อหรือนามสกุลว่าง'];
+            continue;
+        }
+
+        try {
+            $stmt = $db->prepare('
+                INSERT INTO participants (
+                    project_id, first_name, last_name, email, 
+                    organization, position, phone, id_card, note,
+                    access_token, import_batch, created_by
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ');
+            
+            $stmt->execute([
+                $projectId, $firstName, $lastName, $email,
+                trim((string) ($row['องค์กร'] ?? $row['organization'] ?? $row[3] ?? '')),
+                trim((string) ($row['ตำแหน่ง'] ?? $row['position'] ?? $row[4] ?? '')),
+                trim((string) ($row['โทรศัพท์'] ?? $row['phone'] ?? $row[5] ?? '')),
+                trim((string) ($row['เลขบัตรประชาชน'] ?? $row['id_card'] ?? $row[6] ?? '')),
+                trim((string) ($row['หมายเหตุ'] ?? $row['note'] ?? $row[7] ?? '')),
+                generateToken(32),
+                $batch,
+                $adminId
+            ]);
+            
+            $created++;
+            $results[] = ['row' => $rowNum, 'status' => 'created', 'message' => 'สำเร็จ'];
+        } catch (Throwable $e) {
+            $skipped++;
+            $results[] = ['row' => $rowNum, 'status' => 'error', 'message' => 'ผิดพลาด: ' . $e->getMessage()];
+        }
     }
+
+    return [
+        'success' => true,
+        'created' => $created,
+        'skipped' => $skipped,
+        'batch' => $batch,
+        'rows' => $results
+    ];
 }
 
 function updateParticipant(int $id, array $data): array

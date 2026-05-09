@@ -15,19 +15,24 @@ $errors = $errors ?? [];
             <a href="<?= e(BASE_URL) ?>/admin/projects/detail.php?id=<?= (int) $projectId ?>" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors">
                 <i class="fas fa-arrow-left mr-2 text-gray-400"></i> กลับโครงการ
             </a>
-            <a href="<?= e(BASE_URL) ?>/admin/participants/import.php?project_id=<?= (int) $projectId ?>" class="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-100 hover:bg-blue-100 text-blue-700 text-sm font-medium rounded-xl transition-colors">
-                <i class="fas fa-file-import mr-2"></i> นำเข้า (CSV)
-            </a>
-            <a href="<?= e(BASE_URL) ?>/admin/participants/create.php?project_id=<?= (int) $projectId ?>" class="inline-flex items-center px-4 py-2 bg-primary-400 hover:bg-primary-500 text-white text-sm font-medium rounded-xl transition-colors shadow-orange shadow-md">
-                <i class="fas fa-plus mr-2"></i> เพิ่มรายชื่อ
-            </a>
+            <div class="flex items-center gap-2">
+                <button onclick="excel.export('participants-table', 'participants-list.xlsx')" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm">
+                    <i class="fas fa-file-excel mr-2 text-green-600"></i> ส่งออก Excel
+                </button>
+                <a href="<?= e(BASE_URL) ?>/admin/participants/import.php?project_id=<?= (int) $projectId ?>" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm">
+                    <i class="fas fa-file-import mr-2 text-blue-500"></i> นำเข้ารายชื่อ
+                </a>
+                <a href="<?= e(BASE_URL) ?>/admin/participants/create.php?project_id=<?= (int) $projectId ?>" class="inline-flex items-center px-4 py-2 bg-primary-400 hover:bg-primary-500 text-white text-sm font-medium rounded-xl transition-colors shadow-orange shadow-md">
+                    <i class="fas fa-plus mr-2"></i> เพิ่มรายชื่อ
+                </a>
+            </div>
         </div>
     </div>
 
 
     <div class="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden fade-up fade-up-1">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table id="participants-table" class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-gray-50/50 border-b border-gray-100 text-xs font-semibold text-gray-500 tracking-wide uppercase">
                         <th class="px-6 py-4 font-medium">ชื่อ-นามสกุล</th>

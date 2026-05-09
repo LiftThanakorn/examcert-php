@@ -5,8 +5,27 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/session.php';
 require_once ROOT_PATH . '/models/Project.php';
 require_once ROOT_PATH . '/models/ExamSession.php';
+require_once ROOT_PATH . '/models/AnswerLog.php';
 
 $action = (string) ($_GET['action'] ?? $_POST['action'] ?? '');
+
+if ($action === 'save_answer') {
+    $sessionId = (int) ($_POST['session_id'] ?? 0);
+    $questionId = (int) ($_POST['question_id'] ?? 0);
+    $answer = trim((string) ($_POST['answer'] ?? ''));
+
+    if ($sessionId <= 0 || $questionId <= 0) {
+        jsonResponse(false, 'Invalid session or question.', [], 400);
+    }
+
+    $session = getExamSession($sessionId);
+    if (!$session || $session['status'] !== 'in_progress') {
+        jsonResponse(false, 'Session is not active.', [], 403);
+    }
+
+    $success = logAnswer($sessionId, $questionId, $answer);
+    jsonResponse($success, $success ? 'Answer saved.' : 'Failed to save answer.');
+}
 
 if ($action === 'check_time') {
     $sessionId = (int) ($_GET['session_id'] ?? $_POST['session_id'] ?? 0);

@@ -139,9 +139,33 @@ function autoSubmit() {
     });
 }
 
-// Update progress on any input change
+// Update progress and save answer on any input change
 document.addEventListener('change', (e) => {
     if (e.target.closest('#exam-form')) {
         updateProgress();
+        
+        const input = e.target;
+        if (input.name.startsWith('answers[')) {
+            const questionId = input.name.match(/\[(\d+)\]/)[1];
+            const answer = input.value;
+            saveAnswer(questionId, answer);
+        }
     }
 });
+
+function saveAnswer(questionId, answer) {
+    $.ajax({
+        url: window.location.origin + '/api/exam.php?action=save_answer',
+        type: 'POST',
+        data: {
+            session_id: sessionId,
+            question_id: questionId,
+            answer: answer,
+            csrf_token: document.querySelector('input[name="csrf_token"]')?.value
+        },
+        dataType: 'json',
+        success: function(res) {
+            if (!res.success) console.error('Auto-save failed:', res.message);
+        }
+    });
+}

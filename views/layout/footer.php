@@ -1,4 +1,5 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <?php if (!empty($useCharts)): ?>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <?php endif; ?>
@@ -15,15 +16,7 @@
         if (!message) return;
         setTimeout(() => {
           if (type === 'error') {
-            // Error: Use High-Visibility Modal
-            Swal.fire({
-              icon: 'error',
-              title: 'เกิดข้อผิดพลาด',
-              text: message,
-              confirmButtonText: 'ตกลง',
-              confirmButtonColor: '#E87722',
-              customClass: { popup: 'rounded-2xl font-sans' }
-            });
+            showAlert('เกิดข้อผิดพลาด', message, 'error');
           } else if (window.toast) {
             // Success/Info/Warning: Use Smooth Toast
             if (type === 'success' && toast.success) toast.success(message);
