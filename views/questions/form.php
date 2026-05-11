@@ -27,8 +27,9 @@ $projectId = (int) ($projectId ?? $question['project_id']);
             <div>
                 <label class="block text-xxs font-bold text-gray-400 uppercase tracking-widest mb-3">ประเภทข้อสอบ</label>
                 <div class="relative">
-                    <select name="type" class="w-full h-12 px-5 text-sm bg-gray-50/30 border border-gray-200 rounded-2xl focus:outline-none focus:border-primary-400 focus:ring-[4px] focus:ring-orange-100 transition-all appearance-none cursor-pointer outline-none">
+                    <select name="type" id="question-type" onchange="toggleQuestionTypeFields()" class="w-full h-12 px-5 text-sm bg-gray-50/30 border border-gray-200 rounded-2xl focus:outline-none focus:border-primary-400 focus:ring-[4px] focus:ring-orange-100 transition-all appearance-none cursor-pointer outline-none">
                         <option value="multiple_choice" <?= $question['type'] === 'multiple_choice' ? 'selected' : '' ?>>ปรนัย (4 ตัวเลือก)</option>
+                        <option value="subjective" <?= $question['type'] === 'subjective' ? 'selected' : '' ?>>อัตนัย (ตอบเป็นข้อความ)</option>
                     </select>
                     <i class="fas fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 text-xs pointer-events-none"></i>
                 </div>
@@ -50,7 +51,7 @@ $projectId = (int) ($projectId ?? $question['project_id']);
             </div>
         </div>
 
-        <div class="pt-2">
+        <div id="choice-section" class="pt-2">
             <label class="block text-xxs font-bold text-gray-400 uppercase tracking-widest mb-4">ตัวเลือกและกำหนดคำตอบที่ถูกต้อง</label>
             <div class="grid gap-4">
                 <?php 
@@ -65,7 +66,7 @@ $projectId = (int) ($projectId ?? $question['project_id']);
                             <i class="fas fa-check text-[10px] <?= $isCorrect ? '' : 'opacity-0' ?>"></i>
                         </label>
                         <div class="flex-1">
-                            <input name="choice_<?= $key ?>" value="<?= e($question[$field] ?? '') ?>" placeholder="ป้อนข้อความตัวเลือก <?= strtoupper($key) ?>" class="w-full bg-transparent border-none focus:ring-0 text-sm font-semibold text-gray-700 placeholder:text-gray-300 outline-none" required>
+                            <input name="choice_<?= $key ?>" value="<?= e($question[$field] ?? '') ?>" placeholder="ป้อนข้อความตัวเลือก <?= strtoupper($key) ?>" class="choice-input w-full bg-transparent border-none focus:ring-0 text-sm font-semibold text-gray-700 placeholder:text-gray-300 outline-none" required>
                         </div>
                         <?php if ($isCorrect): ?>
                             <span class="text-[10px] font-black text-primary-400 uppercase tracking-widest px-3 py-1 bg-white rounded-full border border-orange-100 shadow-sm">เฉลย</span>
@@ -73,6 +74,11 @@ $projectId = (int) ($projectId ?? $question['project_id']);
                     </div>
                 <?php endforeach; ?>
             </div>
+        </div>
+
+        <div id="subjective-note" class="hidden p-5 rounded-2xl border border-amber-100 bg-amber-50/60 text-sm text-amber-800">
+            <div class="font-bold mb-1">ข้อสอบอัตนัย</div>
+            <p>ผู้เข้าสอบจะตอบเป็นข้อความ ระบบจะบันทึกคำตอบไว้และตั้งสถานะเป็น pending/manual review โดยไม่ตรวจคะแนนอัตโนมัติ</p>
         </div>
 
         <!-- Explanation -->
@@ -141,4 +147,25 @@ function updateCorrectUI(radio) {
     badge.textContent = 'เฉลย';
     active.appendChild(badge);
 }
+
+function toggleQuestionTypeFields() {
+    const type = document.getElementById('question-type').value;
+    const isSubjective = type === 'subjective';
+    const choiceSection = document.getElementById('choice-section');
+    const subjectiveNote = document.getElementById('subjective-note');
+
+    choiceSection.classList.toggle('hidden', isSubjective);
+    subjectiveNote.classList.toggle('hidden', !isSubjective);
+
+    document.querySelectorAll('.choice-input').forEach(input => {
+        input.required = !isSubjective;
+    });
+
+    document.querySelectorAll('input[name="correct_answer"]').forEach(input => {
+        input.required = !isSubjective;
+        if (isSubjective) input.checked = false;
+    });
+}
+
+document.addEventListener('DOMContentLoaded', toggleQuestionTypeFields);
 </script>

@@ -148,4 +148,52 @@ class ParticipantController
         $viewFile = VIEWS_PATH . '/participants/import.php';
         require VIEWS_PATH . '/layout/admin.php';
     }
+
+    public function export(): void
+    {
+        requireLogin();
+        $projectId = (int) ($_GET['project_id'] ?? 0);
+        $project = $this->ensureProject($projectId);
+
+        if (!$project) {
+            http_response_code(404);
+            exit('Project not found.');
+        }
+
+        $participants = getParticipantsByProject($projectId);
+        $safeProjectName = preg_replace('/[^A-Za-z0-9ก-๙_-]+/u', '-', (string) $project['name']);
+        $safeProjectName = trim((string) $safeProjectName, '-_') ?: 'participants';
+        $filename = 'participants-' . $safeProjectName . '-' . date('Ymd-His') . '.csv';
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        $out = fopen('php://output', 'wb');
+        if ($out === false) {
+            exit;
+        }
+
+        fwrite($out, "\xEF\xBB\xBF");
+        fputcsv($out, ['ลำดับ', 'คำนำหน้า', 'ชื่อ', 'นามสกุล', 'หน่วยงาน', 'ตำแหน่ง', 'อีเมล', 'โทรศัพท์', 'เลขบัตรประชาชน', 'รหัสเข้าสอบ']);
+
+        foreach ($participants as $index => $participant) {
+            fputcsv($out, [
+                $index + 1,
+                $participant['title'] ?? '',
+                $participant['first_name'] ?? '',
+                $participant['last_name'] ?? '',
+                $participant['organization'] ?? '',
+                $participant['position'] ?? '',
+                $participant['email'] ?? '',
+                $participant['phone'] ?? '',
+                $participant['id_card'] ?? '',
+                '="' . ($participant['access_token'] ?? '') . '"',
+            ]);
+        }
+
+        fclose($out);
+        exit;
+    }
 }

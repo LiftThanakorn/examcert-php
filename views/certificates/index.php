@@ -98,27 +98,17 @@
 
 <script>
     function adminDownload(token, btn) {
-        const iframe = document.getElementById('admin-download-iframe');
         const originalHTML = btn.innerHTML;
-        
         btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
         btn.disabled = true;
 
-        const renderUrl = "<?= e(BASE_URL) ?>/public/render-cert.php?token=" + token + "&download=1";
-        iframe.src = renderUrl;
+        // Direct download via the new TCPDF route
+        window.location.href = "<?= e(BASE_URL) ?>/certificates/export?token=" + token;
 
-        // Reset button after 10 seconds (fail-safe)
+        // Reset button after a short delay since we can't easily detect download completion via simple href
         setTimeout(() => {
             btn.innerHTML = originalHTML;
             btn.disabled = false;
-        }, 10000);
-
-        // Listen for completion message from iframe
-        window.onmessage = function(e) {
-            if (e.data === 'download_complete') {
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
-            }
-        };
+        }, 3000);
     }
 </script>

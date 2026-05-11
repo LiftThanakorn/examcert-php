@@ -24,7 +24,6 @@ class PublicExamController
         $error = '';
 
         // Server-side lockdown: Redirect back to exam if a session is already in progress
-        // This handles cases where JS back-button prevention fails
         if (isset($_SESSION['participant_id'])) {
             $stmt = getDB()->prepare("SELECT id FROM exam_sessions WHERE participant_id = ? AND project_id = ? AND status = 'in_progress' LIMIT 1");
             $stmt->execute([(int)$_SESSION['participant_id'], (int)$project['id']]);
@@ -105,7 +104,6 @@ class PublicExamController
         $participant = getParticipant((int) $session['participant_id']);
         $questions = getSessionQuestions($session);
 
-        // Calculate seconds left: Min of (session expires_at) and (project exam_end)
         $now = time();
         $sessionEnd = strtotime((string) $session['expires_at']);
         $effectiveEnd = $sessionEnd;
@@ -148,20 +146,15 @@ class PublicExamController
 
     public function verify(): void
     {
-        $token = trim((string) ($_GET['token'] ?? ''));
+        $token = trim((string) ($_GET['t'] ?? $_GET['token'] ?? ''));
         $certificate = null;
         $results = [];
 
         if ($token !== '') {
-            // 1. Try by token
             $certificate = getCertificateByToken($token);
-            
-            // 2. Try by certificate number
             if (!$certificate) {
                 $certificate = getCertificateByNumber($token);
             }
-
-            // 3. Try by name if still not found
             if (!$certificate) {
                 $results = searchCertificatesByName($token);
                 if (count($results) === 1) {
@@ -173,8 +166,8 @@ class PublicExamController
         $mode = 'initial';
         if ($token !== '') {
             if ($certificate) {
-                $mode = (int)$certificate['is_revoked'] === 1 ? 'revoked' : 'valid';
-            } elseif (count($results) > 1) {
+                $mode = (int)($certificate['is_revoked'] ?? 0) === 1 ? 'revoked' : 'valid';
+            } elseif (!empty($results) && count($results) > 1) {
                 $mode = 'list';
             } else {
                 $mode = 'invalid';
@@ -187,55 +180,5 @@ class PublicExamController
         require VIEWS_PATH . '/layout/header.php';
         require VIEWS_PATH . '/certificates/verify.php';
         require VIEWS_PATH . '/layout/footer.php';
-    }
-
-    public function renderCertificate(): void
-    {
-        $token = trim((string) ($_GET['token'] ?? ''));
-        $certificate = $token !== '' ? getCertificateByToken($token) : null;
-        if (!$certificate) {
-            abortResponse(404, 'Certificate not found.');
-        }
-        $template = getCertificateTemplate((int) ($certificate['template_id'] ?: 1));
-        if (!$template) {
-            abortResponse(404, 'Certificate template not found.');
-        }
-
-        $viewPath = VIEWS_PATH . '/certificates/render.php';
-        if (!file_exists($viewPath)) {
-            logError('Certificate render view missing', ['path' => $viewPath]);
-            abortResponse(500, 'Certificate render view is missing.');
-        }
-
-        require $viewPath;
-    }
-
-    public function downloadCertificate(): void
-    {
-        $token = trim((string) ($_GET['token'] ?? ''));
-        if ($token === '') {
-            abortResponse(400, 'Invalid token.');
-        }
-
-        $certificate = getCertificateByToken($token);
-        if (!$certificate || (int) $certificate['is_revoked'] === 1) {
-            abortResponse(404, 'Certificate not found or revoked.');
-        }
-
-        $filePath = ROOT_PATH . '/' . $certificate['file_path'];
-        if (!is_file($filePath)) {
-            writeCertificatePdf($token);
-            if (!is_file($filePath)) {
-                abortResponse(404, 'Certificate file not found.');
-            }
-        }
-
-        incrementCertificateDownload((int) $certificate['id']);
-
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="' . $certificate['cert_number'] . '.pdf"');
-        header('Content-Length: ' . filesize($filePath));
-        readfile($filePath);
-        exit;
     }
 }

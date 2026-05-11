@@ -1,12 +1,11 @@
+Options -Indexes -MultiViews
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    
-    # ปิดการแสดงรายชื่อไฟล์
-    Options -Indexes
 
-    # บังคับให้ทุกอย่างวิ่งเข้า index.php ทันที 
-    # โดยไม่สนใจว่าจะมีโฟลเดอร์ชื่อนั้นอยู่จริงหรือไม่ (เพื่อแก้ปัญหา Forbidden)
-    # ยกเว้นกรณีเป็นไฟล์จริงๆ (เช่น css, js, jpg) ให้เปิดได้ปกติ
+    RewriteRule ^(\.git|\.agents|config|controllers|models|setup|docs|logs)(/|$) - [F,L]
+    RewriteRule ^(WORKLOG|PROJECT|README|SETUP-LOCAL|master-prompt|frontend-guide|certificate-verify-mockup).*\.(md|html)$ - [F,L]
+
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L,QSA]
 </IfModule>

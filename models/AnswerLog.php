@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 function logAnswer(int $sessionId, int $questionId, string $answer): bool
 {
+    ensureAnswerLogManualReviewSupport();
+
     try {
         $db = getDB();
         
@@ -28,6 +30,8 @@ function logAnswer(int $sessionId, int $questionId, string $answer): bool
 
 function getSessionAnswers(int $sessionId): array
 {
+    ensureAnswerLogManualReviewSupport();
+
     $stmt = getDB()->prepare('SELECT question_id, given_answer FROM answer_logs WHERE session_id = ?');
     $stmt->execute([$sessionId]);
     $rows = $stmt->fetchAll();
@@ -37,4 +41,19 @@ function getSessionAnswers(int $sessionId): array
         $answers[(int) $row['question_id']] = $row['given_answer'];
     }
     return $answers;
+}
+
+function ensureAnswerLogManualReviewSupport(): void
+{
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+
+    $stmt = getDB()->query("SHOW COLUMNS FROM answer_logs LIKE 'grading_status'");
+    if (!$stmt->fetch()) {
+        getDB()->exec("ALTER TABLE answer_logs ADD COLUMN grading_status VARCHAR(20) DEFAULT 'auto' AFTER score_earned");
+    }
+
+    $checked = true;
 }

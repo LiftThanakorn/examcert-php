@@ -16,9 +16,9 @@ $errors = $errors ?? [];
                 <i class="fas fa-arrow-left mr-2 text-gray-400"></i> กลับโครงการ
             </a>
             <div class="flex items-center gap-2">
-                <button onclick="exportParticipantsList()" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm">
+                <a href="<?= e(BASE_URL) ?>/admin/participants/export.php?project_id=<?= (int) $projectId ?>" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm">
                     <i class="fas fa-file-excel mr-2 text-green-600"></i> ส่งออก Excel
-                </button>
+                </a>
                 <a href="<?= e(BASE_URL) ?>/admin/participants/import.php?project_id=<?= (int) $projectId ?>" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm">
                     <i class="fas fa-file-import mr-2 text-blue-500"></i> นำเข้ารายชื่อ
                 </a>

@@ -86,18 +86,27 @@ $timeUsedStr .= $diff->s . " วินาที";
 
     <!-- Icon + headline -->
     <div class="text-center mb-8 anim-scale-in">
-      <div id="result-icon"
-        class="w-24 h-24 rounded-full mx-auto mb-5 flex items-center justify-center shadow-lg transition-all duration-700 <?= $isPass ? 'bg-primary-500' : 'bg-red-500' ?>">
-        <i class="text-4xl text-white fas <?= $isPass ? 'fa-trophy' : 'fa-rotate-right' ?>"></i>
-      </div>
-      <h1 class="text-3xl font-bold mb-2 <?= $isPass ? 'text-gray-800' : 'text-gray-700' ?>">
-          <?= $isPass ? 'ยินดีด้วย! 🎉' : 'ไม่ผ่านการทดสอบ' ?>
-      </h1>
-      <p class="text-sm text-gray-500">
-          <?= $isPass ? 'คุณผ่านการทดสอบเรียบร้อยแล้ว สามารถรับเกียรติบัตรได้ทันที' : 'คุณยังไม่ผ่านเกณฑ์ ' . (float)$project['pass_score'] . '% ทบทวนและลองใหม่ได้เลย' ?>
-      </p>
+      <?php if ((int)($project['show_result_immediately'] ?? 1) === 1): ?>
+        <div id="result-icon"
+          class="w-24 h-24 rounded-full mx-auto mb-5 flex items-center justify-center shadow-lg transition-all duration-700 <?= $isPass ? 'bg-primary-500' : 'bg-red-500' ?>">
+          <i class="text-4xl text-white fas <?= $isPass ? 'fa-trophy' : 'fa-rotate-right' ?>"></i>
+        </div>
+        <h1 class="text-3xl font-bold mb-2 <?= $isPass ? 'text-gray-800' : 'text-gray-700' ?>">
+            <?= $isPass ? 'ยินดีด้วย! 🎉' : 'ไม่ผ่านการทดสอบ' ?>
+        </h1>
+        <p class="text-sm text-gray-500">
+            <?= $isPass ? 'คุณผ่านการทดสอบเรียบร้อยแล้ว สามารถรับเกียรติบัตรได้ทันที' : 'คุณยังไม่ผ่านเกณฑ์ ' . (float)$project['pass_score'] . '% ทบทวนและลองใหม่ได้เลย' ?>
+        </p>
+      <?php else: ?>
+        <div class="w-24 h-24 rounded-full mx-auto mb-5 flex items-center justify-center shadow-lg bg-primary-500 anim-scale-in">
+          <i class="text-4xl text-white fas fa-check-circle"></i>
+        </div>
+        <h1 class="text-3xl font-bold mb-2 text-gray-800">ส่งข้อสอบเรียบร้อยแล้ว</h1>
+        <p class="text-sm text-gray-500">ระบบได้บันทึกคำตอบของคุณแล้ว ขอบคุณที่เข้าร่วมการทดสอบ</p>
+      <?php endif; ?>
     </div>
 
+    <?php if ((int)($project['show_result_immediately'] ?? 1) === 1): ?>
     <!-- Score ring card -->
     <div class="bg-white rounded-2xl shadow-card-lg p-6 mb-6 anim-fade-up d-2">
       <div class="flex flex-col sm:flex-row items-center gap-8">
@@ -168,11 +177,12 @@ $timeUsedStr .= $diff->s . " วินาที";
         </div>
       </div>
     </div>
+    <?php endif; ?>
 
     <!-- ── ACTION CARD ── -->
     <div class="bg-white rounded-2xl shadow-card-lg overflow-hidden anim-fade-up d-5">
       <div class="p-8">
-        <?php if ($isPass): ?>
+        <?php if ((int)($project['show_result_immediately'] ?? 1) === 1 && $isPass): ?>
           <!-- Success State -->
           <div class="flex flex-col items-center text-center">
             <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
@@ -181,28 +191,8 @@ $timeUsedStr .= $diff->s . " วินาที";
             <h3 class="text-xl font-bold text-gray-800 mb-2">ยินดีด้วย! คุณผ่านการทดสอบ</h3>
             <p class="text-sm text-gray-400 mb-8 max-w-[320px]">ระบบได้ออกเกียรติบัตรให้คุณเรียบร้อยแล้ว สามารถดาวน์โหลดไฟล์ PDF ได้จากปุ่มด้านล่างนี้</p>
             
-            <div class="flex flex-col gap-3 w-full">
-              <button id="btn-download" onclick="triggerDownload()" 
-                 class="flex items-center justify-center gap-3 py-4 bg-primary-400 hover:bg-primary-500 text-white font-bold rounded-2xl transition-all text-sm shadow-xl shadow-primary-500/25 border-none cursor-pointer group">
-                <i class="fas fa-file-pdf text-lg group-hover:scale-110 transition-transform"></i>
-                <span>ดาวน์โหลดเกียรติบัตร (PDF)</span>
-              </button>
-
-              <div id="fallback-container" class="hidden animate-fade-in">
-                <p class="text-[10px] text-gray-400 mb-1">หากการดาวน์โหลดไม่เริ่มอัตโนมัติ:</p>
-                <a id="fallback-link" href="#" target="_blank" class="text-xs font-bold text-primary-500 hover:underline">คลิกที่นี่เพื่อดาวน์โหลดโดยตรง</a>
-              </div>
-
-              <button onclick="shareCert()" class="flex items-center justify-center gap-2 py-4 bg-white border-2 border-gray-100 hover:border-primary-100 text-gray-600 font-bold rounded-2xl transition-all text-sm mt-2">
-                <i class="fas fa-share-nodes text-primary-400"></i> แชร์ลิงก์ตรวจสอบ
-              </button>
-            </div>
           </div>
-
-          <!-- Hidden Iframe for download -->
-          <iframe id="download-iframe" name="cert_iframe" src="about:blank" style="width:1px; height:1px; border:none; opacity:0; position:absolute;"></iframe>
-
-        <?php else: ?>
+        <?php elseif ((int)($project['show_result_immediately'] ?? 1) === 1): ?>
           <!-- Fail State -->
           <div class="py-4 flex flex-col items-center text-center">
             <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
@@ -210,6 +200,15 @@ $timeUsedStr .= $diff->s . " วินาที";
             </div>
             <p class="text-gray-800 font-bold text-lg mb-1">ขออภัย คุณยังไม่ผ่านเกณฑ์</p>
             <p class="text-sm text-gray-400 max-w-[280px]">คุณสามารถเริ่มทำแบบทดสอบใหม่อีกครั้งเพื่อปรับปรุงคะแนนและรับเกียรติบัตร</p>
+          </div>
+        <?php else: ?>
+          <!-- Result Hidden State -->
+          <div class="py-4 flex flex-col items-center text-center">
+            <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+              <i class="fas fa-info-circle text-blue-400 text-2xl"></i>
+            </div>
+            <p class="text-gray-800 font-bold text-lg mb-1">ประกาศผลสอบภายหลัง</p>
+            <p class="text-sm text-gray-400 max-w-[280px]">คณะกรรมการจะทำการตรวจสอบและประกาศผลคะแนนอย่างเป็นทางการอีกครั้ง</p>
           </div>
         <?php endif; ?>
       </div>
@@ -290,54 +289,4 @@ document.addEventListener('DOMContentLoaded', () => {
     <?php endif; ?>
 });
 
-function triggerDownload() {
-    const btn = document.getElementById('btn-download');
-    const iframe = document.getElementById('download-iframe');
-    const fallback = document.getElementById('fallback-container');
-    const fallbackLink = document.getElementById('fallback-link');
-    
-    if (!btn || !iframe) return;
-
-    const originalHTML = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังเตรียมไฟล์ PDF...';
-    btn.disabled = true;
-
-    // Load the dedicated render page into the hidden iframe (same as verify.php)
-    const renderUrl = "<?= e(BASE_URL . '/public/render-cert.php?token=' . ($certificate['verify_token'] ?? '')) ?>&download=1";
-    iframe.src = renderUrl;
-    
-    // Setup fallback link
-    fallbackLink.href = renderUrl;
-    setTimeout(() => {
-        if (btn.disabled) {
-            if (fallback) fallback.classList.remove('hidden');
-        }
-    }, 5000);
-
-    // Listen for completion (from render-cert.php)
-    window.onmessage = function(e) {
-        if (e.data === 'download_complete') {
-            btn.innerHTML = originalHTML;
-            btn.disabled = false;
-            if (fallback) fallback.classList.add('hidden');
-        }
-    };
-}
-
-function shareCert() {
-    const url = '<?= e(BASE_URL) ?>/public/verify.php?token=<?= e($certificate['verify_token'] ?? '') ?>';
-    navigator.clipboard.writeText(url).then(() => {
-        Swal.fire({
-            icon: 'success',
-            title: 'คัดลอกลิงก์ตรวจสอบแล้ว',
-            text: 'คุณสามารถส่งลิงก์นี้ให้ผู้อื่นเพื่อตรวจสอบเกียรติบัตรได้',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 4000,
-            timerProgressBar: true,
-            customClass: { popup: 'rounded-xl font-sans text-sm' }
-        });
-    });
-}
 </script>

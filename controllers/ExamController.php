@@ -57,6 +57,11 @@ class ExamController
     public function deleteSession(): void
     {
         requireLogin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCsrfToken($_POST['csrf_token'] ?? null)) {
+            http_response_code(400);
+            exit('Bad request.');
+        }
         
         $sessionId = (int) ($_POST['id'] ?? 0);
         if ($sessionId > 0) {

@@ -16,7 +16,7 @@
 
 - Admin authentication และ dashboard สำหรับเจ้าหน้าที่
 - Exam project management: สร้าง/แก้ไขโครงการสอบ กำหนดช่วงเวลา เกณฑ์ผ่าน จำนวนครั้งที่สอบได้ และ template ใบเซอร์
-- Participant whitelist: เพิ่ม/แก้ไข/นำเข้ารายชื่อผู้มีสิทธิ์สอบ และสร้าง access token สำหรับเข้าสอบ
+- Participant whitelist: เพิ่ม/แก้ไข/นำเข้ารายชื่อผู้มีสิทธิ์สอบ และสร้างรหัสเข้าสอบตัวเลข 6 หลัก
 - Question bank: จัดการข้อสอบแบบ multiple choice, true/false, fill blank พร้อมคะแนน หมวดหมู่ และระดับความยาก
 - Exam flow: หน้า entry, verify whitelist, start exam, timer, submit, result
 - Scoring: บันทึก answer logs, ตรวจคำตอบ, คำนวณคะแนน เปอร์เซ็นต์ และ pass/fail
@@ -446,7 +446,7 @@ CREATE TABLE participants (
     email VARCHAR(150),
     phone VARCHAR(20),
     id_card VARCHAR(13) COMMENT 'optional',
-    access_token VARCHAR(64) NOT NULL UNIQUE COMMENT 'SHA256 token for exam access',
+    access_token VARCHAR(64) NOT NULL UNIQUE COMMENT '6-digit numeric exam access code',
     note TEXT,
     import_batch VARCHAR(50),
     created_by INT,
@@ -554,7 +554,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 4. CSRF Token: สร้าง token ใน session, ตรวจทุก POST request
 5. XSS: htmlspecialchars($var, ENT_QUOTES, 'UTF-8') ทุก output
 6. File Upload: ตรวจ MIME type จริง (finfo_file), จำกัด extension, rename ไฟล์
-7. Access Token ผู้สอบ: bin2hex(random_bytes(32)) — 64 hex chars
+7. รหัสเข้าสอบผู้สอบ: ต้องเป็นตัวเลข 6 หลักเท่านั้น สุ่มด้วย random_int(), ตรวจไม่ซ้ำใน `participants.access_token`, ห้ามกลับไปใช้ 64 hex chars
 8. Admin pages: ตรวจ $_SESSION['admin_id'] ทุกหน้า
 9. Exam pages: ตรวจ $_SESSION['exam_token'] และ participant_id
 10. Rate limiting: บันทึก attempt count, ล็อกถ้าเกิน max_attempts

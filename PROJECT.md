@@ -8,6 +8,7 @@ ExamCert is a standalone PHP/MySQL system for online exams and certificate issua
 - **UI System**: "Orange-White Premium" with NO GRADIENTS.
 - **Core Modules**: Admin Dashboard, Project Management, Participant Whitelist (Search-based), Question Bank, Exam Engine, Certificate Designer, and Public Verification.
 - **Recent Fixes**: Resolved 403 Forbidden errors and absolute path leaks.
+- **Exam Access Codes**: Participant exam entry codes are unique 6-digit numeric strings stored in `participants.access_token`.
 
 ## 🛠️ Tech Stack
 - **Backend**: PHP 8.1+, PDO, MVC-ish pattern.

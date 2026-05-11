@@ -33,4 +33,3 @@ function getDB(): PDO
         exit('Database connection failed.');
     }
 }
-

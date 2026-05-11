@@ -1,5 +1,58 @@
 # ExamCert Worklog
 
+## 2026-05-11 - TCPDF Template Builder Schema
+
+Completed:
+- Reworked `cert_templates` schema for millimeter-based certificate builder data: orientation, size, background, and `elements` JSON.
+- Added `views/certificates/template_builder.php` with A4 794px canvas, draggable/resizable elements, properties panel, background controls, and save/preview actions.
+- Added `api/save_template.php` and `api/upload_asset.php` with login and CSRF checks.
+- Routed template create/edit/list actions to the new builder flow.
+- Added TCPDF certificate export and inline preview routes.
+- Added certificate element rendering helpers for text, image, QR code, line, background color, and background image.
+- Added public `/verify?t=TOKEN` route compatibility.
+- Added `views/public/verify.php` as the public verification entrypoint backed by `getCertificateData()`.
+
+Verification:
+- Ran PHP lint on `models/CertTemplate.php`: passed.
+- Ran PHP lint on `models/Certificate.php`: passed.
+- Ran PHP lint on `controllers/TemplateController.php`: passed.
+- Ran PHP lint on `controllers/CertificateController.php`: passed.
+- Ran PHP lint on `controllers/PublicExamController.php`: passed.
+- Ran PHP lint on `views/public/verify.php`: passed.
+- Ran PHP lint on `views/certificates/template_builder.php`: passed.
+- Ran PHP lint on `api/save_template.php`: passed.
+- Ran PHP lint on `api/upload_asset.php`: passed.
+- Ran PHP lint on `index.php`: passed.
+
+Checkpoint:
+- Updated `docs/ai-handoff/CURRENT_STATE.md` with the current certificate builder/export checkpoint.
+- Git checkpoint commit was not created because the repository has many unrelated existing dirty changes.
+
+## 2026-05-11 - Certificate Thai Text Encoding Repair
+
+Completed:
+- Restored certificate template/admin UI files to readable UTF-8 Thai text.
+- Reapplied certificate render QR fallback and image-waiting PDF generation logic after the encoding repair.
+- Re-added certificate template preview handling in `TemplateController`.
+
+Verification:
+- Ran PHP lint on `views/certificates/render.php`: passed.
+- Ran PHP lint on `views/certificates/templates.php`: passed.
+- Ran PHP lint on `controllers/TemplateController.php`: passed.
+- Ran PHP lint on `controllers/PublicExamController.php`: passed.
+- Ran `git diff --check` on the touched certificate files: passed.
+
+## 2026-05-11 - Certificate QR and Verify Download Fix
+
+Completed:
+- Fixed certificate render auto-download by defining and reusing the image list before calling html2pdf.
+- Added a QR image fallback provider so certificate QR codes have a second source if the first QR service fails.
+- Added preview certificate fields needed by verify/download JavaScript to avoid missing token data.
+
+Verification:
+- Ran PHP lint on `views/certificates/render.php`: passed.
+- Ran PHP lint on `controllers/PublicExamController.php`: passed.
+
 
 
 ## 2026-05-10 - Priority 3 UX and Completeness Pass
@@ -38,22 +91,22 @@ Verification:
 
 Completed:
 
-- Replaced participant access token generation in `createParticipant()` and `importParticipants()` with `bin2hex(random_bytes(32))`.
+- Historical note: participant access token generation was temporarily changed to long random hex tokens; this is superseded by the 2026-05-11 rule requiring 6-digit numeric exam access codes.
 - Wrapped `importParticipants()` in a transaction and added per-row savepoints so failed rows can be skipped without committing a partial broken import state.
 - Replaced certificate `verify_token` generation with 64-character secure random hex tokens.
 - Added `SELECT ... FOR UPDATE` locking around project certificate sequence reads before certificate number generation.
-- Changed `setup/reset-tokens.php` to update only legacy participant tokens shorter than 32 characters to new secure 64-character tokens.
+- Historical note: `setup/reset-tokens.php` previously migrated participant tokens to long values; this is superseded by the 2026-05-11 reset logic that migrates non-6-digit values to 6-digit numeric codes.
 - Verified `database/schema.sql` already defines `access_token VARCHAR(64)` and `verify_token VARCHAR(64)`.
 
 Verification:
 
 - Ran PHP lint on `models/Participant.php`, `models/Certificate.php`, and `setup/reset-tokens.php`: passed.
 - Ran `git diff --check`: passed; only existing Windows LF/CRLF conversion warnings remain.
-- Confirmed no `generateToken(6)` or `generateToken(32)` calls remain in `models/` or `setup/`.
+- Confirmed no legacy `generateToken()` helper calls remain in `models/` or `setup/`.
 
 Next:
 
-- Run `php setup/reset-tokens.php` once in the target database environment before go-live to migrate old short participant tokens.
+- Run `php setup/reset-tokens.php` once in the target database environment before go-live to migrate old participant tokens to 6-digit numeric codes.
 
 ## 2026-05-09 - Master Prompt Structure Alignment Pass 2
 
@@ -448,7 +501,7 @@ Verification:
 - Re-ran PHP lint on `views/exam/entry.php` after the custom dropdown change: passed.
 
 Next:
-- Browser-test the entry page by typing part of a participant name, selecting the matching name, entering the 6-character token, and starting the exam.
+- Browser-test the entry page by typing part of a participant name, selecting the matching name, entering the 6-digit numeric exam code, and starting the exam.
 
 ## 2026-05-09 - Feature Bugfix and Security Hotfix Pass
 
@@ -500,7 +553,7 @@ Notes:
 - Performed final code audit for redundant HTML boilerplate: all public views now share a single, clean header/footer system.
 
 - **Landing Page Refinements**:
-  - Updated hero text and badges to match organizational branding ("งานบริหารทรัพยากรบุคคลและนิติการ").
+  - Updated hero text and badges to match organizational branding ("เธเธฒเธเธเธฃเธดเธซเธฒเธฃเธ—เธฃเธฑเธเธขเธฒเธเธฃเธเธธเธเธเธฅเนเธฅเธฐเธเธดเธ•เธดเธเธฒเธฃ").
   - Implemented **Smooth Scrolling** for the "Enter Exam Room" navigation button.
   - Standardized landing page styles and animations for a more premium feel.
 
@@ -520,3 +573,182 @@ Notes:
 ### Next:
 - Conduct full end-to-end testing of all modules (Projects, Participants, Questions, Exams, Certificates) to ensure no regressions.
 - Verify certificate issuance flow with the new UI changes.
+
+## 2026-05-11 - Priority 4 Production Hardening
+
+Completed:
+- Added session-based public exam entry rate limiting: 10 attempts per IP within 5 minutes.
+- Added a Content Security Policy header in `config/session.php`.
+- Added `uploads/.htaccess` to block script execution and restrict allowed file types.
+
+Verification:
+- Ran PHP lint on `controllers/PublicExamController.php`: passed.
+- Ran PHP lint on `config/session.php`: passed.
+
+Notes:
+- Existing dirty files `config/config.php` and `setup_db.php` were present before this pass and were not modified for this task.
+
+## 2026-05-11 - Production Readiness Blocker Fixes
+
+Completed:
+- Removed root web database installer `setup_db.php`.
+- Made `BASE_URL` and database credentials configurable through environment variables.
+- Enabled secure session cookies automatically outside local/dev environments or when HTTPS is active.
+- Added root `.htaccess` deny rules for source/config/setup/docs/log/dev files.
+- Added CSRF validation to exam-session deletion and participant import API.
+
+Verification:
+- Ran PHP lint on modified PHP files: passed.
+- Ran PHP lint across all PHP files: passed.
+- Ran `git diff --check`: passed; only Windows LF/CRLF conversion warnings remain.
+
+## 2026-05-11 - Production Config Hardcode
+
+Completed:
+- Changed `config/config.php` to use hardcoded production mode and production `BASE_URL` placeholder.
+- Changed `config/database.php` to use hardcoded production database constants instead of environment variables.
+
+Notes:
+- Replace `https://your-domain.com`, `examcert_user`, and `CHANGE_THIS_STRONG_PASSWORD` with the real production values before upload.
+
+## 2026-05-11 - Guarded Web Database Installer
+
+Completed:
+- Added `install-database.php` for production web-based database setup when CLI is unavailable.
+- Added `SETUP_WEB_TOKEN` in `config/config.php` as a required setup secret.
+- Added a lock file mechanism at `logs/database-installed.lock` to prevent accidental repeated setup.
+
+Notes:
+- Replace `CHANGE_THIS_SETUP_TOKEN` with a strong random secret before upload.
+- Remove `install-database.php` from the production server immediately after successful setup.
+
+## 2026-05-11 - CSP and Template Upload Diagnostics
+
+Completed:
+- Updated CSP `font-src` to allow Tabler icon fonts from `cdn.jsdelivr.net`.
+- Updated CSP `connect-src` to allow CDN source-map requests from `cdn.jsdelivr.net` and `cdnjs.cloudflare.com`.
+- Added detailed server-side logging for certificate template image upload failures.
+
+Notes:
+- If image upload still fails, check `logs/app.log` for the exact upload failure reason.
+
+## 2026-05-11 - Certificate Template Schema Compatibility Fix
+
+Completed:
+- Added missing `cert_templates` columns to `database/schema.sql`: `show_name`, `show_course`, and `show_certno`.
+- Added a guarded schema compatibility check in `models/CertTemplate.php` to add those columns on existing databases before template reads/writes.
+
+Notes:
+- The reported image upload failure was caused by the template save failing after upload because the existing database table did not have `show_name`.
+
+## 2026-05-11 - Certificate Designer Preview Toggles
+
+Completed:
+- Connected certificate designer display switches to the live preview canvas.
+- Hidden disabled preview elements and their property panels immediately when a display switch is off.
+- Excluded disabled elements from `layout_json` during sync.
+
+## 2026-05-11 - Certificate Designer Logo and Preview Scale
+
+Completed:
+- Added persistent display switches for logo, signature 1, and signature 2 in certificate templates.
+- Added schema compatibility columns: `show_logo`, `show_sign1`, and `show_sign2`.
+- Updated the certificate designer preview to scale responsively based on the available canvas area.
+- Updated drag math to respect the current responsive preview scale.
+
+Verification:
+- Ran PHP lint on `models/CertTemplate.php`: passed.
+- Ran PHP lint on `views/certificates/templates.php`: passed.
+- Ran local schema compatibility check and verified `show_logo`, `show_sign1`, and `show_sign2` exist.
+
+## 2026-05-11 - Question Route Fix
+
+Completed:
+- Added missing front-controller routes for question import, create, edit, and delete actions.
+- Fixed `/admin/questions/create.php?project_id=...` returning a raw 404.
+
+Verification:
+- Ran PHP lint on `index.php`: passed.
+- Requested `/admin/questions/create.php?project_id=1` locally and received an auth redirect instead of route 404.
+
+## 2026-05-11 - Admin Route Coverage Fix
+
+Completed:
+- Added missing front-controller routes for participant import, create, edit, and delete actions.
+- Added missing project routes for force status and exam extension actions.
+- Disabled Apache MultiViews in `.htaccess` to prevent path resolution conflicts with front-controller routing.
+
+Verification:
+- Ran PHP lint on `index.php`: passed.
+- Checked local requests for question import/create, participant import/create, project force-status, and project extend. All now return auth redirects instead of route 404.
+
+## 2026-05-11 - Six Digit Exam Access Codes
+
+Completed:
+- Changed new participant exam access codes to 6-digit numeric codes.
+- Changed participant import to generate 6-digit numeric access codes.
+- Updated `setup/reset-tokens.php` to convert existing non-6-digit tokens to 6-digit numeric codes.
+- Updated public exam entry input to expect a 6-digit numeric code.
+
+Verification:
+- Ran PHP lint on `models/Participant.php`: passed.
+- Ran PHP lint on `setup/reset-tokens.php`: passed.
+- Ran PHP lint on `views/exam/entry.php`: passed.
+- Ran `setup/reset-tokens.php`; updated 1 existing participant token.
+
+## 2026-05-11 - Six Digit Exam Access Code Documentation
+
+Completed:
+- Updated `master-prompt-examcert.md` to define participant exam access codes as unique 6-digit numeric strings.
+- Updated `.agents/skills/examcert-php/SKILL.md` with the Exam Access Code Policy.
+- Updated `docs/database.md` and `PROJECT.md` to confirm the same rule.
+- Removed old prompt guidance that required participant access tokens to be 64-character hex strings.
+
+## 2026-05-11 - Participant Excel Export Fix
+
+Completed:
+- Added backend participant export route: `/admin/participants/export.php`.
+- Changed the participant export button from client-side SheetJS export to a server-generated CSV file that Excel opens correctly.
+- Added UTF-8 BOM and text-formatted exam access codes so Thai text and leading zeroes are preserved.
+
+Verification:
+- Ran PHP lint on `controllers/ParticipantController.php`: passed.
+- Ran PHP lint on `index.php`: passed.
+- Ran PHP lint on `views/participants/index.php`: passed.
+- Requested `/admin/participants/export.php?project_id=1` locally and received an auth redirect instead of route 404.
+
+## 2026-05-11 - Subjective Question Support
+
+Completed:
+- Added `subjective` as a supported question type.
+- Updated question validation so subjective questions do not require choices or a correct answer.
+- Updated the question form with a subjective option and UI logic that hides choices for subjective questions.
+- Updated the exam screen to render subjective questions as a textarea.
+- Updated exam submission so subjective answers are stored, are not auto-scored, and are marked `pending_manual` in `answer_logs.grading_status`.
+- Added guarded schema compatibility for the `questions.type` enum and `answer_logs.grading_status`.
+- Updated `database/schema.sql` for fresh installs.
+
+Verification:
+- Ran PHP lint on `models/Question.php`: passed.
+- Ran PHP lint on `models/AnswerLog.php`: passed.
+- Ran PHP lint on `models/ExamSession.php`: passed.
+- Ran PHP lint on `views/questions/form.php`: passed.
+- Ran PHP lint on `views/exam/start.php`: passed.
+- Ran local schema compatibility check; `questions.type` includes `subjective` and `answer_logs.grading_status` exists.
+
+## 2026-05-11 - Context Budget Skill Rules
+
+Completed:
+- Added context-budget and monorepo rules to `.agents/skills/examcert-php/SKILL.md`.
+- Added `docs/ai-handoff/CURRENT_STATE.md` as the required phase handoff note.
+- Documented that future phases must update the handoff file before changing scope.
+
+## 2026-05-11 - Bangkok Timezone Fix
+
+Completed:
+- Set the application default timezone to `Asia/Bangkok` in `config/config.php`.
+- Fixed schedule display mismatch where public entry could show `21:00` while admin showed `14:00`.
+
+Verification:
+- Ran PHP lint on `config/config.php`: passed.
+- Verified `2026-05-11 14:00:00` formats as `11/05/2026 14:00` after loading config.

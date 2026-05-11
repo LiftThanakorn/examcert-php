@@ -21,6 +21,10 @@ if ($action === 'import') {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         jsonResponse(false, 'Method not allowed.', [], 405);
     }
+
+    if (!validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        jsonResponse(false, 'Invalid request.', [], 400);
+    }
     
     $projectId = (int) ($_POST['project_id'] ?? 0);
     $data = $_POST['data'] ?? [];

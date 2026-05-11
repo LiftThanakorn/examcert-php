@@ -58,6 +58,23 @@ function participantPayload(array $data): array
     ];
 }
 
+function generateParticipantAccessToken(): string
+{
+    $db = getDB();
+    $stmt = $db->prepare('SELECT id FROM participants WHERE access_token = ? LIMIT 1');
+
+    for ($attempt = 0; $attempt < 50; $attempt++) {
+        $token = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $stmt->execute([$token]);
+
+        if (!$stmt->fetch()) {
+            return $token;
+        }
+    }
+
+    throw new RuntimeException('Unable to generate a unique participant access token.');
+}
+
 function getParticipantsByProject(int $projectId): array
 {
     $stmt = getDB()->prepare('
@@ -160,7 +177,7 @@ function createParticipant(int $projectId, array $data, ?int $adminId): array
             $payload['email'],
             $payload['phone'],
             $payload['id_card'],
-            bin2hex(random_bytes(32)),
+            generateParticipantAccessToken(),
             $payload['note'],
             $payload['import_batch'],
             $adminId,
@@ -215,7 +232,7 @@ function importParticipants(int $projectId, array $rows, int $adminId): array
                     trim((string) ($row['โทรศัพท์'] ?? $row['phone'] ?? $row[5] ?? '')) ?: null,
                     trim((string) ($row['เลขบัตรประชาชน'] ?? $row['id_card'] ?? $row[6] ?? '')) ?: null,
                     trim((string) ($row['หมายเหตุ'] ?? $row['note'] ?? $row[7] ?? '')) ?: null,
-                    bin2hex(random_bytes(32)),
+                    generateParticipantAccessToken(),
                     $batch,
                     $adminId,
                 ]);

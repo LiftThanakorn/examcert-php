@@ -22,6 +22,8 @@ function questionDefaults(): array
 
 function getQuestionsByProject(int $projectId, bool $activeOnly = false): array
 {
+    ensureQuestionSubjectiveSupport();
+
     $sql = 'SELECT * FROM questions WHERE project_id = ?';
     if ($activeOnly) {
         $sql .= ' AND is_active = 1';
@@ -35,6 +37,8 @@ function getQuestionsByProject(int $projectId, bool $activeOnly = false): array
 
 function getQuestion(int $id): ?array
 {
+    ensureQuestionSubjectiveSupport();
+
     $stmt = getDB()->prepare('SELECT * FROM questions WHERE id = ? LIMIT 1');
     $stmt->execute([$id]);
     $question = $stmt->fetch();
@@ -67,7 +71,7 @@ function validateQuestionInput(array $data): array
         $errors[] = 'กรุณากรอกคำถาม';
     }
 
-    if (!in_array($type, ['multiple_choice', 'true_false', 'fill_blank'], true)) {
+    if (!in_array($type, ['multiple_choice', 'true_false', 'fill_blank', 'subjective'], true)) {
         $errors[] = 'ประเภทคำถามไม่ถูกต้อง';
     }
 
@@ -88,11 +92,13 @@ function validateQuestionInput(array $data): array
         if (!in_array((string) ($data['correct_answer'] ?? ''), ['true', 'false'], true)) {
             $errors[] = 'คำตอบที่ถูกต้องต้องเป็น true หรือ false';
         }
+    } elseif ($type === 'subjective') {
+        // Subjective answers are stored for manual review and are not auto-scored.
     } elseif (trim((string) ($data['correct_answer'] ?? '')) === '') {
         $errors[] = 'กรุณากรอกคำตอบที่ถูกต้อง';
     }
 
-    if ((float) ($data['score_weight'] ?? 0) <= 0) {
+    if ($type !== 'subjective' && (float) ($data['score_weight'] ?? 0) <= 0) {
         $errors[] = 'คะแนนต้องมากกว่า 0';
     }
 
@@ -124,7 +130,7 @@ function questionPayload(array $data): array
         'question_text' => trim((string) $data['question_text']),
         'type' => $type,
         'choices' => $choices,
-        'correct_answer' => trim((string) $data['correct_answer']),
+        'correct_answer' => $type === 'subjective' ? '' : trim((string) $data['correct_answer']),
         'explanation' => trim((string) ($data['explanation'] ?? '')) ?: null,
         'score_weight' => (float) ($data['score_weight'] ?? 1),
         'category' => trim((string) ($data['category'] ?? '')) ?: null,
@@ -136,6 +142,8 @@ function questionPayload(array $data): array
 
 function createQuestion(int $projectId, array $data, ?int $adminId): array
 {
+    ensureQuestionSubjectiveSupport();
+
     $errors = validateQuestionInput($data);
     if ($errors) {
         return ['success' => false, 'errors' => $errors];
@@ -174,6 +182,8 @@ function createQuestion(int $projectId, array $data, ?int $adminId): array
 
 function updateQuestion(int $id, array $data): array
 {
+    ensureQuestionSubjectiveSupport();
+
     $errors = validateQuestionInput($data);
     if ($errors) {
         return ['success' => false, 'errors' => $errors];
@@ -222,6 +232,8 @@ function deleteQuestion(int $id): bool
 
 function bulkInsertQuestions(array $questions): bool
 {
+    ensureQuestionSubjectiveSupport();
+
     if (empty($questions)) return true;
     $db = getDB();
     try {
@@ -251,4 +263,22 @@ function bulkInsertQuestions(array $questions): bool
         logError('Bulk insert questions failed', ['error' => $e->getMessage()]);
         return false;
     }
+}
+
+function ensureQuestionSubjectiveSupport(): void
+{
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+
+    $stmt = getDB()->query("SHOW COLUMNS FROM questions LIKE 'type'");
+    $column = $stmt->fetch();
+    $type = (string) ($column['Type'] ?? '');
+
+    if ($type !== '' && strpos($type, 'subjective') === false) {
+        getDB()->exec("ALTER TABLE questions MODIFY type ENUM('multiple_choice','true_false','fill_blank','subjective') DEFAULT 'multiple_choice'");
+    }
+
+    $checked = true;
 }

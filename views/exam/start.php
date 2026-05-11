@@ -193,25 +193,18 @@
 </form>
 
 <script>
-// ── PREVENT BACK NAVIGATION (Immediate) ───────────────────────────
+// ── PREVENT BACK NAVIGATION ───────────────────────────────────────
 (function() {
-    // Push twice to create a buffer
     history.pushState(null, null, location.href);
-    history.pushState(null, null, location.href);
-    
     window.addEventListener('popstate', function() {
         history.pushState(null, null, location.href);
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'คำเตือน!',
-                text: 'ไม่สามารถกดย้อนกลับได้ในขณะทำข้อสอบ หากต้องการออกกรุณาส่งข้อสอบ',
-                icon: 'warning',
-                confirmButtonText: 'รับทราบ',
-                customClass: { popup: 'rounded-xl font-sans text-sm' }
-            });
-        } else {
-            alert('ไม่สามารถกดย้อนกลับได้ในขณะทำข้อสอบ หากต้องการออกกรุณาส่งข้อสอบ');
-        }
+        Swal.fire({
+            title: 'คำเตือน!',
+            text: 'ไม่สามารถกดย้อนกลับได้ในขณะทำข้อสอบ หากต้องการออกกรุณาส่งข้อสอบ',
+            icon: 'warning',
+            confirmButtonText: 'รับทราบ',
+            customClass: { popup: 'rounded-xl font-sans text-sm' }
+        });
     });
 
     window.addEventListener('beforeunload', function (e) {
@@ -222,22 +215,28 @@
 })();
 
 // ── DATA FROM PHP ──────────────────────────────────────────────────
-const QUESTIONS = <?= json_encode(array_map(function($q) {
+const QUESTIONS = <?= json_encode(array_map(function($q) use ($project) {
+    $choices = json_decode((string)($q['choices'] ?? ''), true) ?: [];
+    if ((int)($project['randomize_choices'] ?? 0) === 1) {
+        shuffle($choices);
+    }
     return [
         'id' => (int)$q['id'],
         'text' => $q['question_text'],
         'type' => $q['type'],
-        'category' => 'ทั่วไป', 
-        'difficulty' => 'ปานกลาง',
-        'diffColor' => 'text-amber-500',
-        'choices' => json_decode($q['choices'], true) ?: []
+        'category' => trim((string)($q['category'] ?? '')) ?: 'ทั่วไป', 
+        'difficulty' => trim((string)($q['difficulty'] ?? '')) ?: 'ปานกลาง',
+        'diffColor' => ((string)($q['difficulty'] ?? '') === 'hard' ? 'text-red-500' : ((string)($q['difficulty'] ?? '') === 'easy' ? 'text-green-500' : 'text-amber-500')),
+        'choices' => $choices
     ];
 }, $questions)) ?>;
+
+const SAVED_ANSWERS = <?= json_encode($savedAnswers ?? []) ?>;
 
 // ── STATE ─────────────────────────────────────────────────────────
 window.isSubmitting = false;
 let current  = 0;                          
-let answers  = new Array(QUESTIONS.length).fill(null); 
+let answers  = QUESTIONS.map(q => SAVED_ANSWERS[q.id] || null); 
 let totalSec = <?= (int)$secondsLeft ?>;                    
 let timerInterval;
 let direction = 'right';                   
@@ -247,6 +246,17 @@ let warningShown = false;
 
 // ── INIT ──────────────────────────────────────────────────────────
 $(document).ready(() => {
+    // Show server-side error if any
+    const serverError = <?= json_encode($error ?? '') ?>;
+    if (serverError) {
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: serverError,
+            customClass: { popup: 'rounded-2xl font-sans' }
+        });
+    }
+
     renderQuestion();
     renderPalette();
     renderDots();
@@ -277,303 +287,315 @@ function saveAnswer(questionId, answer) {
 
 // ── TIMER & HEARTBEAT ─────────────────────────────────────────────
 function startTimer() {
-  // Initial sync
-  checkStatus();
-
-  timerInterval = setInterval(() => {
-    totalSec--;
-    if (totalSec <= 0) {
-      clearInterval(timerInterval);
-      totalSec = 0;
-      updateTimerDisplay();
-      autoSubmit();
-      return;
-    }
-
-    updateTimerDisplay();
-
-    if (!warningShown && warningThreshold > 0 && totalSec <= warningThreshold) {
-      showWarningBanner(Math.ceil(totalSec / 60));
-    }
-
-    if (totalSec <= 300) {
-      $('#timer-box').addClass('text-red-500 animate-pulse');
-    }
-  }, 1000);
-
-  // Heartbeat every 30 seconds to sync status and enforce project schedule
-  setInterval(checkStatus, 30000);
+    checkStatus();
+    timerInterval = setInterval(() => {
+        totalSec--;
+        if (totalSec <= 0) {
+            clearInterval(timerInterval);
+            totalSec = 0;
+            updateTimerDisplay();
+            autoSubmit();
+            return;
+        }
+        updateTimerDisplay();
+        if (!warningShown && warningThreshold > 0 && totalSec <= warningThreshold) {
+            showWarningBanner(Math.ceil(totalSec / 60));
+        }
+        if (totalSec <= 300) {
+            $('#timer-box').addClass('text-red-500 animate-pulse');
+        }
+    }, 1000);
+    setInterval(checkStatus, 30000);
 }
 
 function checkStatus() {
-  $.ajax({
-    url: getBaseUrl() + '/api/exam.php?action=check_time',
-    type: 'GET',
-    data: { session_id: sessionId },
-    dataType: 'json',
-    success: function(res) {
-      if (res.success && res.data) {
-        const data = res.data;
-        
-        // Sync time if server reports lower seconds_left
-        if (data.seconds_left !== null && data.seconds_left < totalSec) {
-          totalSec = data.seconds_left;
-          updateTimerDisplay();
+    $.ajax({
+        url: getBaseUrl() + '/api/exam.php?action=check_time',
+        type: 'GET',
+        data: { session_id: sessionId },
+        dataType: 'json',
+        success: function(res) {
+            if (res.success && res.data) {
+                const data = res.data;
+                if (data.seconds_left !== null && data.seconds_left < totalSec) {
+                    totalSec = data.seconds_left;
+                    updateTimerDisplay();
+                }
+                if (data.should_submit && !window.isSubmitting) {
+                    clearInterval(timerInterval);
+                    autoSubmit(data.message || 'โครงการปิดการเข้าสอบแล้ว ระบบกำลังส่งคำตอบ...');
+                }
+                if (data.warning) {
+                    showWarningBanner(Math.ceil(totalSec / 60));
+                }
+            }
         }
-
-        // Handle auto-submit (Project closed, time out, etc.)
-        if (data.should_submit && !window.isSubmitting) {
-          clearInterval(timerInterval);
-          autoSubmit(data.message || 'โครงการปิดการเข้าสอบแล้ว ระบบกำลังส่งคำตอบ...');
-        }
-
-        // Handle Warning banner
-        if (data.warning) {
-          showWarningBanner(Math.ceil(totalSec / 60));
-        }
-      }
-    }
-  });
+    });
 }
 
 function updateTimerDisplay() {
-  const m = String(Math.floor(totalSec / 60)).padStart(2,'0');
-  const s = String(totalSec % 60).padStart(2,'0');
-  $('#timer-display').text(`${m}:${s}`);
+    const m = String(Math.floor(totalSec / 60)).padStart(2,'0');
+    const s = String(totalSec % 60).padStart(2,'0');
+    $('#timer-display').text(`${m}:${s}`);
 }
 
 function showWarningBanner(minutes) {
-  if (warningShown) return;
-  warningShown = true;
-  const $banner = $('#warning-banner');
-  $('#warn-time').text(`${minutes} นาที`);
-  $banner.removeClass('hidden');
-  setTimeout(() => $banner.addClass('hidden'), 8000);
+    if (warningShown) return;
+    warningShown = true;
+    const $banner = $('#warning-banner');
+    $('#warn-time').text(`${minutes} นาที`);
+    $banner.removeClass('hidden');
+    setTimeout(() => $banner.addClass('hidden'), 8000);
 }
 
 // ── RENDER QUESTION ───────────────────────────────────────────────
 function renderQuestion(dir = 'right') {
-  if (!QUESTIONS || QUESTIONS.length === 0) {
-      $('#q-text').html('<div class="text-center py-10 text-gray-400"><i class="fas fa-exclamation-circle mb-2 text-2xl block"></i>ไม่พบข้อมูลข้อสอบในระบบ</div>');
-      return;
-  }
-  
-  const q    = QUESTIONS[current];
-  const $card = $('#question-card');
+    if (!QUESTIONS || QUESTIONS.length === 0) {
+        $('#q-text').html('<div class="text-center py-10 text-gray-400"><i class="fas fa-exclamation-circle mb-2 text-2xl block"></i>ไม่พบข้อมูลข้อสอบในระบบ</div>');
+        return;
+    }
+    
+    const q    = QUESTIONS[current];
+    const $card = $('#question-card');
 
-  // Animate
-  $card.removeClass('slide-right slide-left');
-  void $card[0].offsetWidth; // reflow
-  $card.addClass(dir === 'right' ? 'slide-right' : 'slide-left');
+    $card.removeClass('slide-right slide-left');
+    void $card[0].offsetWidth; 
+    $card.addClass(dir === 'right' ? 'slide-right' : 'slide-left');
 
-  $('#q-num').text(current + 1);
-  $('#q-text').text(q.text);
-  $('#q-category').text(q.category);
-  $('#q-difficulty').text(q.difficulty).attr('class', `text-xxs ${q.diffColor}`);
+    $('#q-num').text(current + 1);
+    $('#q-text').text(q.text);
+    $('#q-category').text(q.category);
+    $('#q-difficulty').text(q.difficulty).attr('class', `text-xxs ${q.diffColor}`);
 
-  // Options
-  const $container = $('#options-container').empty();
-  
-  if (q.type === 'fill_blank') {
-      $container.append(`
-        <div class="mt-4">
-            <input type="text" 
-                class="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl bg-gray-50/50 
-                       focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-400/10 
-                       transition-all outline-none font-medium text-gray-700"
-                placeholder="พิมพ์คำตอบของคุณที่นี่..."
-                value="${answers[current] || ''}"
-                oninput="selectAnswer(this.value)">
-        </div>
-      `);
-  } else {
-      q.choices.forEach(choice => {
-        const checked = answers[current] === choice.key;
+    const $container = $('#options-container').empty();
+    
+    if (q.type === 'subjective') {
         $container.append(`
-          <label class="option-item block cursor-pointer select-none">
-            <input type="radio" name="q${q.id}" value="${choice.key}"
-              class="sr-only" ${checked ? 'checked' : ''}
-              onchange="selectAnswer('${choice.key}')">
-            <div class="option-label flex items-center gap-3 p-4 border-2 border-gray-100 rounded-xl
-                        hover:border-primary-200 hover:bg-primary-50/50 transition-all duration-150
-                        ${checked ? 'border-primary-400 bg-primary-50' : ''}">
-              <span class="option-key w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center
-                           text-sm font-semibold text-gray-400 flex-shrink-0
-                           ${checked ? 'bg-primary-400 border-primary-400 text-white' : ''}">
-                ${choice.key}
-              </span>
-              <span class="option-text text-sm text-gray-700 leading-snug
-                           ${checked ? 'text-primary-800 font-medium' : ''}">
-                ${choice.text}
-              </span>
+            <div class="mt-4">
+                <textarea rows="7"
+                    class="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl bg-gray-50/50
+                           focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-400/10
+                           transition-all outline-none font-medium text-gray-700"
+                    placeholder="พิมพ์คำตอบแบบอัตนัยของคุณที่นี่..."
+                    oninput="selectAnswer(this.value)">${answers[current] || ''}</textarea>
+                <p class="mt-2 text-xs text-amber-600">คำตอบข้อนี้จะถูกส่งให้ตรวจแบบ manual review และไม่คิดคะแนนอัตโนมัติ</p>
             </div>
-          </label>
         `);
-      });
-  }
+    } else if (q.type === 'fill_blank') {
+        $container.append(`
+            <div class="mt-4">
+                <input type="text" 
+                    class="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl bg-gray-50/50 
+                           focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-400/10 
+                           transition-all outline-none font-medium text-gray-700"
+                    placeholder="พิมพ์คำตอบของคุณที่นี่..."
+                    value="${answers[current] || ''}"
+                    oninput="selectAnswer(this.value)">
+            </div>
+        `);
+    } else {
+        q.choices.forEach(choice => {
+            const checked = answers[current] === choice.key;
+            $container.append(`
+                <label class="option-item block cursor-pointer select-none">
+                    <input type="radio" name="q${q.id}" value="${choice.key}"
+                        class="sr-only" ${checked ? 'checked' : ''}
+                        onchange="selectAnswer('${choice.key}')">
+                    <div class="option-label flex items-center gap-3 p-4 border-2 border-gray-100 rounded-xl
+                                hover:border-primary-200 hover:bg-primary-50/50 transition-all duration-150
+                                ${checked ? 'border-primary-400 bg-primary-50' : ''}">
+                        <span class="option-key w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center
+                                     text-sm font-semibold text-gray-400 flex-shrink-0
+                                     ${checked ? 'bg-primary-400 border-primary-400 text-white' : ''}">
+                            ${choice.key}
+                        </span>
+                        <span class="option-text text-sm text-gray-700 leading-snug
+                                     ${checked ? 'text-primary-800 font-medium' : ''}">
+                            ${choice.text}
+                        </span>
+                    </div>
+                </label>
+            `);
+        });
+    }
 
-  // Nav buttons state
-  $('#btn-prev').prop('disabled', current === 0).css('opacity', current === 0 ? '0.35' : '1');
+    $('#btn-prev').prop('disabled', current === 0).css('opacity', current === 0 ? '0.35' : '1');
 
-  const isLast = current === QUESTIONS.length - 1;
-  const $btnNext = $('#btn-next');
-  if (isLast) {
-    $btnNext.html('<i class="fas fa-paper-plane text-xs"></i> ส่งข้อสอบ')
-            .attr('onclick', 'confirmSubmit()')
-            .removeClass('bg-primary-400 hover:bg-primary-500').addClass('bg-green-600 hover:bg-green-700');
-  } else {
-    $btnNext.html('ถัดไป <i class="fas fa-chevron-right text-xs"></i>')
-            .attr('onclick', 'navigate(1)')
-            .removeClass('bg-green-600 hover:bg-green-700').addClass('bg-primary-400 hover:bg-primary-500');
-  }
+    const isLast = current === QUESTIONS.length - 1;
+    const $btnNext = $('#btn-next');
+    if (isLast) {
+        $btnNext.html('<i class="fas fa-paper-plane text-xs"></i> ส่งข้อสอบ')
+                .attr('onclick', 'confirmSubmit()')
+                .removeClass('bg-primary-400 hover:bg-primary-500').addClass('bg-green-600 hover:bg-green-700');
+    } else {
+        $btnNext.html('ถัดไป <i class="fas fa-chevron-right text-xs"></i>')
+                .attr('onclick', 'navigate(1)')
+                .removeClass('bg-green-600 hover:bg-green-700').addClass('bg-primary-400 hover:bg-primary-500');
+    }
 
-  updateProgress();
-  renderDots();
-  renderPalette();
+    updateProgress();
+    renderDots();
+    renderPalette();
 }
 
-// ── SELECT ANSWER ─────────────────────────────────────────────────
 function selectAnswer(key) {
-  answers[current] = key;
-  updateProgress();
-  renderPalette();
-  renderDots();
-  
-  saveAnswer(QUESTIONS[current].id, key);
+    answers[current] = key;
+    updateProgress();
+    renderPalette();
+    renderDots();
+    saveAnswer(QUESTIONS[current].id, key);
 
-  // Update UI for radio items
-  if (QUESTIONS[current].type !== 'fill_blank') {
-      $('.option-label').each(function() {
-        const input = $(this).closest('label').find('input')[0];
-        const chosen = input.value === key;
-        $(this).toggleClass('border-primary-400 bg-primary-50', chosen).toggleClass('border-gray-100', !chosen);
-        $(this).find('.option-key').toggleClass('bg-primary-400 border-primary-400 text-white', chosen).toggleClass('text-gray-400', !chosen);
-        $(this).find('.option-text').toggleClass('text-primary-800 font-medium', chosen);
-      });
-  }
+    if (QUESTIONS[current].type !== 'fill_blank' && QUESTIONS[current].type !== 'subjective') {
+        $('.option-label').each(function() {
+            const input = $(this).closest('label').find('input')[0];
+            const chosen = input.value === key;
+            $(this).toggleClass('border-primary-400 bg-primary-50', chosen).toggleClass('border-gray-100', !chosen);
+            $(this).find('.option-key').toggleClass('bg-primary-400 border-primary-400 text-white', chosen).toggleClass('text-gray-400', !chosen);
+            $(this).find('.option-text').toggleClass('text-primary-800 font-medium', chosen);
+        });
+    }
 }
 
-// ── NAVIGATE ─────────────────────────────────────────────────────
 function navigate(delta) {
-  const next = current + delta;
-  if (next < 0 || next >= QUESTIONS.length) return;
-  direction = delta > 0 ? 'right' : 'left';
-  current   = next;
-  renderQuestion(direction);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+    const next = current + delta;
+    if (next < 0 || next >= QUESTIONS.length) return;
+    direction = delta > 0 ? 'right' : 'left';
+    current   = next;
+    renderQuestion(direction);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function goToQuestion(idx) {
-  direction = idx > current ? 'right' : 'left';
-  current   = idx;
-  renderQuestion(direction);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+    direction = idx > current ? 'right' : 'left';
+    current   = idx;
+    renderQuestion(direction);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ── PROGRESS ──────────────────────────────────────────────────────
 function updateProgress() {
-  const done = answers.filter(a => a !== null && a !== '').length;
-  const pct  = (done / QUESTIONS.length) * 100;
-  $('#answered-count').text(done);
-  $('#progress-bar').css('width', pct + '%');
+    const done = answers.filter(a => a !== null && String(a).trim() !== '').length;
+    const pct  = (done / QUESTIONS.length) * 100;
+    $('#answered-count').text(done);
+    $('#progress-bar').css('width', pct + '%');
 }
 
-// ── PALETTE ───────────────────────────────────────────────────────
 function renderPalette() {
-  const $grid = $('#palette-grid').empty();
-  QUESTIONS.forEach((q, i) => {
-    const answered = answers[i] !== null && answers[i] !== '';
-    const isCurrent = i === current;
-    let cls = 'w-full aspect-square rounded-lg text-xxs font-semibold flex items-center justify-center cursor-pointer q-dot transition-all ';
-    if (isCurrent)   cls += 'bg-primary-400 text-white shadow-orange scale-105';
-    else if (answered) cls += 'bg-green-100 text-green-700 border border-green-200';
-    else               cls += 'bg-gray-100 text-gray-500 border border-gray-200 hover:border-primary-200 hover:bg-primary-50';
-    $grid.append(`<button class="${cls}" onclick="goToQuestion(${i})">${i + 1}</button>`);
-  });
+    const $grid = $('#palette-grid').empty();
+    QUESTIONS.forEach((q, i) => {
+        const answered = answers[i] !== null && String(answers[i]).trim() !== '';
+        const isCurrent = i === current;
+        let cls = 'w-full aspect-square rounded-lg text-xxs font-semibold flex items-center justify-center cursor-pointer q-dot transition-all ';
+        if (isCurrent)   cls += 'bg-primary-400 text-white shadow-orange scale-105';
+        else if (answered) cls += 'bg-green-100 text-green-700 border border-green-200';
+        else               cls += 'bg-gray-100 text-gray-500 border border-gray-200 hover:border-primary-200 hover:bg-primary-50';
+        $grid.append(`<button class="${cls}" onclick="goToQuestion(${i})">${i + 1}</button>`);
+    });
 }
 
 function togglePalette() {
-  $('#palette-grid').toggleClass('hidden');
-  $('#palette-chevron').toggleClass('rotate-180');
+    $('#palette-grid').toggleClass('hidden');
+    $('#palette-chevron').toggleClass('rotate-180');
 }
 
-// ── DOT NAV (bottom bar) ──────────────────────────────────────────
 function renderDots() {
-  const $nav = $('#dot-nav').empty();
-  const total  = QUESTIONS.length;
-  const winSize = 5;
-  let start = Math.max(0, current - Math.floor(winSize / 2));
-  let end   = Math.min(total - 1, start + winSize - 1);
-  if (end - start < winSize - 1) start = Math.max(0, end - winSize + 1);
+    const $nav = $('#dot-nav').empty();
+    const total  = QUESTIONS.length;
+    const winSize = 5;
+    let start = Math.max(0, current - Math.floor(winSize / 2));
+    let end   = Math.min(total - 1, start + winSize - 1);
+    if (end - start < winSize - 1) start = Math.max(0, end - winSize + 1);
 
-  if (start > 0) $nav.append('<span class="text-gray-300 text-xxs px-1">...</span>');
-
-  for (let i = start; i <= end; i++) {
-    const answered = answers[i] !== null && answers[i] !== '';
-    const isCur    = i === current;
-    let cls = 'w-7 h-7 rounded-lg text-xxs font-semibold flex items-center justify-center cursor-pointer transition-all flex-shrink-0 ';
-    if (isCur)      cls += 'bg-primary-400 text-white';
-    else if(answered) cls += 'bg-green-100 text-green-700 border border-green-200';
-    else              cls += 'bg-gray-100 text-gray-400 hover:bg-primary-50 border border-gray-200';
-    $nav.append(`<button class="${cls}" onclick="goToQuestion(${i})">${i+1}</button>`);
-  }
-
-  if (end < total - 1) $nav.append('<span class="text-gray-300 text-xxs px-1">...</span>');
+    if (start > 0) $nav.append('<span class="text-gray-300 text-xxs px-1">...</span>');
+    for (let i = start; i <= end; i++) {
+        const answered = answers[i] !== null && String(answers[i]).trim() !== '';
+        const isCur    = i === current;
+        let cls = 'w-7 h-7 rounded-lg text-xxs font-semibold flex items-center justify-center cursor-pointer transition-all flex-shrink-0 ';
+        if (isCur)      cls += 'bg-primary-400 text-white';
+        else if(answered) cls += 'bg-green-100 text-green-700 border border-green-200';
+        else              cls += 'bg-gray-100 text-gray-400 hover:bg-primary-50 border border-gray-200';
+        $nav.append(`<button class="${cls}" onclick="goToQuestion(${i})">${i+1}</button>`);
+    }
+    if (end < total - 1) $nav.append('<span class="text-gray-300 text-xxs px-1">...</span>');
 }
 
-// ── SUBMIT ────────────────────────────────────────────────────────
 function confirmSubmit() {
-  const unanswered = answers.filter(a => a === null || a === '').length;
+    const missing = [];
+    QUESTIONS.forEach((q, i) => {
+        let val = answers[i];
+        if (val === null || val === undefined || String(val).trim() === '') {
+            missing.push(i + 1);
+        }
+    });
 
-  Swal.fire({
-    icon: unanswered > 0 ? 'warning' : 'question',
-    title: 'ยืนยันการส่งข้อสอบ?',
-    html: unanswered > 0
-      ? `<p class="text-gray-600 text-sm">คุณยังมี <strong class="text-red-600">${unanswered} ข้อ</strong> ที่ยังไม่ได้ตอบ</p>
-         <p class="text-gray-400 text-xs mt-1">คะแนนของข้อที่ไม่ตอบจะเป็น 0</p>`
-      : `<p class="text-gray-600 text-sm">ตอบครบทั้ง <strong class="text-green-600">${QUESTIONS.length} ข้อ</strong> แล้ว<br>พร้อมส่งข้อสอบ</p>`,
-    showCancelButton: true,
-    confirmButtonText: '<i class="fas fa-paper-plane mr-1.5"></i> ส่งข้อสอบ',
-    cancelButtonText: 'กลับไปตรวจสอบ',
-    customClass: {
-      popup:         'rounded-2xl font-sans',
-      title:         'text-lg font-semibold text-gray-800',
-      confirmButton: '!bg-primary-400 hover:!bg-primary-500 !text-white !rounded-xl !text-sm !px-5 !py-2.5 !font-semibold',
-      cancelButton:  '!bg-white !text-gray-600 !border !border-gray-200 !rounded-xl !text-sm !px-5 !py-2.5',
-      actions:       'gap-2',
-    },
-    buttonsStyling: false,
-    reverseButtons: true,
-  }).then(r => {
-    if (r.isConfirmed) submitExam();
-  });
+    if (missing.length > 0) {
+        Swal.fire({
+            icon: 'error',
+            title: 'กรุณาทำข้อสอบให้ครบทุกข้อ',
+            html: `
+                <div class="text-left bg-red-50 p-4 rounded-xl border border-red-100 mt-2">
+                    <p class="text-sm text-red-700 font-medium mb-2">ข้อที่ยังไม่ได้ทำ:</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        ${missing.map(n => `<span class="inline-flex items-center justify-center w-7 h-7 bg-red-200 text-red-800 text-xxs font-bold rounded-lg">${n}</span>`).join('')}
+                    </div>
+                </div>
+                <p class="text-gray-500 text-xs mt-4">กรุณาทำข้อสอบให้ครบทั้ง ${QUESTIONS.length} ข้อก่อนส่งคำตอบ</p>
+            `,
+            confirmButtonText: 'กลับไปทำต่อ',
+            customClass: {
+                popup: 'rounded-2xl font-sans',
+                title: 'text-lg font-bold text-gray-800',
+                confirmButton: '!bg-primary-400 hover:!bg-primary-500 !text-white !rounded-xl !text-sm !px-6 !py-2.5 !font-semibold',
+            },
+            buttonsStyling: false,
+        });
+        return;
+    }
+
+    Swal.fire({
+        icon: 'question',
+        title: 'ยืนยันการส่งข้อสอบ?',
+        html: `<p class="text-gray-600 text-sm">คุณตอบครบทั้ง <strong class="text-green-600">${QUESTIONS.length} ข้อ</strong> แล้ว<br>ต้องการส่งคำตอบและสิ้นสุดการสอบหรือไม่?</p>`,
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-paper-plane mr-1.5"></i> ส่งข้อสอบ',
+        cancelButtonText: 'ยกเลิก',
+        customClass: {
+            popup:         'rounded-2xl font-sans',
+            title:         'text-lg font-semibold text-gray-800',
+            confirmButton: '!bg-primary-400 hover:!bg-primary-500 !text-white !rounded-xl !text-sm !px-5 !py-2.5 !font-semibold',
+            cancelButton:  '!bg-white !text-gray-600 !border !border-gray-200 !rounded-xl !text-sm !px-5 !py-2.5',
+            actions:       'gap-2',
+        },
+        buttonsStyling: false,
+        reverseButtons: true,
+    }).then(r => {
+        if (r.isConfirmed) submitExam();
+    });
 }
 
 function submitExam() {
-  clearInterval(timerInterval);
-  window.isSubmitting = true;
-  
-  Swal.fire({
-    title: 'กำลังส่งข้อสอบ...',
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    customClass: { popup: 'rounded-2xl font-sans' },
-    didOpen: () => Swal.showLoading(),
-  });
-  $('#exam-form').submit();
+    clearInterval(timerInterval);
+    window.isSubmitting = true;
+    Swal.fire({
+        title: 'กำลังส่งข้อสอบ...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        customClass: { popup: 'rounded-2xl font-sans' },
+        didOpen: () => Swal.showLoading(),
+    });
+    $('#exam-form').submit();
 }
 
 function autoSubmit(msg = 'ระบบกำลังส่งคำตอบให้อัตโนมัติ...') {
-  window.isSubmitting = true;
-  Swal.fire({
-    icon: 'info',
-    title: 'หมดเวลาหรือโครงการปิดแล้ว!',
-    text: msg,
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    timer: 3000,
-    showConfirmButton: false,
-    customClass: { popup: 'rounded-2xl font-sans' },
-  }).then(() => submitExam());
+    window.isSubmitting = true;
+    Swal.fire({
+        icon: 'info',
+        title: 'หมดเวลาหรือโครงการปิดแล้ว!',
+        text: msg,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        timer: 3000,
+        showConfirmButton: false,
+        customClass: { popup: 'rounded-2xl font-sans' },
+    }).then(() => submitExam());
 }
 </script>

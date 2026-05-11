@@ -79,7 +79,7 @@ body { transition: background-color 0.5s ease; min-height: 100vh; display: flex;
           </div>
           <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight mb-3">ตรวจสอบเกียรติบัตร</h1>
           <p class="text-gray-500 max-w-sm mx-auto leading-relaxed">
-            กรุณากรอก Verify Token, เลขที่เกียรติบัตร <br>หรือ<b>ชื่อ-นามสกุล</b> เพื่อดาวน์โหลดเกียรติบัตร
+            กรุณากรอก Verify Token, เลขที่เกียรติบัตร <br>หรือ<b>ชื่อ-นามสกุล</b> เพื่อตรวจสอบข้อมูล
           </p>
         </div>
 
@@ -113,7 +113,7 @@ body { transition: background-color 0.5s ease; min-height: 100vh; display: flex;
 
         <div class="grid gap-3 anim-fade-up d2">
           <?php foreach ($results as $index => $res): ?>
-          <a href="<?= e(BASE_URL) ?>/public/verify.php?token=<?= e($res['verify_token']) ?>" 
+          <a href="<?= e(BASE_URL) ?>/verify?t=<?= e($res['verify_token']) ?>" 
              class="group bg-white/80 backdrop-blur hover:bg-white p-4 rounded-2xl border border-white shadow-sm hover:shadow-card-lg transition-all flex items-center gap-4 anim-fade-up d<?= ($index % 5) + 1 ?>">
             <div class="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center text-primary-400 group-hover:bg-primary-400 group-hover:text-white transition-colors">
               <i class="fas fa-file-certificate text-xl"></i>
@@ -171,12 +171,13 @@ body { transition: background-color 0.5s ease; min-height: 100vh; display: flex;
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2.5 anim-fade-up d5">
-          <button onclick="triggerDownload()" id="btn-download" class="flex items-center justify-center gap-2 py-3 bg-primary-400 hover:bg-primary-500 text-white font-semibold rounded-xl transition-colors text-sm shadow-card">
-            <i class="fas fa-download text-xs"></i> ดาวน์โหลดเกียรติบัตร (PDF)
-          </button>
-          <button onclick="copyLink()" class="flex items-center justify-center gap-2 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm border border-gray-200">
-            <i class="fas fa-link text-primary-400 text-xs"></i> คัดลอกลิงก์
+        <div class="anim-fade-up d5 flex flex-col gap-3">
+          <a href="<?= e(BASE_URL) ?>/certificates/export?token=<?= e($certificate['verify_token']) ?>" 
+             class="w-full flex items-center justify-center gap-3 py-4 bg-primary-400 hover:bg-primary-500 text-white font-bold rounded-2xl transition-all shadow-lg shadow-primary-100 text-base active:scale-[0.98]">
+            <i class="fas fa-file-pdf text-xl"></i> ดาวน์โหลดเกียรติบัตร (PDF)
+          </a>
+          <button onclick="copyLink()" class="w-full flex items-center justify-center gap-2 py-4 bg-white hover:bg-gray-50 text-gray-700 font-bold rounded-2xl transition-colors text-sm border-2 border-gray-100">
+            <i class="fas fa-link text-primary-400"></i> คัดลอกลิงก์ตรวจสอบเกียรติบัตร
           </button>
         </div>
       </div>
@@ -254,7 +255,6 @@ body { transition: background-color 0.5s ease; min-height: 100vh; display: flex;
     </div>
 </footer>
 
-<iframe id="download-iframe" name="cert_iframe" src="about:blank" style="display:none"></iframe>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function() {
         swalToast.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลค้นหา' });
         return;
       }
-      window.location.href = `<?= e(BASE_URL) ?>/public/verify.php?token=${encodeURIComponent(val)}`;
+      window.location.href = `<?= e(BASE_URL) ?>/verify?t=${encodeURIComponent(val)}`;
     };
 
     window.handleInitialSearch = function() {
@@ -296,34 +296,8 @@ document.addEventListener('DOMContentLoaded', function() {
         swalToast.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลค้นหา' });
         return;
       }
-      window.location.href = `<?= e(BASE_URL) ?>/public/verify.php?token=${encodeURIComponent(val)}`;
+      window.location.href = `<?= e(BASE_URL) ?>/verify?t=${encodeURIComponent(val)}`;
     };
 
-    window.triggerDownload = function() {
-        <?php if ($certificate): ?>
-        const btn = document.getElementById('btn-download');
-        const iframe = document.getElementById('download-iframe');
-        const originalHTML = btn.innerHTML;
-        
-        swalToast.fire({ 
-          icon: 'info', 
-          title: 'กำลังเตรียมไฟล์เกียรติบัตร...',
-          timer: 4000
-        });
-
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังเตรียมไฟล์...';
-        btn.disabled = true;
-        
-        iframe.src = "<?= e(BASE_URL . '/public/render-cert.php?token=' . $certificate['verify_token']) ?>&download=1";
-        
-        window.onmessage = (e) => { 
-          if (e.data === 'download_complete') { 
-            btn.innerHTML = originalHTML; 
-            btn.disabled = false;
-            swalToast.fire({ icon: 'success', title: 'ดาวน์โหลดสำเร็จ' });
-          } 
-        };
-        <?php endif; ?>
-    };
 });
 </script>

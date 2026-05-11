@@ -12,7 +12,13 @@ function getProjectByCodeOrId(string $codeOrId): ?array
         return getProject((int) $codeOrId);
     }
 
-    $stmt = getDB()->prepare('SELECT * FROM projects WHERE code = ? LIMIT 1');
+    $stmt = getDB()->prepare('
+        SELECT p.*,
+            (SELECT COUNT(*) FROM participants pp WHERE pp.project_id = p.id) AS participant_count,
+            (SELECT COUNT(*) FROM questions q WHERE q.project_id = p.id) AS question_count_total
+        FROM projects p
+        WHERE p.code = ? LIMIT 1
+    ');
     $stmt->execute([$codeOrId]);
     $project = $stmt->fetch();
     return $project ?: null;

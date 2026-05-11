@@ -7,18 +7,15 @@ require_once __DIR__ . '/config/session.php';
 // Simple Router
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $scriptName = $_SERVER['SCRIPT_NAME'];
-// Standardize slashes for Windows/Linux
 $baseDir = str_replace('\\', '/', dirname($scriptName));
 
-// Clean up URI
 if ($baseDir !== '/' && strpos($requestUri, $baseDir) === 0) {
     $requestUri = substr($requestUri, strlen($baseDir));
 }
 
-// Ensure leading slash and handle empty
 $requestUri = '/' . ltrim($requestUri, '/');
-if ($requestUri === '/') {
-    $requestUri = '/index.php';
+if ($requestUri === '/' || $requestUri === '/index.php') {
+    $requestUri = '/';
 }
 
 // Auto-loader for Controllers
@@ -31,39 +28,61 @@ spl_autoload_register(function ($class) {
 
 // Route mapping
 $match = match ($requestUri) {
-    '/index.php' => [null, null], // Handle home separately or via default
-    '/admin', '/admin/', '/admin/index.php', '/admin/dashboard.php' => [DashboardController::class, 'index'],
+    '/admin', '/admin/', '/admin/dashboard.php' => [DashboardController::class, 'index'],
     '/admin/login.php' => [AuthController::class, 'login'],
     '/admin/logout.php' => [AuthController::class, 'logout'],
+    
+    // Projects
     '/admin/projects', '/admin/projects/', '/admin/projects/index.php' => [ProjectController::class, 'index'],
     '/admin/projects/create.php' => [ProjectController::class, 'create'],
     '/admin/projects/edit.php' => [ProjectController::class, 'edit'],
     '/admin/projects/detail.php' => [ProjectController::class, 'detail'],
     '/admin/projects/delete.php' => [ProjectController::class, 'delete'],
     '/admin/projects/schedule.php' => [ProjectController::class, 'schedule'],
-    '/admin/projects/questions.php' => [QuestionController::class, 'index'],
-    '/admin/projects/participants.php' => [ParticipantController::class, 'index'],
+    '/admin/projects/force-status.php' => [ProjectController::class, 'forceStatus'],
+    '/admin/projects/extend.php' => [ProjectController::class, 'extendExam'],
+    
+    // Questions & Participants
     '/admin/questions', '/admin/questions/', '/admin/questions/index.php' => [QuestionController::class, 'index'],
+    '/admin/questions/import.php' => [QuestionController::class, 'import'],
+    '/admin/questions/create.php' => [QuestionController::class, 'create'],
+    '/admin/questions/edit.php' => [QuestionController::class, 'edit'],
+    '/admin/questions/delete.php' => [QuestionController::class, 'delete'],
     '/admin/participants', '/admin/participants/', '/admin/participants/index.php' => [ParticipantController::class, 'index'],
+    '/admin/participants/import.php' => [ParticipantController::class, 'import'],
+    '/admin/participants/export.php' => [ParticipantController::class, 'export'],
+    '/admin/participants/create.php' => [ParticipantController::class, 'create'],
+    '/admin/participants/edit.php' => [ParticipantController::class, 'edit'],
+    '/admin/participants/delete.php' => [ParticipantController::class, 'delete'],
+    
+    // Certificates & Templates (Unified in CertificateController)
     '/admin/certificates', '/admin/certificates/', '/admin/certificates/index.php' => [CertificateController::class, 'index'],
-    '/admin/certificates/issue.php' => [CertificateController::class, 'issue'],
-    '/admin/certificates/download.php' => [CertificateController::class, 'download'],
-    '/admin/certificates/revoke.php' => [CertificateController::class, 'revoke'],
-    '/admin/certificates/templates.php' => [TemplateController::class, 'index'],
-    '/admin/certificates/template-create.php' => [TemplateController::class, 'create'],
-    '/admin/certificates/template-edit.php' => [TemplateController::class, 'edit'],
-    '/admin/certificates/template-delete.php' => [TemplateController::class, 'delete'],
+    '/admin/certificates/issue', '/admin/certificates/issue.php' => [CertificateController::class, 'issue'],
+    '/admin/certificates/revoke', '/admin/certificates/revoke.php' => [CertificateController::class, 'revoke'],
+    '/admin/certificates/templates', '/admin/certificates/templates.php' => [CertificateController::class, 'templates'],
+    '/admin/certificates/template/create', '/admin/certificates/template-create.php' => [CertificateController::class, 'templateCreate'],
+    '/admin/certificates/template/edit', '/admin/certificates/template-edit.php', '/admin/certificates/template-builder.php' => [CertificateController::class, 'templateEdit'],
+    '/admin/certificates/template/delete' => [CertificateController::class, 'templateDelete'],
+    '/certificates/preview_pdf' => [CertificateController::class, 'previewPDFRoute'],
+    '/certificates/export' => [CertificateController::class, 'exportRoute'],
+    
+    // Exam Sessions & Reports
     '/admin/exam-sessions', '/admin/exam-sessions/', '/admin/exam-sessions/index.php' => [ExamController::class, 'sessions'],
     '/admin/exam-sessions/export.php' => [ExamController::class, 'exportSessions'],
     '/admin/exam-sessions/delete.php' => [ExamController::class, 'deleteSession'],
     '/admin/reports', '/admin/reports/', '/admin/reports/index.php' => [ReportController::class, 'index'],
     '/admin/reports/export.php' => [ReportController::class, 'export'],
+    
+    // Public Routes
+    '/verify', '/public/verify.php' => [PublicExamController::class, 'verify'],
     '/public/exam.php', '/public/entry.php' => [PublicExamController::class, 'entry'],
     '/public/take-exam.php' => [PublicExamController::class, 'take'],
     '/public/result.php' => [PublicExamController::class, 'result'],
-    '/public/verify.php' => [PublicExamController::class, 'verify'],
-    '/public/render-cert.php' => [PublicExamController::class, 'renderCertificate'],
-    '/public/download-cert.php' => [PublicExamController::class, 'downloadCertificate'],
+    
+    // API Routes
+    '/api/save-template' => [CertificateController::class, 'apiSaveTemplate'],
+    '/api/upload-asset' => [CertificateController::class, 'apiUploadAsset'],
+    
     default => null,
 };
 
@@ -71,7 +90,7 @@ if ($match && $match[0]) {
     [$controllerClass, $method] = $match;
     $controller = new $controllerClass();
     $controller->$method();
-} elseif ($requestUri === '/index.php' || $requestUri === '') {
+} elseif ($requestUri === '/') {
     require_once ROOT_PATH . '/models/Project.php';
     $projects = array_filter(getAllProjects(), fn($p) => $p['status'] === 'active');
     require VIEWS_PATH . '/public/landing.php';

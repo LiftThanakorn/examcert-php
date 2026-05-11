@@ -28,38 +28,63 @@ CREATE TABLE IF NOT EXISTS admins (
 CREATE TABLE IF NOT EXISTS cert_templates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    description TEXT,
-    bg_image VARCHAR(255),
     orientation ENUM('L','P') DEFAULT 'L',
-    layout_json JSON,
-    font_name VARCHAR(100) DEFAULT 'thsarabun',
-    logo_path VARCHAR(255),
-    signature_paths JSON,
-    show_score TINYINT(1) DEFAULT 0,
-    show_qr TINYINT(1) DEFAULT 1,
-    show_date TINYINT(1) DEFAULT 1,
-    color_primary VARCHAR(7) DEFAULT '#E87722',
-    preview_image VARCHAR(255),
+    width_mm DECIMAL(6,2) DEFAULT 297.00,
+    height_mm DECIMAL(6,2) DEFAULT 210.00,
+    bg_type ENUM('color','image') DEFAULT 'color',
+    bg_color VARCHAR(7) DEFAULT '#FFFFFF',
+    bg_image VARCHAR(255),
+    elements JSON COMMENT 'array of {id,type,x,y,w,h,content,style}',
     is_active TINYINT(1) DEFAULT 1,
-    created_by INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by) REFERENCES admins(id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO cert_templates (
-    id, name, description, orientation, layout_json, font_name,
-    show_score, show_qr, show_date, color_primary, is_active
+    id, name, orientation, width_mm, height_mm, bg_type, bg_color, elements, is_active
 ) VALUES (
     1,
     'Default Certificate',
-    'Default template for local testing',
     'L',
-    JSON_OBJECT(),
-    'thsarabun',
-    1,
-    1,
-    1,
-    '#E87722',
+    297.00,
+    210.00,
+    'color',
+    '#FFFFFF',
+    JSON_ARRAY(
+        JSON_OBJECT(
+            'id', 'el_1',
+            'type', 'text',
+            'x', 148.5,
+            'y', 80,
+            'w', 200,
+            'h', 20,
+            'anchor', 'center',
+            'content', '{{participant_name}}',
+            'style', JSON_OBJECT('font', 'thsarabunnew', 'size', 36, 'bold', true, 'color', '#1A1A1A', 'align', 'C')
+        ),
+        JSON_OBJECT(
+            'id', 'el_2',
+            'type', 'text',
+            'x', 148.5,
+            'y', 108,
+            'w', 180,
+            'h', 12,
+            'anchor', 'center',
+            'content', '{{project_name}}',
+            'style', JSON_OBJECT('font', 'thsarabunnew', 'size', 20, 'bold', false, 'color', '#444444', 'align', 'C')
+        ),
+        JSON_OBJECT(
+            'id', 'el_3',
+            'type', 'qrcode',
+            'x', 262,
+            'y', 175,
+            'w', 25,
+            'h', 25,
+            'anchor', 'topleft',
+            'content', '{{verify_url}}',
+            'style', JSON_OBJECT()
+        )
+    ),
     1
 ) ON DUPLICATE KEY UPDATE name = VALUES(name);
 
@@ -123,7 +148,7 @@ CREATE TABLE IF NOT EXISTS questions (
     project_id INT NOT NULL,
     question_text TEXT NOT NULL,
     question_image VARCHAR(255),
-    type ENUM('multiple_choice','true_false','fill_blank') DEFAULT 'multiple_choice',
+    type ENUM('multiple_choice','true_false','fill_blank','subjective') DEFAULT 'multiple_choice',
     choices JSON,
     correct_answer TEXT NOT NULL,
     explanation TEXT,
@@ -166,6 +191,7 @@ CREATE TABLE IF NOT EXISTS answer_logs (
     given_answer TEXT,
     is_correct TINYINT(1),
     score_earned DECIMAL(5,2) DEFAULT 0,
+    grading_status VARCHAR(20) DEFAULT 'auto',
     answered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id)
