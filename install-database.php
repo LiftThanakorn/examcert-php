@@ -109,6 +109,32 @@ try {
         }
     }
 
+    // --- STEP 3: Import Data Export (if exists) ---
+    $dataExportFile = ROOT_PATH . '/database/data_export.sql';
+    if (is_file($dataExportFile)) {
+        $log[] = "[PROCESS] Found data_export.sql, starting import...";
+        $dataSql = file_get_contents($dataExportFile);
+        if ($dataSql) {
+            // Remove comments and empty lines
+            $dataSql = preg_replace('/--.*$/m', '', $dataSql);
+            $dataStatements = array_filter(array_map('trim', explode(';', $dataSql)));
+            
+            $dataImported = 0;
+            foreach ($dataStatements as $dStmt) {
+                if ($dStmt === '') continue;
+                try {
+                    $db->exec($dStmt);
+                    $dataImported++;
+                } catch (PDOException $e) {
+                    $log[] = "[WARN] Data import skipped: " . substr($dStmt, 0, 50) . "... Error: " . $e->getMessage();
+                }
+            }
+            $log[] = "[OK] Imported $dataImported records from data_export.sql";
+        }
+    } else {
+        $log[] = "[INFO] No data_export.sql found, skipping data import step.";
+    }
+
     // Create lock file if not exists
     if (!is_file($lockFile)) {
         if (!is_dir(dirname($lockFile))) mkdir(dirname($lockFile), 0755, true);
