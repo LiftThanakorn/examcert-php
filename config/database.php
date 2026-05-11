@@ -5,8 +5,8 @@ require_once __DIR__ . '/config.php';
 
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'examcert');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_USER', 'examcert');
+define('DB_PASS', 'EaNcfHjFLfxdy8xK');
 define('DB_CHARSET', 'utf8mb4');
 
 function getDB(): PDO

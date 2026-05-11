@@ -61,7 +61,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
 
 // 3. Execution Logic
 try {
-    $db = getDB();
+    // Connect to MySQL without dbname first to ensure we can create it
+    $dsn = sprintf('mysql:host=%s;charset=%s', DB_HOST, DB_CHARSET);
+    $db = new PDO($dsn, DB_USER, DB_PASS, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ]);
+    
     $log = [];
 
     // --- STEP 1: Run Schema.sql (CREATE TABLE IF NOT EXISTS) ---

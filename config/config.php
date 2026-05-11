@@ -6,7 +6,7 @@ date_default_timezone_set('Asia/Bangkok');
 define('APP_NAME', 'ระบบสอบออนไลน์พร้อมออกใบเกียรติบัตร มหาวิทยาลัยราชภัฏร้อยเอ็ด');
 define('APP_ENV', 'local');
 define('BASE_URL', 'http://localhost/examcert');
-define('SETUP_WEB_TOKEN', 'CHANGE_THIS_SETUP_TOKEN');
+define('SETUP_WEB_TOKEN', 'MySecretPass123');
 define('ROOT_PATH', dirname(__DIR__));
 define('VIEWS_PATH', ROOT_PATH . '/views');
 define('CONTROLLERS_PATH', ROOT_PATH . '/controllers');
