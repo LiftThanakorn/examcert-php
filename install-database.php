@@ -91,7 +91,7 @@ try {
             $db->exec($stmt);
             $log[] = "[OK] SQL Statement executed.";
         } catch (PDOException $e) {
-            $log[] = "[INFO] Statement skipped or already exists: " . substr($stmt, 0, 50) . "...";
+            $log[] = "[ERR] Statement failed: " . $e->getMessage() . " | SQL: " . substr($stmt, 0, 50) . "...";
         }
     }
 
