@@ -33,16 +33,18 @@
       ['icon'=>'fa-certificate',   'label'=>'เกียรติบัตร',   'route'=>'admin/certificates/'],
     ];
 
-    function navItem($item, $current) {
-      $active = strpos($_SERVER['REQUEST_URI'] ?? '', $item['route']) !== false;
-      $base   = 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm mb-0.5 transition-colors duration-150 group';
-      $cls    = $active
-        ? "$base bg-primary-400 text-white font-medium"
-        : "$base text-white/50 hover:text-white hover:bg-white/8";
-      echo "<a href='".BASE_URL."/{$item['route']}' class='$cls'>";
-      echo "  <i class='fas {$item['icon']} w-4 text-center text-base'></i>";
-      echo "  <span>{$item['label']}</span>";
-      echo "</a>";
+    if (!function_exists('navItem')) {
+        function navItem($item, $current) {
+          $active = strpos($_SERVER['REQUEST_URI'] ?? '', $item['route']) !== false;
+          $base   = 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm mb-0.5 transition-colors duration-150 group';
+          $cls    = $active
+            ? "$base bg-primary-400 text-white font-medium"
+            : "$base text-white/50 hover:text-white hover:bg-white/8";
+          echo "<a href='".BASE_URL."/{$item['route']}' class='$cls'>";
+          echo "  <i class='fas {$item['icon']} w-4 text-center text-base'></i>";
+          echo "  <span>{$item['label']}</span>";
+          echo "</a>";
+        }
     }
 
     $current = $_SERVER['REQUEST_URI'] ?? '';
@@ -67,7 +69,14 @@
   <div class="px-3 py-3 border-t border-white/10 flex-shrink-0">
     <div class="flex items-center gap-2.5">
       <div class="w-8 h-8 rounded-full bg-primary-400 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
-        <?= strtoupper(mb_substr((string) ($_SESSION['admin_name'] ?? 'AD'), 0, 2)) ?>
+        <?php
+          $name = (string) ($_SESSION['admin_name'] ?? 'AD');
+          if (function_exists('mb_substr')) {
+              echo strtoupper(mb_substr($name, 0, 2));
+          } else {
+              echo strtoupper(substr($name, 0, 2));
+          }
+        ?>
       </div>
       <div class="min-w-0 flex-1">
         <p class="text-white text-xs font-medium truncate"><?= e($_SESSION['admin_name'] ?? 'Admin') ?></p>
