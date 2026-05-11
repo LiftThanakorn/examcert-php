@@ -1,6 +1,6 @@
 -- ============================
 -- DATABASE: examcert
--- ExamCert Standalone v1 (MySQL 8 Optimized)
+-- ExamCert Standalone v1 (Full Schema)
 -- ============================
 
 CREATE DATABASE IF NOT EXISTS `examcert`
@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS admins (
 CREATE TABLE IF NOT EXISTS cert_templates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    description TEXT,
     orientation ENUM('L','P') DEFAULT 'L',
     width_mm DECIMAL(6,2) DEFAULT 297.00,
     height_mm DECIMAL(6,2) DEFAULT 210.00,
@@ -40,37 +41,35 @@ CREATE TABLE IF NOT EXISTS cert_templates (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO cert_templates (
-    id, name, orientation, width_mm, height_mm, bg_type, bg_color, elements, is_active
-) VALUES (
-    1,
-    'Default Certificate',
-    'L',
-    297.00,
-    210.00,
-    'color',
-    '#FFFFFF',
-    '[{"id":"el_1","type":"text","x":148.5,"y":80,"w":200,"h":20,"content":"CERTIFICATE","style":{"fontSize":40,"fontWeight":"bold","textAlign":"center","color":"#000000","fontFamily":"thsarabunnew"}},{"id":"el_2","type":"text","x":148.5,"y":100,"w":200,"h":15,"content":"OF APPRECIATION","style":{"fontSize":20,"fontWeight":"normal","textAlign":"center","color":"#666666","fontFamily":"thsarabunnew"}},{"id":"el_3","type":"text","x":148.5,"y":125,"w":200,"h":25,"content":"[participant_name]","style":{"fontSize":36,"fontWeight":"bold","textAlign":"center","color":"#E87722","fontFamily":"thsarabunnew"}},{"id":"el_4","type":"text","x":148.5,"y":145,"w":200,"h":15,"content":"For successfully completing the exam in [project_name]","style":{"fontSize":18,"fontWeight":"normal","textAlign":"center","color":"#333333","fontFamily":"thsarabunnew"}}]',
-    1
-) ON DUPLICATE KEY UPDATE name=VALUES(name);
-
 CREATE TABLE IF NOT EXISTS projects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    code VARCHAR(20),
     description TEXT,
-    exam_code VARCHAR(20) NOT NULL UNIQUE,
-    template_id INT,
-    passing_score INT DEFAULT 60,
-    exam_duration_minutes INT DEFAULT 60,
-    registration_open_at DATETIME,
-    registration_close_at DATETIME,
-    exam_start_at DATETIME,
-    exam_end_at DATETIME,
+    organizer VARCHAR(255),
+    location VARCHAR(255),
+    start_date DATE,
+    end_date DATE,
+    exam_start DATETIME,
+    exam_end DATETIME,
+    pass_score DECIMAL(5,2) DEFAULT 70.00,
+    max_attempts INT DEFAULT 1,
+    time_limit_min INT DEFAULT 60,
+    question_count INT DEFAULT 0,
+    randomize_questions TINYINT(1) DEFAULT 1,
+    randomize_choices TINYINT(1) DEFAULT 1,
+    show_result_immediately TINYINT(1) DEFAULT 1,
+    warning_before INT DEFAULT 30,
+    allow_early_login TINYINT(1) DEFAULT 0,
+    auto_submit_on_close TINYINT(1) DEFAULT 1,
+    manual_override TINYINT(1) DEFAULT 0,
+    cert_template_id INT,
+    cert_number_prefix VARCHAR(50) DEFAULT 'CERT',
     status ENUM('draft', 'active', 'closed') DEFAULT 'draft',
     created_by INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (template_id) REFERENCES cert_templates(id) ON DELETE SET NULL,
+    FOREIGN KEY (cert_template_id) REFERENCES cert_templates(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -78,6 +77,7 @@ CREATE TABLE IF NOT EXISTS participants (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
     prefix VARCHAR(20),
+    title VARCHAR(50),
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     id_card VARCHAR(20),
@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS questions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
     question_text TEXT NOT NULL,
+    question_image VARCHAR(255),
     question_type ENUM('multiple_choice', 'subjective') DEFAULT 'multiple_choice',
     options JSON,
     correct_answer TEXT,
@@ -108,7 +109,8 @@ CREATE TABLE IF NOT EXISTS exam_sessions (
     project_id INT NOT NULL,
     started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     finished_at DATETIME,
-    score INT DEFAULT 0,
+    expires_at DATETIME,
+    score DECIMAL(5,2) DEFAULT 0.00,
     is_passed TINYINT(1) DEFAULT 0,
     status ENUM('in_progress', 'completed', 'cancelled') DEFAULT 'in_progress',
     FOREIGN KEY (participant_id) REFERENCES participants(id) ON DELETE CASCADE,
