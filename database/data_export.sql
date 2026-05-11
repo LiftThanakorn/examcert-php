@@ -1,5 +1,5 @@
 -- ============================================
--- DATA EXPORT: 2026-05-11 19:28:33
+-- DATA EXPORT: 2026-05-11 19:53:38
 -- ============================================
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -38,5 +38,33 @@ INSERT IGNORE INTO `questions` (`id`, `project_id`, `question_text`, `question_i
 INSERT IGNORE INTO `questions` (`id`, `project_id`, `question_text`, `question_image`, `type`, `choices`, `correct_answer`, `explanation`, `score_weight`, `category`, `difficulty`, `order_num`, `is_active`, `created_by`, `created_at`) VALUES ('18', '1', 'ทฤษฎีสามเหลี่ยมแห่งไฟประกอบไปด้วยอะไรบ้าง', NULL, 'multiple_choice', '[{\"key\": \"a\", \"text\": \"เชื้อเพลิง ความร้อน ออกซิเจน\"}, {\"key\": \"b\", \"text\": \"เชื้อเพลิง ความร้อน คาร์บอนไดออกไซค์\"}, {\"key\": \"c\", \"text\": \"เชื้อเพลิง ความร้อน คาร์บอน\"}, {\"key\": \"d\", \"text\": \"เชื้อเพลิง ความร้อน นิวตรอน\"}]', 'a', NULL, '1.00', NULL, 'medium', '0', '1', '1', '2026-05-11 15:44:31');
 INSERT IGNORE INTO `questions` (`id`, `project_id`, `question_text`, `question_image`, `type`, `choices`, `correct_answer`, `explanation`, `score_weight`, `category`, `difficulty`, `order_num`, `is_active`, `created_by`, `created_at`) VALUES ('19', '1', 'การปิดหัวแก๊สครัวเรือน หมุนไปทางไหน', NULL, 'multiple_choice', '[{\"key\": \"a\", \"text\": \"ตามเข็มนาฬิกา\"}, {\"key\": \"b\", \"text\": \"ทวนเข็มนาฬิกา\"}, {\"key\": \"c\", \"text\": \"ทวนแล้วก็ตาม\"}, {\"key\": \"d\", \"text\": \"ถุกทุกข้อ\"}]', 'a', NULL, '1.00', NULL, 'medium', '0', '1', '1', '2026-05-11 15:44:51');
 INSERT IGNORE INTO `questions` (`id`, `project_id`, `question_text`, `question_image`, `type`, `choices`, `correct_answer`, `explanation`, `score_weight`, `category`, `difficulty`, `order_num`, `is_active`, `created_by`, `created_at`) VALUES ('20', '1', 'ถุกทุกข้อ', NULL, 'multiple_choice', '[{\"key\": \"a\", \"text\": \"โซนสีเขียว\"}, {\"key\": \"b\", \"text\": \"โซนสีแดง\"}, {\"key\": \"c\", \"text\": \"โซนสีไหนก็ได้\"}, {\"key\": \"d\", \"text\": \"ถุกทุกข้อ\"}]', 'a', NULL, '1.00', NULL, 'medium', '0', '1', '1', '2026-05-11 15:45:13');
+
+-- Data for table exam_sessions
+INSERT IGNORE INTO `exam_sessions` (`id`, `participant_id`, `project_id`, `attempt_no`, `question_order`, `score`, `total_score`, `percent`, `status`, `result`, `started_at`, `submitted_at`, `expires_at`, `ip_address`, `user_agent`) VALUES ('5', '3', '1', '1', '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]', '19.00', '20.00', '95.00', 'submitted', 'pass', '2026-05-11 18:13:14', '2026-05-11 18:58:39', '2026-05-11 19:13:14', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0');
+
+-- Data for table answer_logs
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('124', '5', '1', 'c', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('125', '5', '2', 'c', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('126', '5', '3', 'd', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('127', '5', '4', 'c', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('128', '5', '5', 'b', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('129', '5', '6', 'a', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('130', '5', '7', 'c', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('131', '5', '8', 'c', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('132', '5', '9', 'a', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('133', '5', '10', 'b', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('134', '5', '11', 'b', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('135', '5', '12', 'c', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('136', '5', '13', 'c', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('137', '5', '14', 'd', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('138', '5', '15', 'd', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('139', '5', '16', 'd', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('140', '5', '17', 'a', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('141', '5', '18', 'c', '0', '0.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('142', '5', '19', 'a', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+INSERT IGNORE INTO `answer_logs` (`id`, `session_id`, `question_id`, `given_answer`, `is_correct`, `score_earned`, `grading_status`, `answered_at`) VALUES ('143', '5', '20', 'a', '1', '1.00', 'auto', '2026-05-11 18:58:39');
+
+-- Data for table certificates
+INSERT IGNORE INTO `certificates` (`id`, `cert_number`, `participant_id`, `project_id`, `session_id`, `template_id`, `issued_date`, `issued_by`, `file_path`, `verify_token`, `verify_url`, `download_count`, `last_downloaded_at`, `is_revoked`, `revoke_reason`, `created_at`) VALUES ('2', 'CERT-2569-00002', '3', '1', '5', '2', '2026-05-11', NULL, 'uploads/certificates/CERT-2569-00002.pdf', '0fc23e0fcb321d7f47f45569a883ada1ddbb0d2f8b4ce92b4ad4f1116ababe86', 'http://localhost/examcert/verify?t=0fc23e0fcb321d7f47f45569a883ada1ddbb0d2f8b4ce92b4ad4f1116ababe86', '3', '2026-05-11 19:23:02', '0', NULL, '2026-05-11 18:58:39');
 
 SET FOREIGN_KEY_CHECKS = 1;

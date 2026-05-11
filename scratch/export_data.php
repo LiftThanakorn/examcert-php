@@ -6,7 +6,11 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 
 function exportTableData(string $table): string {
-    $db = getDB();
+    // Laragon Local
+    $db = new PDO('mysql:host=127.0.0.1;dbname=examcert;charset=utf8mb4', 'root', '', [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+    ]);
     $stmt = $db->query("SELECT * FROM `$table` ");
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
@@ -28,7 +32,7 @@ function exportTableData(string $table): string {
 }
 
 try {
-    $tables = ['admins', 'cert_templates', 'projects', 'participants', 'questions'];
+    $tables = ['admins', 'cert_templates', 'projects', 'participants', 'questions', 'exam_sessions', 'answer_logs', 'certificates'];
     $allSql = "-- ============================================\n";
     $allSql .= "-- DATA EXPORT: " . date('Y-m-d H:i:s') . "\n";
     $allSql .= "-- ============================================\n\n";
