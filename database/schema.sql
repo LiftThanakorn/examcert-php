@@ -1,6 +1,6 @@
 -- ============================
 -- DATABASE: examcert
--- ExamCert Standalone v1
+-- ExamCert Standalone v1 (MySQL 8 Optimized)
 -- ============================
 
 CREATE DATABASE IF NOT EXISTS `examcert`
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS cert_templates (
     bg_type ENUM('color','image') DEFAULT 'color',
     bg_color VARCHAR(7) DEFAULT '#FFFFFF',
     bg_image VARCHAR(255),
-    elements LONGTEXT,
+    elements JSON,
     is_active TINYINT(1) DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS questions (
     project_id INT NOT NULL,
     question_text TEXT NOT NULL,
     question_type ENUM('multiple_choice', 'subjective') DEFAULT 'multiple_choice',
-    options LONGTEXT,
+    options JSON,
     correct_answer TEXT,
     points INT DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

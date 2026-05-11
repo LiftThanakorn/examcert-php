@@ -27,7 +27,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     setupPage(
         'ExamCert Database Setup',
         '<h1>ExamCert Database Setup & Maintenance</h1>
-        <p>เครื่องมือนี้ใช้สำหรับตั้งค่าฐานข้อมูลบน Production</p>
+        <p>เครื่องมือนี้ใช้สำหรับตั้งค่าฐานข้อมูลบน Production (MySQL 8 Ready)</p>
         <hr>
         <div style="background:#fff7ed; border:1px solid #ffedd5; padding:20px; border-radius:12px; margin-bottom:24px;">
             <h3 class="warn" style="margin-top:0;">ตัวเลือกที่ 1: ติดตั้งใหม่ / ล้างข้อมูลเดิม (Clean Install)</h3>
@@ -76,14 +76,19 @@ try {
         $db->exec("SET FOREIGN_KEY_CHECKS = 1");
     }
 
-    // --- STEP 1: Run Schema.sql (CREATE TABLE IF NOT EXISTS) ---
+    // --- STEP 1: Run Schema.sql ---
     if (!is_file($schemaFile)) {
         throw new Exception("ไม่พบไฟล์ schema.sql ที่ " . $schemaFile);
     }
     $sql = file_get_contents($schemaFile);
-    $sql = preg_replace('/--.*$/m', '', $sql);
-    $sql = preg_replace('/#.*$/m', '', $sql);
-    $statements = array_filter(array_map('trim', explode(';', $sql)));
+    // Remove ONLY double-dash comments. DO NOT strip # because it breaks hex colors.
+    $sql = preg_replace('/^--.*$/m', '', $sql);
+    
+    // Split by semicolon that is followed by a newline or end of file
+    $statements = array_filter(array_map('trim', explode(";\n", $sql)));
+    if (count($statements) <= 1) {
+        $statements = array_filter(array_map('trim', explode(";", $sql)));
+    }
 
     foreach ($statements as $stmt) {
         if ($stmt === '') continue;
@@ -95,7 +100,7 @@ try {
         }
     }
 
-    // --- STEP 2: Custom Migrations (Adding columns if missing) ---
+    // --- STEP 2: Custom Migrations ---
     $migrations = [
         'certificates' => [
             'is_revoked' => "ALTER TABLE certificates ADD COLUMN is_revoked TINYINT(1) DEFAULT 0 AFTER verify_token",
@@ -110,6 +115,7 @@ try {
 
     foreach ($migrations as $table => $cols) {
         try {
+            $db->exec("USE `" . DB_NAME . "`");
             $stmt = $db->query("SHOW COLUMNS FROM `$table` ");
             $existingCols = array_map(fn($r) => $r['Field'], $stmt->fetchAll());
             
@@ -122,14 +128,17 @@ try {
         } catch (Exception $e) {}
     }
 
-    // --- STEP 3: Import Data Export (if exists) ---
+    // --- STEP 3: Data Import ---
     $dataExportFile = ROOT_PATH . '/database/data_export.sql';
     if (is_file($dataExportFile)) {
         $log[] = "[PROCESS] Found data_export.sql, starting import...";
         $dataSql = file_get_contents($dataExportFile);
         if ($dataSql) {
-            $dataSql = preg_replace('/--.*$/m', '', $dataSql);
-            $dataStatements = array_filter(array_map('trim', explode(';', $dataSql)));
+            $dataSql = preg_replace('/^--.*$/m', '', $dataSql);
+            $dataStatements = array_filter(array_map('trim', explode(";\n", $dataSql)));
+            if (count($dataStatements) <= 1) {
+                $dataStatements = array_filter(array_map('trim', explode(";", $dataSql)));
+            }
             
             $dataImported = 0;
             foreach ($dataStatements as $dStmt) {
@@ -138,14 +147,14 @@ try {
                     $db->exec($dStmt);
                     $dataImported++;
                 } catch (PDOException $e) {
-                    $log[] = "[WARN] Data import skipped: " . substr($dStmt, 0, 50) . "...";
+                    $log[] = "[WARN] Data import skipped: " . substr($dStmt, 0, 50) . "... Error: " . $e->getMessage();
                 }
             }
             $log[] = "[OK] Imported $dataImported records from data_export.sql";
         }
     }
 
-    // Create lock file if not exists
+    // Create lock file
     if (!is_file($lockFile)) {
         if (!is_dir(dirname($lockFile))) mkdir(dirname($lockFile), 0755, true);
         file_put_contents($lockFile, 'Installed/Updated at ' . date('Y-m-d H:i:s'));
@@ -154,7 +163,7 @@ try {
     setupPage(
         'Setup Successful',
         '<h1 class="ok">ดำเนินการเสร็จสมบูรณ์</h1>
-        <p>ฐานข้อมูลของคุณได้รับการติดตั้งหรือปรับปรุงเรียบร้อยแล้ว</p>
+        <p>ฐานข้อมูลของคุณได้รับการติดตั้งหรือปรับปรุงเรียบร้อยแล้วบน MySQL 8</p>
         <pre>' . htmlspecialchars(implode("\n", $log)) . '</pre>
         <hr>
         <p class="err">คำเตือน: โปรดลบไฟล์ <code>install-database.php</code> ออกจาก Server ทันทีหลังจากนี้</p>
