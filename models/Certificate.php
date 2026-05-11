@@ -17,7 +17,7 @@ function issueCertificateFromSession(int $sessionId, ?int $adminId = null): arra
         ];
     }
 
-    $sess = $db->prepare('SELECT * FROM exam_sessions WHERE id=? AND status="submitted" AND passed=1 LIMIT 1');
+    $sess = $db->prepare('SELECT * FROM exam_sessions WHERE id=? AND status="submitted" AND result="pass" LIMIT 1');
     $sess->execute([$sessionId]);
     $session = $sess->fetch();
     if (!$session) {

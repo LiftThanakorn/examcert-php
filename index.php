@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+ob_start();
 
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/session.php';
@@ -80,8 +81,8 @@ $match = match ($requestUri) {
     '/public/result.php' => [PublicExamController::class, 'result'],
     
     // API Routes
-    '/api/save-template' => [CertificateController::class, 'apiSaveTemplate'],
-    '/api/upload-asset' => [CertificateController::class, 'apiUploadAsset'],
+    '/api/save-template', '/api/save_template.php' => [CertificateController::class, 'apiSaveTemplate'],
+    '/api/upload-asset', '/api/upload_asset.php' => [CertificateController::class, 'apiUploadAsset'],
     
     default => null,
 };

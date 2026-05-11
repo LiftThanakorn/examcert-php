@@ -229,8 +229,8 @@ class CertificateController
             $this->jsonResponse(false, 'ไฟล์ต้องเป็นรูปภาพ JPG/PNG/WEBP/GIF เท่านั้น', [], 400);
         }
 
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime = $finfo->file($tmpName);
+        $info = getimagesize($tmpName);
+        $mime = $info['mime'];
         $allowed = [
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
@@ -247,21 +247,30 @@ class CertificateController
         $path = 'uploads/templates/' . $fname;
 
         if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+            if (!mkdir($dir, 0755, true)) {
+                $this->jsonResponse(false, 'ไม่สามารถสร้างโฟลเดอร์สำหรับเก็บไฟล์ได้ (Permission Denied)', ['path' => $dir], 500);
+            }
+        }
+
+        if (!is_writable($dir)) {
+            $this->jsonResponse(false, 'โฟลเดอร์ไม่สามารถเขียนไฟล์ได้ (Directory not writable)', ['path' => $dir], 500);
         }
 
         if (!move_uploaded_file($tmpName, $dir . $fname)) {
-            $this->jsonResponse(false, 'บันทึกไฟล์ไม่สำเร็จ', [], 500);
+            $this->jsonResponse(false, 'บันทึกไฟล์ไม่สำเร็จ (move_uploaded_file failed)', ['fname' => $fname, 'dir' => $dir], 500);
         }
 
         $this->jsonResponse(true, 'อัปโหลดสำเร็จ', ['path' => $path]);
     }
 
-    private function jsonResponse(bool $success, string $message, array $data = [], int $statusCode = 200): never
+    private function jsonResponse(bool $success, string $message = '', array $data = [], int $statusCode = 200): void
     {
+        if (ob_get_length()) {
+            ob_clean();
+        }
         http_response_code($statusCode);
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['success' => $success, 'message' => $message] + $data, JSON_UNESCAPED_UNICODE);
+        echo json_encode(array_merge(['success' => $success, 'message' => $message], $data), JSON_UNESCAPED_UNICODE);
         exit;
     }
 }

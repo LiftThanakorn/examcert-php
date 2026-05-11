@@ -1,4 +1,8 @@
-# ExamCert Worklog
+## 2026-05-11 - API Compatibility Fix (Production 404)
+
+Completed:
+- Added compatibility routes in `index.php` for `/api/upload_asset.php` and `/api/save_template.php`.
+- Resolved the 404 Not Found error when uploading assets in production where legacy paths might still be called or cached.
 
 ## 2026-05-11 - TCPDF Template Builder Schema
 

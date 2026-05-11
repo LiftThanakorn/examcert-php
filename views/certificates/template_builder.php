@@ -36,6 +36,8 @@ tailwind.config = {
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Sarabun', sans-serif; }
@@ -204,7 +206,7 @@ tailwind.config = {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 const BASE_URL = '<?= e(BASE_URL) ?>';
-const CSRF_TOKEN = document.getElementById('csrf-token').value;
+const CSRF_TOKEN = '<?= generateCsrfToken() ?>';
 const CANVAS_W_PX = 1123; // A4 Landscape at 96 DPI
 const CANVAS_H_PX = 794;
 const MM_W = 297;
@@ -225,7 +227,6 @@ function escapeHtml(value) {
 
 let elements = <?= json_encode($elements, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 let selectedId = null;
-let idCounter = elements.length;
 let bgColor = '<?= e($bgColor) ?>';
 let bgImagePath = '<?= e((string) $bgImage) ?>';
 let isDragging = false;
@@ -247,12 +248,12 @@ function renderCanvas() {
     const pxX = mmToPx(Number(el.x || 0), 'x');
     const pxY = mmToPx(Number(el.y || 0), 'y');
     const pxW = mmToPx(Number(el.w || 1), 'x');
-    const pxH = el.type === 'line' ? Math.max(mmToPx(Number(el.h || 0.5), 'y'), 4) : mmToPx(Number(el.h || 1), 'y');
+    const pxH = el.type === 'line' ? Math.max(mmToPx(Number(el.h || 0.1), 'y'), 6) : mmToPx(Number(el.h || 1), 'y');
     let left = pxX;
     const top = pxY;
     if (el.anchor === 'center') left = pxX - pxW / 2;
 
-    div.style.cssText = `left:${left}px; top:${top}px; width:${pxW}px; height:${pxH}px;`;
+    div.style.cssText = `left:${left}px; top:${top}px; width:${pxW}px; height:${pxH}px; z-index:${el.id === selectedId ? 25 : 10};`;
 
     if (el.type === 'text') {
       const s = el.style || {};
@@ -297,6 +298,7 @@ function renderCanvas() {
 
 function bindEvents(div, el) {
   div.addEventListener('mousedown', e => {
+    e.stopPropagation();
     if (e.target.classList.contains('resize-handle')) {
       e.preventDefault();
       isResizing = true;
@@ -346,6 +348,28 @@ document.addEventListener('mouseup', () => {
   isResizing = false;
 });
 
+document.addEventListener('keydown', e => {
+  if (!selectedId || ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  const el = elements.find(x => x.id === selectedId);
+  if (!el) return;
+  
+  const step = e.shiftKey ? 5 : 0.5;
+  if (e.key === 'ArrowLeft') el.x -= step;
+  else if (e.key === 'ArrowRight') el.x += step;
+  else if (e.key === 'ArrowUp') el.y -= step;
+  else if (e.key === 'ArrowDown') el.y += step;
+  else if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (confirm('ลบ element นี้?')) deleteElement();
+    return;
+  } else return;
+  
+  e.preventDefault();
+  el.x = parseFloat(el.x.toFixed(3));
+  el.y = parseFloat(el.y.toFixed(3));
+  renderCanvas();
+  updatePropsForm();
+});
+
 document.getElementById('canvas-area').addEventListener('mousedown', e => {
   if (e.target.id === 'canvas-area' || e.target.id === 'canvas-wrap' || e.target.id === 'bg-layer') {
     selectedId = null;
@@ -355,6 +379,7 @@ document.getElementById('canvas-area').addEventListener('mousedown', e => {
 });
 
 function selectElement(id) {
+  if (selectedId === id) return;
   selectedId = id;
   renderCanvas();
   updatePropsForm();
@@ -436,13 +461,12 @@ function updateStyle(key, val) {
 }
 
 function addElement(type) {
-  idCounter++;
-  const id = 'el_' + idCounter;
+  const id = 'el_' + Date.now();
   const defaults = {
     text: { x:148.5, y:100, w:150, h:15, anchor:'center', content:'ข้อความใหม่', style:{font:'thsarabunnew', size:20, bold:false, color:'#1A1A1A', align:'C'} },
     image: { x:20, y:20, w:40, h:28, anchor:'topleft', content:'', style:{} },
     qrcode: { x:257, y:175, w:25, h:25, anchor:'topleft', content:'{{verify_url}}', style:{} },
-    line: { x:40, y:165, w:80, h:0, anchor:'topleft', content:'', style:{color:'#AAAAAA', lineWidth:0.3} },
+    line: { x:40, y:165, w:80, h:0.5, anchor:'topleft', content:'', style:{color:'#AAAAAA', lineWidth:0.5} },
   };
   elements.push({ id, type, ...defaults[type] });
   selectElement(id);
@@ -464,12 +488,13 @@ function setBgColor(color) {
 }
 
 function uploadBg(input) {
+  console.log('uploadBg triggered', input.files);
   if (!input.files[0]) return;
   const fd = new FormData();
   fd.append('file', input.files[0]);
   fd.append('type', 'bg');
   fd.append('csrf_token', CSRF_TOKEN);
-  $.ajax({ url: BASE_URL + '/api/upload_asset.php', method: 'POST', data: fd, processData: false, contentType: false, dataType: 'json' })
+  $.ajax({ url: BASE_URL + '/api/upload-asset', method: 'POST', data: fd, processData: false, contentType: false, dataType: 'json' })
    .done(res => {
      if (res.success) {
        bgImagePath = res.path;
@@ -477,6 +502,13 @@ function uploadBg(input) {
      } else {
        Swal.fire({ icon:'error', title:'อัปโหลดไม่สำเร็จ', text: res.message || 'Upload failed' });
      }
+   })
+   .fail(xhr => {
+     console.error('Upload error:', xhr);
+     const status = xhr.status;
+     const res = xhr.responseJSON;
+     const errorMsg = res?.message || `Error ${status}: ${xhr.statusText || 'Unknown Error'}`;
+     Swal.fire({ icon:'error', title:'อัปโหลดไม่สำเร็จ (Server Error)', text: errorMsg });
    });
 }
 
@@ -486,6 +518,7 @@ function clearBg() {
 }
 
 function uploadElementImage(input) {
+  console.log('uploadElementImage triggered', input.files);
   if (!input.files[0]) return;
   const fd = new FormData();
   fd.append('file', input.files[0]);
@@ -495,6 +528,13 @@ function uploadElementImage(input) {
    .done(res => {
      if (res.success) updateEl('content', res.path);
      else Swal.fire({ icon:'error', title:'อัปโหลดไม่สำเร็จ', text: res.message || 'Upload failed' });
+   })
+   .fail(xhr => {
+     console.error('Element upload error:', xhr);
+     const status = xhr.status;
+     const res = xhr.responseJSON;
+     const errorMsg = res?.message || `Error ${status}: ${xhr.statusText || 'Unknown Error'}`;
+     Swal.fire({ icon:'error', title:'อัปโหลดไม่สำเร็จ (Server Error)', text: errorMsg });
    });
 }
 
@@ -502,7 +542,7 @@ function copyVar(v) {
   navigator.clipboard?.writeText(v);
   const el = elements.find(x => x.id === selectedId);
   if (el && el.type === 'text') {
-    el.content = v;
+    el.content += v;
     renderCanvas();
     updatePropsForm();
   }
@@ -526,7 +566,12 @@ function saveTemplate() {
     } else {
       Swal.fire({ icon:'error', title:'เกิดข้อผิดพลาด', text: res.message || 'Save failed', customClass:{popup:'rounded-2xl font-sans'} });
     }
-  }, 'json');
+  }, 'json').fail(xhr => {
+    console.error('Upload error:', xhr);
+    const res = xhr.responseJSON;
+    const errorMsg = res?.message || `Error ${xhr.status}: ${xhr.statusText}\nResponse: ${xhr.responseText.substring(0, 150)}`;
+    Swal.fire({ icon:'error', title:'อัปโหลดไม่สำเร็จ (V3)', text: errorMsg });
+  });
 }
 
 function previewPDF() {
@@ -540,6 +585,7 @@ function previewPDF() {
 
 function changeOrientation() {
   document.getElementById('tpl-orientation').value = document.getElementById('orientation-select').value;
+  renderCanvas();
 }
 
 renderCanvas();
