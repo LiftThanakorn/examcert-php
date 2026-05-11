@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
 
-define('DB_HOST', 'localhost');
+define('DB_HOST', '127.0.0.1');
 define('DB_NAME', 'examcert');
 define('DB_USER', 'examcert');
-define('DB_PASS', 'EaNcfHjFLfxdy8xK');
+define('DB_PASS', 'Fc5pekaTxFbzSJj3');
 define('DB_CHARSET', 'utf8mb4');
 
 function getDB(): PDO

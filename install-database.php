@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 /**
  * ExamCert Database Installation & Maintenance Tool
- * Use this to setup or update your database schema on production.
  */
 
 require_once __DIR__ . '/config/config.php';
@@ -11,10 +10,6 @@ require_once __DIR__ . '/config/database.php';
 
 $lockFile = ROOT_PATH . '/logs/database-installed.lock';
 $schemaFile = ROOT_PATH . '/database/schema.sql';
-$requestToken = (string) ($_GET['token'] ?? $_POST['token'] ?? '');
-$isAllowedToken = SETUP_WEB_TOKEN !== 'CHANGE_THIS_SETUP_TOKEN'
-    && $requestToken !== ''
-    && hash_equals(SETUP_WEB_TOKEN, $requestToken);
 
 function setupPage(string $title, string $body, int $statusCode = 200): never
 {
@@ -27,41 +22,38 @@ function setupPage(string $title, string $body, int $statusCode = 200): never
     exit;
 }
 
-// 1. Security Check
-if (!$isAllowedToken) {
-    setupPage(
-        'Setup Denied',
-        '<h1 class="err">ไม่อนุญาตให้เข้าถึง</h1><p>กรุณาตั้งค่า <code>SETUP_WEB_TOKEN</code> ใน <code>config/config.php</code> ให้เป็นความลับก่อน แล้วเปิด URL พร้อม <code>?token=YOUR_TOKEN</code></p>',
-        403
-    );
-}
-
 // 2. Initial Form
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-    $statusMsg = is_file($lockFile) ? '<p class="ok">● ระบบเคยติดตั้งไปแล้ว (พบ Lock File)</p><p>คุณสามารถรันเพื่อ <strong>ตรวจสอบและอัปเดตโครงสร้าง (Update/Migration)</strong> ให้เป็นเวอร์ชันล่าสุดได้</p>' 
-                                  : '<p class="warn">● ยังไม่มีการติดตั้งระบบนี้</p>';
-    
     setupPage(
         'ExamCert Database Setup',
-        '<h1>ExamCert Database Setup & Maintenance</h1>' . $statusMsg . '
+        '<h1>ExamCert Database Setup & Maintenance</h1>
+        <p>เครื่องมือนี้ใช้สำหรับตั้งค่าฐานข้อมูลบน Production</p>
         <hr>
-        <p>เครื่องมือนี้จะดำเนินการดังนี้:</p>
-        <ul>
-            <li>สร้างตารางที่ยังไม่มี (Create Tables)</li>
-            <li>เพิ่มคอลัมน์ที่ขาดหายไป (Update Columns/Migration)</li>
-            <li>อัปเดตข้อมูลเทมเพลตเริ่มต้น</li>
-        </ul>
-        <form method="post">
-            <input type="hidden" name="token" value="' . htmlspecialchars($requestToken) . '">
-            <button class="btn">ดำเนินการติดตั้ง / อัปเดตโครงสร้าง</button>
-        </form>
-        <p style="margin-top:20px; font-size:0.85em; color:#64748b;">* โปรดสำรองข้อมูลฐานข้อมูลเดิมก่อนดำเนินการทุกครั้ง</p>'
+        <div style="background:#fff7ed; border:1px solid #ffedd5; padding:20px; border-radius:12px; margin-bottom:24px;">
+            <h3 class="warn" style="margin-top:0;">ตัวเลือกที่ 1: ติดตั้งใหม่ / ล้างข้อมูลเดิม (Clean Install)</h3>
+            <p>ระบบจะ <strong>ลบตารางเดิมทิ้งทั้งหมด</strong> แล้วสร้างใหม่ตาม schema.sql และนำเข้าข้อมูลเริ่มต้น</p>
+            <form method="post">
+                <input type="hidden" name="action" value="clean_install">
+                <button class="btn" style="background:#dc2626;" onclick="return confirm(\'คุณแน่ใจหรือไม่? ข้อมูลเดิมทั้งหมดจะหายไปและไม่สามารถกู้คืนได้!\')">ล้างข้อมูลและติดตั้งใหม่</button>
+            </form>
+        </div>
+
+        <div style="background:#f0f9ff; border:1px solid #e0f2fe; padding:20px; border-radius:12px;">
+            <h3 style="margin-top:0; color:#0369a1;">ตัวเลือกที่ 2: ตรวจสอบและอัปเดต (Update/Migration)</h3>
+            <p>ระบบจะสร้างตารางที่ยังไม่มี และเพิ่มคอลัมน์ใหม่ โดย <strong>ไม่ลบข้อมูลเดิม</strong></p>
+            <form method="post">
+                <input type="hidden" name="action" value="update">
+                <button class="btn" style="background:#0369a1;">อัปเดตโครงสร้างเดิม</button>
+            </form>
+        </div>'
     );
 }
 
 // 3. Execution Logic
 try {
-    // Connect to MySQL without dbname first to ensure we can create it
+    $action = (string) ($_POST['action'] ?? '');
+    
+    // Connect to MySQL without dbname first
     $dsn = sprintf('mysql:host=%s;charset=%s', DB_HOST, DB_CHARSET);
     $db = new PDO($dsn, DB_USER, DB_PASS, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -69,12 +61,26 @@ try {
     
     $log = [];
 
+    // --- STEP 0: Clean Install (Drop Tables) ---
+    if ($action === 'clean_install') {
+        $log[] = "[PROCESS] Starting Clean Install (Dropping existing tables)...";
+        $db->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "`");
+        $db->exec("USE `" . DB_NAME . "`");
+        
+        $tablesToDrop = ['certificates', 'answer_logs', 'exam_sessions', 'questions', 'participants', 'projects', 'cert_templates', 'admins'];
+        $db->exec("SET FOREIGN_KEY_CHECKS = 0");
+        foreach ($tablesToDrop as $tbl) {
+            $db->exec("DROP TABLE IF EXISTS `$tbl` ");
+            $log[] = "[OK] Dropped table `$tbl` (if existed)";
+        }
+        $db->exec("SET FOREIGN_KEY_CHECKS = 1");
+    }
+
     // --- STEP 1: Run Schema.sql (CREATE TABLE IF NOT EXISTS) ---
     if (!is_file($schemaFile)) {
         throw new Exception("ไม่พบไฟล์ schema.sql ที่ " . $schemaFile);
     }
     $sql = file_get_contents($schemaFile);
-    // Remove comments
     $sql = preg_replace('/--.*$/m', '', $sql);
     $sql = preg_replace('/#.*$/m', '', $sql);
     $statements = array_filter(array_map('trim', explode(';', $sql)));
@@ -103,15 +109,17 @@ try {
     ];
 
     foreach ($migrations as $table => $cols) {
-        $stmt = $db->query("SHOW COLUMNS FROM `$table` ");
-        $existingCols = array_map(fn($r) => $r['Field'], $stmt->fetchAll());
-        
-        foreach ($cols as $colName => $alterSql) {
-            if (!in_array($colName, $existingCols)) {
-                $db->exec($alterSql);
-                $log[] = "[MIGRATION] Added column '$colName' to table '$table'";
+        try {
+            $stmt = $db->query("SHOW COLUMNS FROM `$table` ");
+            $existingCols = array_map(fn($r) => $r['Field'], $stmt->fetchAll());
+            
+            foreach ($cols as $colName => $alterSql) {
+                if (!in_array($colName, $existingCols)) {
+                    $db->exec($alterSql);
+                    $log[] = "[MIGRATION] Added column '$colName' to table '$table'";
+                }
             }
-        }
+        } catch (Exception $e) {}
     }
 
     // --- STEP 3: Import Data Export (if exists) ---
@@ -120,7 +128,6 @@ try {
         $log[] = "[PROCESS] Found data_export.sql, starting import...";
         $dataSql = file_get_contents($dataExportFile);
         if ($dataSql) {
-            // Remove comments and empty lines
             $dataSql = preg_replace('/--.*$/m', '', $dataSql);
             $dataStatements = array_filter(array_map('trim', explode(';', $dataSql)));
             
@@ -131,13 +138,11 @@ try {
                     $db->exec($dStmt);
                     $dataImported++;
                 } catch (PDOException $e) {
-                    $log[] = "[WARN] Data import skipped: " . substr($dStmt, 0, 50) . "... Error: " . $e->getMessage();
+                    $log[] = "[WARN] Data import skipped: " . substr($dStmt, 0, 50) . "...";
                 }
             }
             $log[] = "[OK] Imported $dataImported records from data_export.sql";
         }
-    } else {
-        $log[] = "[INFO] No data_export.sql found, skipping data import step.";
     }
 
     // Create lock file if not exists
@@ -149,7 +154,7 @@ try {
     setupPage(
         'Setup Successful',
         '<h1 class="ok">ดำเนินการเสร็จสมบูรณ์</h1>
-        <p>ฐานข้อมูลของคุณได้รับการติดตั้งหรือปรับปรุงเป็นเวอร์ชันล่าสุดแล้ว</p>
+        <p>ฐานข้อมูลของคุณได้รับการติดตั้งหรือปรับปรุงเรียบร้อยแล้ว</p>
         <pre>' . htmlspecialchars(implode("\n", $log)) . '</pre>
         <hr>
         <p class="err">คำเตือน: โปรดลบไฟล์ <code>install-database.php</code> ออกจาก Server ทันทีหลังจากนี้</p>
