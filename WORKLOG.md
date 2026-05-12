@@ -1,3 +1,18 @@
+## 2026-05-12 - Participant Import Enhancements and Exam Integrity
+
+Completed:
+- Added "Title" (คำนำหน้า) column support to participant import logic.
+- Updated participant import UI documentation and column order to include the "Title" field.
+- Set a unique session name (`EXAMCERT_SESS`) to prevent session conflicts with other systems on the same domain.
+- Added a "Download Certificate" button to the exam result page for participants who pass.
+- Implemented logic to prevent participants from re-taking the exam if they have already passed; they are now redirected to their previous passing result.
+
+Verification:
+- Ran PHP lint on `models/Participant.php`, `models/ExamSession.php`, `controllers/PublicExamController.php`, `views/participants/import.php`, and `views/exam/result.php`: passed.
+- Verified that the "Title" field is correctly handled during import.
+- Verified that the "Download Certificate" button appears and links correctly.
+- Verified that re-entry for a passed participant redirects to the result page.
+
 ## 2026-05-12 - Participant Attempt Status Display
 
 Completed:

@@ -3,10 +3,14 @@
 Last updated: 2026-05-12
 
 ## Checkpoint
-- Checkpoint note updated after adding participant attempt status display to the public exam entry flow.
+- Checkpoint note updated after adding "Title" field to participant import, unique session name, download certificate button, and re-entry prevention for passed participants.
 - No Git checkpoint commit has been created in this turn.
 
 ## Current Scope
+- Participant import now supports the "Title" (คำนำหน้า) column.
+- The application uses a unique session name (`EXAMCERT_SESS`) to avoid domain-wide conflicts.
+- Participants can download their certificate immediately from the result page after passing.
+- Participants who have already passed are blocked from re-taking the exam and redirected to their result.
 - Public participant search now returns attempt eligibility status for the selected project.
 - Public exam entry shows allowed attempts, used attempts, remaining attempts, and active in-progress state after selecting a participant.
 - `startExamSession()` uses the same attempt status helper to enforce resume/block/new-attempt behavior.
@@ -18,6 +22,10 @@ Last updated: 2026-05-12
 - Exam submission accepts both Thai and English choice keys and normalizes them before grading.
 
 ## Recent Completed Work
+- Implemented "Title" (คำนำหน้า) column support in `models/Participant.php` and `views/participants/import.php`.
+- Added `session_name('EXAMCERT_SESS')` to `config/session.php` to isolate the session.
+- Added a "Download Certificate" button to `views/exam/result.php`.
+- Implemented `getParticipantPassingSession()` in `models/ExamSession.php` and added redirect logic in `PublicExamController.php` to prevent re-taking passed exams.
 - Added `getParticipantAttemptStatus()` in `models/ExamSession.php`.
 - Added attempt status display to `views/exam/entry.php`.
 - Added attempt status payload to `api/exam.php?action=search_participants`.
