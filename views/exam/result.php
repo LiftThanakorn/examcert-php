@@ -188,9 +188,14 @@ $timeUsedStr .= $diff->s . " วินาที";
             <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
               <i class="fas fa-award text-green-500 text-3xl"></i>
             </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">ยินดีด้วย! คุณผ่านการทดสอบ</h3>
             <p class="text-sm text-gray-400 mb-8 max-w-[320px]">ระบบได้ออกเกียรติบัตรให้คุณเรียบร้อยแล้ว สามารถดาวน์โหลดไฟล์ PDF ได้จากปุ่มด้านล่างนี้</p>
             
+            <?php if ($certificate): ?>
+            <a href="<?= e(BASE_URL) ?>/certificates/export?t=<?= e($certificate['verify_token']) ?>" 
+               class="flex items-center justify-center gap-2 w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-all shadow-xl active:scale-95 no-underline">
+               <i class="fas fa-download"></i> ดาวน์โหลดเกียรติบัตร (PDF)
+            </a>
+            <?php endif; ?>
           </div>
         <?php elseif ((int)($project['show_result_immediately'] ?? 1) === 1): ?>
           <!-- Fail State -->

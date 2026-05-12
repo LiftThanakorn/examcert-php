@@ -25,11 +25,19 @@ class PublicExamController
 
         // Server-side lockdown: redirect back to an active exam only while the project is still open.
         if (isset($_SESSION['participant_id'])) {
-            $stmt = getDB()->prepare("SELECT id FROM exam_sessions WHERE participant_id = ? AND project_id = ? AND status = 'in_progress' LIMIT 1");
+            $stmt = getDB()->prepare("SELECT id, expires_at FROM exam_sessions WHERE participant_id = ? AND project_id = ? AND status = 'in_progress' LIMIT 1");
             $stmt->execute([(int)$_SESSION['participant_id'], (int)$project['id']]);
             $activeSession = $stmt->fetch();
-            if ($activeSession && $runtimeStatus['allowed']) {
+            $sessionExpired = $activeSession && !empty($activeSession['expires_at'])
+                && new DateTimeImmutable() > new DateTimeImmutable((string) $activeSession['expires_at']);
+            if ($activeSession && !$sessionExpired && ($runtimeStatus['allowed'] || (int) ($project['auto_submit_on_close'] ?? 1) === 0)) {
                 redirect('public/take-exam.php?session_id=' . (int) $activeSession['id']);
+            }
+
+            // Check if already passed
+            $passingSession = getParticipantPassingSession((int) $_SESSION['participant_id'], (int) $project['id']);
+            if ($passingSession) {
+                redirect('public/result.php?session_id=' . (int) $passingSession['id']);
             }
         }
 
@@ -55,6 +63,12 @@ class PublicExamController
                     if (!$project || !$participant) {
                         $error = 'ไม่พบโครงการหรือข้อมูลยืนยันตัวตนไม่ถูกต้อง';
                     } else {
+                        // If already passed, go to result page
+                        $passingSession = getParticipantPassingSession((int) $participant['id'], (int) $project['id']);
+                        if ($passingSession) {
+                            redirect('public/result.php?session_id=' . (int) $passingSession['id']);
+                        }
+
                         $result = startExamSession($project, $participant);
                         if ($result['success']) {
                             redirect('public/take-exam.php?session_id=' . (int) $result['session_id']);
@@ -108,7 +122,7 @@ class PublicExamController
         $sessionEnd = strtotime((string) $session['expires_at']);
         $effectiveEnd = $sessionEnd;
 
-        if (!empty($project['exam_end'])) {
+        if ((int) ($project['auto_submit_on_close'] ?? 1) === 1 && !empty($project['exam_end'])) {
             $projectEnd = strtotime((string) $project['exam_end']);
             if ($projectEnd < $sessionEnd) {
                 $effectiveEnd = $projectEnd;
@@ -116,6 +130,13 @@ class PublicExamController
         }
         
         $secondsLeft = max(0, $effectiveEnd - $now);
+        if ($secondsLeft <= 0) {
+            $result = submitExamSession($sessionId, getSessionAnswers($sessionId));
+            if ($result['success'] && $result['result'] === 'pass') {
+                issueCertificateFromSession($sessionId, null);
+            }
+            redirect('public/result.php?session_id=' . $sessionId);
+        }
 
         $pageTitle = 'ทำข้อสอบ';
         $bodyClass = 'bg-[#F9F8F6] font-sans';

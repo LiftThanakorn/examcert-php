@@ -4,9 +4,13 @@ declare(strict_types=1);
 date_default_timezone_set('Asia/Bangkok');
 
 define('APP_NAME', 'ระบบสอบออนไลน์พร้อมออกใบเกียรติบัตร มหาวิทยาลัยราชภัฏร้อยเอ็ด');
-define('APP_ENV', 'Production');
-define('BASE_URL', 'https://datapersonnel.reru.ac.th/examcert');
+define('APP_ENV', 'Development');
+define('BASE_URL', 'http://localhost/examcert');
 
+// เปิดการแสดง Error ชั่วคราวเพื่อหาสาเหตุหน้าขาว
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 
 define('SETUP_WEB_TOKEN', 'MySecretPass123');
 define('ROOT_PATH', dirname(__DIR__));
@@ -30,11 +34,17 @@ function e(?string $value): string
 
 function textLower(string $value): string
 {
-    return strtolower($value);
+    return function_exists('mb_strtolower')
+        ? mb_strtolower($value, 'UTF-8')
+        : strtolower($value);
 }
 
 function textLength(string $value): int
 {
+    if (function_exists('mb_strlen')) {
+        return mb_strlen($value, 'UTF-8');
+    }
+
     if (preg_match_all('/./us', $value, $matches) !== false) {
         return count($matches[0]);
     }

@@ -24,6 +24,10 @@
             </thead>
             <tbody class="divide-y divide-gray-100 text-sm">
                 <?php foreach ($sessions as $session): ?>
+                    <?php
+                    $sessionStatus = (string) ($session['status'] ?? '');
+                    $isFinal = in_array($sessionStatus, ['submitted', 'expired'], true);
+                    ?>
                     <tr class="hover:bg-primary-50/30 transition-colors group">
                         <td class="px-6 py-4 font-medium text-gray-800">
                             <?= e($session['participant_name']) ?>
@@ -33,10 +37,18 @@
                             <?= e($session['project_name']) ?>
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <span class="text-sm font-bold text-gray-700"><?= e((string) $session['percent']) ?>%</span>
+                            <span class="text-sm font-bold text-gray-700"><?= $isFinal ? e((string) $session['percent']) . '%' : '-' ?></span>
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <?php if ($session['result'] === 'pass'): ?>
+                            <?php if ($sessionStatus === 'in_progress'): ?>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xxs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                                    <i class="fas fa-clock text-xxs"></i> กำลังสอบ
+                                </span>
+                            <?php elseif ($sessionStatus === 'expired'): ?>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xxs font-bold bg-amber-50 text-amber-700 border border-amber-100">
+                                    <i class="fas fa-hourglass-end text-xxs"></i> หมดเวลา
+                                </span>
+                            <?php elseif ($session['result'] === 'pass'): ?>
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xxs font-bold bg-green-50 text-green-700 border border-green-100">
                                     <i class="fas fa-check-circle text-xxs"></i> ผ่าน
                                 </span>

@@ -24,8 +24,10 @@
                     <div class="mt-4 p-4 rounded-xl bg-orange-50/50 border border-orange-100 text-xxs text-orange-700 leading-relaxed">
                         <p class="font-bold mb-1">รูปแบบไฟล์ที่รองรับ:</p>
                         <p>• ไฟล์ CSV, Excel (.xlsx, .xls)</p>
-                        <p class="mt-2 font-bold mb-1">ลำดับคอลัมน์ (หรือใช้หัวตาราง):</p>
-                        <p>ชื่อ, นามสกุล, อีเมล, องค์กร, ตำแหน่ง, โทรศัพท์, เลขบัตรประชาชน, หมายเหตุ</p>
+                        <p class="mt-2 font-bold mb-1">หัวตาราง (Header) ที่รองรับ:</p>
+                        <p>คำนำหน้า, ชื่อ, นามสกุล, อีเมล, องค์กร, ตำแหน่ง, โทรศัพท์, เลขบัตรประชาชน, หมายเหตุ</p>
+                        <p class="mt-2 font-bold mb-1">หรือลำดับคอลัมน์ (กรณีไม่มีหัวตาราง):</p>
+                        <p>1.คำนำหน้า, 2.ชื่อ, 3.นามสกุล, 4.อีเมล, 5.องค์กร, 6.ตำแหน่ง, 7.โทรศัพท์, 8.เลขบัตรประชาชน, 9.หมายเหตุ</p>
                     </div>
                 </div>
                 <button onclick="handleImport()" id="btn-import" class="w-full py-3 bg-primary-400 hover:bg-primary-500 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-orange-100 disabled:opacity-50 disabled:cursor-not-allowed">

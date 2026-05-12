@@ -1,3 +1,73 @@
+## 2026-05-12 - Participant Attempt Status Display
+
+Completed:
+- Added `getParticipantAttemptStatus()` to centralize exam-attempt eligibility logic.
+- Updated `startExamSession()` to use the shared attempt status when deciding whether to resume, block, or create a new attempt.
+- Added attempt status data to the public participant search API.
+- Updated the public exam entry screen to show per-participant attempt status after selecting a name: allowed attempts, used attempts, remaining attempts, and active in-progress status.
+- Confirmed the result page retry button still returns to the entry flow instead of opening `take-exam.php` directly.
+
+Verification:
+- Ran PHP lint on `models/ExamSession.php`, `api/exam.php`, and `views/exam/entry.php`: passed.
+- Tested local attempt status for an exhausted participant: returned `ใช้สิทธิ์สอบครบแล้ว`.
+- Tested a temporary in-progress session: returned `กำลังทำข้อสอบอยู่` and `can_start=true`; temporary session was deleted.
+- Ran mojibake scan on edited Thai files: no matches.
+- Ran `git diff --check`: passed.
+
+## 2026-05-12 - Remove mbstring Runtime Dependency
+
+Completed:
+- Removed all direct PHP multibyte string calls from tracked application code.
+- Changed text helpers to use PHP core functions and UTF-8 regex handling only.
+- Replaced the admin sidebar initials logic with a PHP core implementation.
+
+Verification:
+- Ran tracked application search for multibyte string calls under `config`, `models`, `controllers`, `views`, and `api`: no matches.
+- Ran PHP lint on `config/config.php` and `views/layout/sidebar.php`: passed.
+
+## 2026-05-12 - Production Exam Hotfix
+
+Completed:
+- Added shared text helpers so production does not depend on the PHP multibyte string extension.
+- Updated choice normalization, exam grading, CSV true/false import, and participant search to use the fallback helpers.
+- Hardened the exam page JSON payload with `JSON_INVALID_UTF8_SUBSTITUTE` via `jsonForScript()` so malformed UTF-8 data cannot break `QUESTIONS` JavaScript rendering.
+- Updated the admin exam sessions list so `in_progress` rows display `กำลังสอบ` and score `-` instead of showing the default `fail` result as `ไม่ผ่าน`.
+
+Verification:
+- Ran PHP lint on `config/config.php`, `models/Question.php`, `models/ExamSession.php`, `models/Participant.php`, `controllers/QuestionController.php`, `controllers/PublicExamController.php`, `api/exam.php`, `views/exam/start.php`, `views/questions/form.php`, and `views/exam-sessions/index.php`: passed.
+- Verified `jsonForScript()` substitutes invalid UTF-8 instead of returning an empty JS payload.
+- Re-ran Thai answer submit smoke test: answer `ค` normalized to `c`, marked correct, and awarded score.
+- Ran `git diff --check`: passed.
+
+## 2026-05-12 - Exam Resume Logic and Thai Choice Labels
+
+Completed:
+- Clarified and fixed exam resume behavior so entering an active session does not auto-fail unless the session itself has expired or auto-submit-on-close is enabled.
+- Updated time checks in `PublicExamController` and `api/exam.php` so `project.exam_end` only caps active session time when `auto_submit_on_close` is enabled.
+- Added shared choice helpers for internal `a/b/c/d` keys with Thai display labels `ก/ข/ค/ง`.
+- Updated exam rendering, question form, CSV import, and answer grading to display Thai labels while accepting both Thai and English choice keys.
+
+Verification:
+- Ran PHP lint on `models/Question.php`, `models/ExamSession.php`, `controllers/QuestionController.php`, `controllers/PublicExamController.php`, `api/exam.php`, `views/exam/start.php`, and `views/questions/form.php`: passed.
+- Ran submit smoke test with Thai answer `ค`: passed, stored as internal key `c`, marked correct, and awarded score.
+- Ran resume smoke test for an active session after project end with `auto_submit_on_close=0`: passed, existing session resumed instead of auto-submitting.
+- Checked edited Thai files for mojibake patterns: none found.
+
+## 2026-05-12 - Exam Submit Reliability and Start Responsive Fix
+
+Completed:
+- Updated exam submission to include current in-browser answers in the final POST payload instead of relying only on autosave.
+- Updated `submitExamSession()` to prefer final POST answers, fall back to autosaved answers, and ignore non-scalar answer payloads.
+- Restored subjective submit behavior so subjective answers are stored with `grading_status=pending_manual`, no auto-correct flag, and no automatic score weight.
+- Improved `views/exam/start.php` mobile layout for the fixed top bar, question card, option rows, palette, and bottom navigation.
+
+Verification:
+- Ran PHP lint on `models/ExamSession.php`: passed.
+- Ran PHP lint on `views/exam/start.php`: passed.
+- Ran isolated submit smoke test with multiple choice plus subjective questions: passed, POST answer won over stale autosave, subjective was `pending_manual`.
+- Confirmed temporary smoke-test project cleanup: `tmp_projects=0`.
+- Ran `git diff --check`: passed.
+
 ## 2026-05-12 - Certificate Numbering Settings UI
 Completed:
 - Added `cert_sequence` to `projectPayload` in `models/Project.php` to support saving certificate sequences.
@@ -514,7 +584,7 @@ Next:
 ## 2026-05-09 - Bug Fix: Answer Verification Case Sensitivity
 
 Completed:
-- **Fixed Answer Logic**: Updated `isAnswerCorrect()` in `models/ExamSession.php` to be case-insensitive using `mb_strtolower()`.
+- **Fixed Answer Logic**: Updated `isAnswerCorrect()` in `models/ExamSession.php` to use case-insensitive normalization.
 - **Improved Robustness**: Standardized answer comparison to handle variations in case (e.g., 'a' vs 'A') which previously caused correct multiple-choice answers to be marked as wrong if the database used a different case than the frontend keys.
 - **Unicode Support**: Ensured UTF-8 compatibility for case-insensitive comparisons in fill-in-the-blank questions.
 

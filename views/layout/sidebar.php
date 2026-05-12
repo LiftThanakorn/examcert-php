@@ -71,11 +71,8 @@
       <div class="w-8 h-8 rounded-full bg-primary-400 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
         <?php
           $name = (string) ($_SESSION['admin_name'] ?? 'AD');
-          if (function_exists('mb_substr')) {
-              echo strtoupper(mb_substr($name, 0, 2));
-          } else {
-              echo strtoupper(substr($name, 0, 2));
-          }
+          $chars = preg_match_all('/./us', $name, $matches) !== false ? $matches[0] : str_split($name);
+          echo e(strtoupper(implode('', array_slice($chars, 0, 2))));
         ?>
       </div>
       <div class="min-w-0 flex-1">

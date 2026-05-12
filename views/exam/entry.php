@@ -188,9 +188,20 @@
     .status-banner.scheduled { background: #eff6ff; border: 1px solid #dbeafe; }
     .status-banner.closed { background: #fef2f2; border: 1px solid #fee2e2; }
     
-    .search-panel { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 0.35rem); z-index: 50; max-height: 180px; overflow-y: auto; background: white; border-radius: 0.85rem; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); padding: 0.4rem; }
-    .search-option { width: 100%; padding: 0.6rem 0.85rem; border: none; background: transparent; border-radius: 0.6rem; text-align: left; display: flex; align-items: center; gap: 0.6rem; cursor: pointer; color: #334155; font-weight: 600; font-size: 0.85rem; }
+    .search-panel { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 0.35rem); z-index: 50; max-height: 220px; overflow-y: auto; background: white; border-radius: 0.85rem; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); padding: 0.4rem; }
+    .search-option { width: 100%; padding: 0.6rem 0.85rem; border: none; background: transparent; border-radius: 0.6rem; text-align: left; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; cursor: pointer; color: #334155; font-weight: 600; font-size: 0.85rem; }
     .search-option:hover { background: #fff7ed; color: #ea580c; }
+    .search-name { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+    .attempt-pill { flex-shrink: 0; border-radius: 999px; padding: 0.2rem 0.5rem; font-size: 0.58rem; font-weight: 800; border: 1px solid #e2e8f0; color: #64748b; background: #f8fafc; }
+    .attempt-pill.available { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+    .attempt-pill.in_progress { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+    .attempt-pill.exhausted { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+    .attempt-panel { margin-top: 0.65rem; border-radius: 1rem; padding: 0.75rem 0.85rem; border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; font-size: 0.72rem; font-weight: 700; }
+    .attempt-panel.available { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .attempt-panel.in_progress { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+    .attempt-panel.exhausted { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+    .attempt-meta { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.4rem; font-size: 0.62rem; opacity: 0.85; }
+    .attempt-meta span { border-radius: 999px; padding: 0.15rem 0.45rem; background: rgba(255,255,255,0.65); border: 1px solid rgba(148,163,184,0.25); }
 
     @media (max-width: 900px) {
         body { overflow: auto; }
@@ -290,6 +301,7 @@
                         </div>
                         <input type="hidden" name="first_name" id="selected_first_name">
                         <input type="hidden" name="last_name" id="selected_last_name">
+                        <div id="attempt_status" class="attempt-panel hidden"></div>
                     </div>
 
                     <div class="input-group">
@@ -310,20 +322,60 @@
 <script>
 $(document).ready(function() {
     const $input = $('#participant_search'), $results = $('#search_results'), pCode = '<?= e($projectCode) ?>';
+    const $attemptStatus = $('#attempt_status');
     let timer;
+    let currentParticipants = [];
+
+    function escapeHtml(value) {
+        return $('<div>').text(value ?? '').html();
+    }
+
+    function attemptClass(status) {
+        const key = status && status.status ? status.status : 'available';
+        return ['available', 'in_progress', 'exhausted'].includes(key) ? key : 'available';
+    }
+
+    function renderAttemptBadge(status) {
+        if (!status) return '';
+        return `<span class="attempt-pill ${attemptClass(status)}">${escapeHtml(status.message)}</span>`;
+    }
+
+    function renderAttemptPanel(status) {
+        if (!status) return '';
+        return `
+            <div class="font-extrabold">${escapeHtml(status.message)}</div>
+            <div class="attempt-meta">
+                <span>สิทธิ์ ${escapeHtml(status.max_attempts)} ครั้ง</span>
+                <span>สอบแล้ว ${escapeHtml(status.used_attempts)} ครั้ง</span>
+                <span>เหลือ ${escapeHtml(status.remaining_attempts)} ครั้ง</span>
+            </div>
+        `;
+    }
 
     $input.on('input', function() {
         clearTimeout(timer);
         const q = $(this).val().trim();
+        $('#selected_first_name, #selected_last_name').val('');
+        $attemptStatus.addClass('hidden').empty();
         if (q.length < 2) { $results.hide(); return; }
         timer = setTimeout(() => {
             $.ajax({
                 url: '<?= BASE_URL ?>/api/exam.php?action=search_participants',
                 data: { project_code: pCode, query: q },
                 success: function(res) {
-                    if (res.success && res.data.length > 0) {
+                    currentParticipants = res.success ? (res.data || []) : [];
+                    if (currentParticipants.length > 0) {
                         let h = '';
-                        res.data.forEach(p => h += `<button type="button" class="search-option" data-first="${p.first_name}" data-last="${p.last_name}"><i class="fa-solid fa-user"></i><span>${p.title}${p.first_name} ${p.last_name}</span></button>`);
+                        currentParticipants.forEach((p, index) => {
+                            const title = p.title || '';
+                            const name = `${title}${p.first_name} ${p.last_name}`;
+                            h += `
+                                <button type="button" class="search-option" data-index="${index}">
+                                    <span class="search-name"><i class="fa-solid fa-user"></i><span>${escapeHtml(name)}</span></span>
+                                    ${renderAttemptBadge(p.attempt_status)}
+                                </button>
+                            `;
+                        });
                         $results.html(h).show();
                     } else { $results.html('<div class="p-2 text-[10px] text-center">ไม่พบข้อมูล</div>').show(); }
                 }
@@ -332,9 +384,17 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.search-option', function() {
-        $('#selected_first_name').val($(this).data('first'));
-        $('#selected_last_name').val($(this).data('last'));
-        $input.val($(this).find('span').text());
+        const participant = currentParticipants[Number($(this).data('index'))] || {};
+        $('#selected_first_name').val(participant.first_name || '');
+        $('#selected_last_name').val(participant.last_name || '');
+        const title = participant.title || '';
+        $input.val(`${title}${participant.first_name || ''} ${participant.last_name || ''}`.trim());
+        const status = participant.attempt_status || null;
+        if (status) {
+            $attemptStatus
+                .attr('class', `attempt-panel ${attemptClass(status)}`)
+                .html(renderAttemptPanel(status));
+        }
         $results.hide();
     });
 

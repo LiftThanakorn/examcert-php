@@ -48,17 +48,18 @@ if ($action === 'check_time') {
     }
 
     $projectStatus = getProjectRuntimeStatus($project);
+    $autoSubmitOnProjectClose = (int) ($project['auto_submit_on_close'] ?? 1) === 1;
     $expiresLeft = null;
     if (!empty($session['expires_at'])) {
         $expiresLeft = max(0, (new DateTimeImmutable((string) $session['expires_at']))->getTimestamp() - time());
     }
     $secondsLeft = $expiresLeft;
-    if ($projectStatus['seconds_left'] !== null) {
+    if ($autoSubmitOnProjectClose && $projectStatus['seconds_left'] !== null) {
         $secondsLeft = $secondsLeft === null ? (int) $projectStatus['seconds_left'] : min($secondsLeft, (int) $projectStatus['seconds_left']);
     }
     $shouldSubmit = $session['status'] !== 'in_progress'
         || $secondsLeft === 0
-        || ((int) ($project['auto_submit_on_close'] ?? 1) === 1 && !$projectStatus['allowed']);
+        || ($autoSubmitOnProjectClose && !$projectStatus['allowed']);
 
     jsonResponse(true, 'OK', [
         'session_status' => $session['status'],
@@ -98,6 +99,14 @@ if ($action === 'search_participants') {
     $searchTerm = '%' . $query . '%';
     $stmt->execute([$project['id'], $searchTerm, $searchTerm, $searchTerm]);
     $results = $stmt->fetchAll();
+    foreach ($results as &$participant) {
+        $participant['attempt_status'] = getParticipantAttemptStatus(
+            (int) $participant['id'],
+            (int) $project['id'],
+            $project
+        );
+    }
+    unset($participant);
 
     jsonResponse(true, 'Success', $results);
 }

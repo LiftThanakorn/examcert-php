@@ -3,15 +3,34 @@
 Last updated: 2026-05-12
 
 ## Checkpoint
-- Checkpoint commit created after adding certificate numbering settings and fixing preview mock data.
-- Recent changes include manual numbering controls (prefix/sequence) and UI polish for the certificate template builder.
+- Checkpoint note updated after adding participant attempt status display to the public exam entry flow.
+- No Git checkpoint commit has been created in this turn.
 
 ## Current Scope
-- Certificate numbering settings (Prefix, Next Sequence) are now configurable in Project settings.
-- Certificate model (`models/Project.php`) reconstructed and hardened after previous tool failure.
-- Certificate preview mock data in `CertificateController.php` now uses dynamic Thai year and standard placeholder.
+- Public participant search now returns attempt eligibility status for the selected project.
+- Public exam entry shows allowed attempts, used attempts, remaining attempts, and active in-progress state after selecting a participant.
+- `startExamSession()` uses the same attempt status helper to enforce resume/block/new-attempt behavior.
+- Production no longer requires PHP multibyte string support for application code.
+- The exam page uses `jsonForScript()` with invalid UTF-8 substitution so bad data cannot leave `QUESTIONS` empty and prevent question rendering.
+- Admin exam sessions now show `กำลังสอบ` for `in_progress` rows instead of the database default `fail` result.
+- Entering an active exam should not immediately fail unless the session has truly expired or auto-submit-on-close is enabled.
+- Multiple-choice options display as `ก/ข/ค/ง` while internal answer keys remain `a/b/c/d`.
+- Exam submission accepts both Thai and English choice keys and normalizes them before grading.
 
 ## Recent Completed Work
+- Added `getParticipantAttemptStatus()` in `models/ExamSession.php`.
+- Added attempt status display to `views/exam/entry.php`.
+- Added attempt status payload to `api/exam.php?action=search_participants`.
+- Verified the result retry button still goes through the entry route before a new session is created.
+- Removed all direct PHP multibyte string calls from tracked application code.
+- Replaced admin sidebar initials generation with PHP core string/regex logic.
+- Added shared text fallback and safe script JSON helpers in `config/config.php`.
+- Fixed production fatal errors by removing direct PHP multibyte string calls from application code.
+- Hardened exam question payload rendering for malformed UTF-8.
+- Fixed admin exam session status display for active in-progress sessions.
+- Fixed active-session resume logic and timer checks around `auto_submit_on_close`.
+- Added Thai multiple-choice labels across exam rendering, question form, CSV import, and grading.
+- Fixed exam submit reliability and mobile responsive layout in `models/ExamSession.php` and `views/exam/start.php`.
 - Added `cert_number_prefix` and `cert_sequence` fields to the Project creation/edit form.
 - Updated `models/Project.php` to handle `cert_sequence` persistence.
 - Reconstructed `models/Project.php` to restore missing CRUD functions.

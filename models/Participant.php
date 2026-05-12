@@ -91,7 +91,7 @@ function getParticipantsByProject(int $projectId): array
 function searchParticipantsByName(int $projectId, string $term, int $limit = 10): array
 {
     $term = trim($term);
-    if ($projectId <= 0 || mb_strlen($term) < 2) {
+    if ($projectId <= 0 || textLength($term) < 2) {
         return [];
     }
 
@@ -198,14 +198,16 @@ function importParticipants(int $projectId, array $rows, int $adminId): array
     $batch    = 'IMPORT-' . date('Ymd-His');
     $db       = getDB();
 
+
     try {
         $db->beginTransaction();
 
         foreach ($rows as $index => $row) {
             $rowNum    = $index + 1;
-            $firstName = trim((string) ($row['ชื่อ'] ?? $row['first_name'] ?? $row[0] ?? ''));
-            $lastName  = trim((string) ($row['นามสกุล'] ?? $row['last_name'] ?? $row[1] ?? ''));
-            $email     = trim((string) ($row['อีเมล'] ?? $row['email'] ?? $row[2] ?? ''));
+            $title     = trim((string) ($row['คำนำหน้า'] ?? $row['title'] ?? $row[0] ?? ''));
+            $firstName = trim((string) ($row['ชื่อ'] ?? $row['first_name'] ?? $row[1] ?? ''));
+            $lastName  = trim((string) ($row['นามสกุล'] ?? $row['last_name'] ?? $row[2] ?? ''));
+            $email     = trim((string) ($row['อีเมล'] ?? $row['email'] ?? $row[3] ?? ''));
 
             if ($firstName === '' || $lastName === '') {
                 $skipped++;
@@ -219,19 +221,19 @@ function importParticipants(int $projectId, array $rows, int $adminId): array
             try {
                 $stmt = $db->prepare('
                     INSERT INTO participants (
-                        project_id, first_name, last_name, email,
+                        project_id, title, first_name, last_name, email,
                         organization, position, phone, id_card, note,
                         access_token, import_batch, created_by
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ');
 
                 $stmt->execute([
-                    $projectId, $firstName, $lastName, $email ?: null,
-                    trim((string) ($row['องค์กร'] ?? $row['organization'] ?? $row[3] ?? '')) ?: null,
-                    trim((string) ($row['ตำแหน่ง'] ?? $row['position'] ?? $row[4] ?? '')) ?: null,
-                    trim((string) ($row['โทรศัพท์'] ?? $row['phone'] ?? $row[5] ?? '')) ?: null,
-                    trim((string) ($row['เลขบัตรประชาชน'] ?? $row['id_card'] ?? $row[6] ?? '')) ?: null,
-                    trim((string) ($row['หมายเหตุ'] ?? $row['note'] ?? $row[7] ?? '')) ?: null,
+                    $projectId, $title ?: null, $firstName, $lastName, $email ?: null,
+                    trim((string) ($row['องค์กร'] ?? $row['organization'] ?? $row[4] ?? '')) ?: null,
+                    trim((string) ($row['ตำแหน่ง'] ?? $row['position'] ?? $row[5] ?? '')) ?: null,
+                    trim((string) ($row['โทรศัพท์'] ?? $row['phone'] ?? $row[6] ?? '')) ?: null,
+                    trim((string) ($row['เลขบัตรประชาชน'] ?? $row['id_card'] ?? $row[7] ?? '')) ?: null,
+                    trim((string) ($row['หมายเหตุ'] ?? $row['note'] ?? $row[8] ?? '')) ?: null,
                     generateParticipantAccessToken(),
                     $batch,
                     $adminId,

@@ -20,6 +20,34 @@ function questionDefaults(): array
     ];
 }
 
+function questionChoiceKeys(): array
+{
+    return ['a', 'b', 'c', 'd'];
+}
+
+function thaiChoiceLabels(): array
+{
+    return [
+        'a' => 'ก',
+        'b' => 'ข',
+        'c' => 'ค',
+        'd' => 'ง',
+    ];
+}
+
+function normalizeChoiceKey(string $value): string
+{
+    $normalized = textLower(trim($value));
+    $thaiToKey = [
+        'ก' => 'a',
+        'ข' => 'b',
+        'ค' => 'c',
+        'ง' => 'd',
+    ];
+
+    return $thaiToKey[$normalized] ?? $normalized;
+}
+
 function getQuestionsByProject(int $projectId, bool $activeOnly = false): array
 {
     ensureQuestionSubjectiveSupport();
@@ -53,10 +81,14 @@ function decodeQuestionForForm(array $question): array
     }
 
     foreach ($choices as $choice) {
-        $key = strtolower((string) ($choice['key'] ?? ''));
-        if (in_array($key, ['a', 'b', 'c', 'd'], true)) {
+        $key = normalizeChoiceKey((string) ($choice['key'] ?? ''));
+        if (in_array($key, questionChoiceKeys(), true)) {
             $question['choice_' . $key] = (string) ($choice['text'] ?? '');
         }
+    }
+
+    if (($question['type'] ?? '') === 'multiple_choice') {
+        $question['correct_answer'] = normalizeChoiceKey((string) ($question['correct_answer'] ?? ''));
     }
 
     return array_merge(questionDefaults(), $question);
@@ -77,7 +109,7 @@ function validateQuestionInput(array $data): array
 
     if ($type === 'multiple_choice') {
         $hasChoice = false;
-        foreach (['a', 'b', 'c', 'd'] as $key) {
+        foreach (questionChoiceKeys() as $key) {
             if (trim((string) ($data['choice_' . $key] ?? '')) !== '') {
                 $hasChoice = true;
             }
@@ -85,8 +117,8 @@ function validateQuestionInput(array $data): array
         if (!$hasChoice) {
             $errors[] = 'กรุณากรอกตัวเลือกอย่างน้อย 1 ตัวเลือก';
         }
-        if (!in_array(strtolower((string) ($data['correct_answer'] ?? '')), ['a', 'b', 'c', 'd'], true)) {
-            $errors[] = 'คำตอบที่ถูกต้องต้องเป็น a, b, c หรือ d';
+        if (!in_array(normalizeChoiceKey((string) ($data['correct_answer'] ?? '')), questionChoiceKeys(), true)) {
+            $errors[] = 'คำตอบที่ถูกต้องต้องเป็น ก, ข, ค หรือ ง';
         }
     } elseif ($type === 'true_false') {
         if (!in_array((string) ($data['correct_answer'] ?? ''), ['true', 'false'], true)) {
@@ -112,7 +144,7 @@ function questionPayload(array $data): array
 
     if ($type === 'multiple_choice') {
         $choiceRows = [];
-        foreach (['a', 'b', 'c', 'd'] as $key) {
+        foreach (questionChoiceKeys() as $key) {
             $text = trim((string) ($data['choice_' . $key] ?? ''));
             if ($text !== '') {
                 $choiceRows[] = ['key' => $key, 'text' => $text];
@@ -130,7 +162,11 @@ function questionPayload(array $data): array
         'question_text' => trim((string) $data['question_text']),
         'type' => $type,
         'choices' => $choices,
-        'correct_answer' => $type === 'subjective' ? '' : trim((string) $data['correct_answer']),
+        'correct_answer' => $type === 'subjective'
+            ? ''
+            : ($type === 'multiple_choice'
+                ? normalizeChoiceKey((string) ($data['correct_answer'] ?? ''))
+                : trim((string) ($data['correct_answer'] ?? ''))),
         'explanation' => trim((string) ($data['explanation'] ?? '')) ?: null,
         'score_weight' => (float) ($data['score_weight'] ?? 1),
         'category' => trim((string) ($data['category'] ?? '')) ?: null,

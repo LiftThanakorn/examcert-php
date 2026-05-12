@@ -1,6 +1,7 @@
 <?php
 $question = array_merge(questionDefaults(), $question ?? []);
 $projectId = (int) ($projectId ?? $question['project_id']);
+$choiceLabels = thaiChoiceLabels();
 ?>
 
 
@@ -55,7 +56,7 @@ $projectId = (int) ($projectId ?? $question['project_id']);
             <label class="block text-xxs font-bold text-gray-400 uppercase tracking-widest mb-4">ตัวเลือกและกำหนดคำตอบที่ถูกต้อง</label>
             <div class="grid gap-4">
                 <?php 
-                $options = ['a', 'b', 'c', 'd'];
+                $options = questionChoiceKeys();
                 foreach ($options as $key): 
                     $field = "choice_$key";
                     $isCorrect = strtolower((string)($question['correct_answer'] ?? '')) === $key;
@@ -65,8 +66,9 @@ $projectId = (int) ($projectId ?? $question['project_id']);
                             <input type="radio" name="correct_answer" value="<?= $key ?>" <?= $isCorrect ? 'checked' : '' ?> class="hidden" onchange="updateCorrectUI(this)">
                             <i class="fas fa-check text-[10px] <?= $isCorrect ? '' : 'opacity-0' ?>"></i>
                         </label>
+                        <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-gray-100 text-sm font-bold text-primary-500 shadow-sm"><?= e($choiceLabels[$key] ?? $key) ?></span>
                         <div class="flex-1">
-                            <input name="choice_<?= $key ?>" value="<?= e($question[$field] ?? '') ?>" placeholder="ป้อนข้อความตัวเลือก <?= strtoupper($key) ?>" class="choice-input w-full bg-transparent border-none focus:ring-0 text-sm font-semibold text-gray-700 placeholder:text-gray-300 outline-none" required>
+                            <input name="choice_<?= $key ?>" value="<?= e($question[$field] ?? '') ?>" placeholder="ป้อนข้อความตัวเลือก <?= e($choiceLabels[$key] ?? $key) ?>" class="choice-input w-full bg-transparent border-none focus:ring-0 text-sm font-semibold text-gray-700 placeholder:text-gray-300 outline-none" required>
                         </div>
                         <?php if ($isCorrect): ?>
                             <span class="text-[10px] font-black text-primary-400 uppercase tracking-widest px-3 py-1 bg-white rounded-full border border-orange-100 shadow-sm">เฉลย</span>

@@ -45,6 +45,91 @@
     to   { transform:translateY(0);     opacity:1; }
   }
   .warning-banner { animation: slideDown 0.3s ease both; }
+  #q-text, .option-text { overflow-wrap: anywhere; }
+  @media (max-width: 640px) {
+    .exam-topbar-inner {
+      height: auto;
+      min-height: 64px;
+      padding: 8px 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "info timer"
+        "progress progress";
+      row-gap: 6px;
+      column-gap: 10px;
+    }
+    .exam-participant-info { grid-area: info; min-width: 0; }
+    .exam-progress-summary {
+      grid-area: progress;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-align: left;
+    }
+    #timer-box {
+      grid-area: timer;
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+    .exam-main {
+      padding: 90px 12px 120px;
+    }
+    #question-card {
+      padding: 18px;
+      border-radius: 16px;
+      margin-bottom: 12px;
+    }
+    .exam-question-meta {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .option-label {
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px;
+    }
+    .option-key {
+      width: 32px;
+      height: 32px;
+      font-size: 12px;
+    }
+    .exam-palette-card {
+      padding: 12px;
+      border-radius: 16px;
+    }
+    .exam-palette-legend {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .exam-bottom-nav-inner {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 8px;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    }
+    #btn-prev,
+    #btn-next {
+      min-height: 44px;
+      padding: 10px 12px;
+      white-space: nowrap;
+    }
+    #dot-nav {
+      max-width: none;
+      min-width: 0;
+    }
+  }
+  @media (max-width: 380px) {
+    .exam-project-icon { display: none; }
+    #btn-prev,
+    #btn-next {
+      padding-left: 10px;
+      padding-right: 10px;
+      font-size: 12px;
+    }
+  }
 </style>
 
 <!-- ===================== WARNING BANNER (hidden by default) ===================== -->
@@ -59,12 +144,12 @@
 </div>
 
 <!-- ===================== TOP BAR ===================== -->
-<header class="fixed top-0 inset-x-0 bg-white border-b border-gray-100 z-30 shadow-card">
-  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+<header class="exam-topbar fixed top-0 inset-x-0 bg-white border-b border-gray-100 z-30 shadow-card">
+  <div class="exam-topbar-inner max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
 
     <!-- Project info -->
-    <div class="flex items-center gap-3 min-w-0">
-      <div class="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center flex-shrink-0">
+    <div class="exam-participant-info flex items-center gap-3 min-w-0">
+      <div class="exam-project-icon w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center flex-shrink-0">
         <i class="fas fa-award text-primary-400 text-sm"></i>
       </div>
       <div class="min-w-0">
@@ -81,7 +166,7 @@
     </div>
 
     <!-- Progress info -->
-    <div class="text-right flex-shrink-0">
+    <div class="exam-progress-summary text-right flex-shrink-0">
       <p class="text-xxs text-gray-400 leading-tight">ตอบแล้ว</p>
       <p class="text-sm font-semibold text-gray-700">
         <span id="answered-count" class="text-primary-400">0</span>
@@ -99,13 +184,13 @@
 </header>
 
 <!-- ===================== MAIN ===================== -->
-<div class="max-w-6xl mx-auto px-4 pt-20 pb-32">
+<div class="exam-main max-w-6xl mx-auto px-4 pt-20 pb-32">
 
   <!-- Question card -->
   <div id="question-card" class="bg-white rounded-2xl border border-gray-100 shadow-card p-8 mb-6 slide-right">
 
     <!-- Header row -->
-    <div class="flex items-center justify-between mb-5">
+    <div class="exam-question-meta flex items-center justify-between mb-5">
       <div class="flex items-center gap-2">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-50 text-primary-600 text-xxs font-semibold">
           <i class="fas fa-circle-question text-xxs"></i>
@@ -133,7 +218,7 @@
   </div>
 
   <!-- Question palette (mobile-friendly collapsible) -->
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-card p-4">
+  <div class="exam-palette-card bg-white rounded-2xl border border-gray-100 shadow-card p-4">
     <button onclick="togglePalette()" class="w-full flex items-center justify-between text-sm font-medium text-gray-700 mb-3">
       <span class="flex items-center gap-2">
         <i class="fas fa-grip-dots text-primary-400"></i>
@@ -145,7 +230,7 @@
       <!-- rendered by JS -->
     </div>
     <!-- Legend -->
-    <div class="flex items-center gap-4 mt-3 pt-3 border-t border-gray-50">
+    <div class="exam-palette-legend flex items-center gap-4 mt-3 pt-3 border-t border-gray-50">
       <div class="flex items-center gap-1.5">
         <div class="w-5 h-5 rounded-md bg-primary-400"></div>
         <span class="text-xxs text-gray-400">กำลังดู</span>
@@ -164,8 +249,8 @@
 </div>
 
 <!-- ===================== BOTTOM NAV ===================== -->
-<div class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-30">
-  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+<div class="exam-bottom-nav fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-30">
+  <div class="exam-bottom-nav-inner max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
 
     <!-- Prev -->
     <button id="btn-prev" onclick="navigate(-1)"
@@ -215,23 +300,46 @@
 })();
 
 // ── DATA FROM PHP ──────────────────────────────────────────────────
-const QUESTIONS = <?= json_encode(array_map(function($q) use ($project) {
+const QUESTIONS = <?= jsonForScript(array_map(function($q) use ($project) {
+    $type = (string)($q['type'] ?? 'multiple_choice');
+    $choiceLabels = thaiChoiceLabels();
     $choices = json_decode((string)($q['choices'] ?? ''), true) ?: [];
     if ((int)($project['randomize_choices'] ?? 0) === 1) {
         shuffle($choices);
     }
+    $choices = array_values(array_map(static function ($choice) use ($type, $choiceLabels) {
+        $key = (string)($choice['key'] ?? '');
+        if ($type === 'multiple_choice') {
+            $key = normalizeChoiceKey($key);
+        }
+        return [
+            'key' => $key,
+            'label' => $type === 'multiple_choice' ? ($choiceLabels[$key] ?? $key) : $key,
+            'text' => (string)($choice['text'] ?? ''),
+        ];
+    }, $choices));
+
     return [
         'id' => (int)$q['id'],
         'text' => $q['question_text'],
-        'type' => $q['type'],
+        'type' => $type,
         'category' => trim((string)($q['category'] ?? '')) ?: 'ทั่วไป', 
         'difficulty' => trim((string)($q['difficulty'] ?? '')) ?: 'ปานกลาง',
         'diffColor' => ((string)($q['difficulty'] ?? '') === 'hard' ? 'text-red-500' : ((string)($q['difficulty'] ?? '') === 'easy' ? 'text-green-500' : 'text-amber-500')),
         'choices' => $choices
     ];
-}, $questions)) ?>;
+}, $questions)) ?> || [];
 
-const SAVED_ANSWERS = <?= json_encode($savedAnswers ?? []) ?>;
+<?php $savedAnswersForView = $savedAnswers ?? []; ?>
+const SAVED_ANSWERS = <?= jsonForScript(array_reduce($questions, static function ($carry, $q) use ($savedAnswersForView) {
+    $qid = (int)$q['id'];
+    $answer = trim((string)($savedAnswersForView[$qid] ?? ''));
+    if ((string)($q['type'] ?? 'multiple_choice') === 'multiple_choice' && $answer !== '') {
+        $answer = normalizeChoiceKey($answer);
+    }
+    $carry[$qid] = $answer;
+    return $carry;
+}, [])) ?> || {};
 
 // ── STATE ─────────────────────────────────────────────────────────
 window.isSubmitting = false;
@@ -247,7 +355,7 @@ let warningShown = false;
 // ── INIT ──────────────────────────────────────────────────────────
 $(document).ready(() => {
     // Show server-side error if any
-    const serverError = <?= json_encode($error ?? '') ?>;
+    const serverError = <?= jsonForScript($error ?? '') ?>;
     if (serverError) {
         Swal.fire({
             icon: 'error',
@@ -407,7 +515,7 @@ function renderQuestion(dir = 'right') {
                         <span class="option-key w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center
                                      text-sm font-semibold text-gray-400 flex-shrink-0
                                      ${checked ? 'bg-primary-400 border-primary-400 text-white' : ''}">
-                            ${choice.key}
+                            ${choice.label || choice.key}
                         </span>
                         <span class="option-text text-sm text-gray-700 leading-snug
                                      ${checked ? 'text-primary-800 font-medium' : ''}">
@@ -575,6 +683,18 @@ function confirmSubmit() {
 function submitExam() {
     clearInterval(timerInterval);
     window.isSubmitting = true;
+    const $form = $('#exam-form');
+    $form.find('[data-answer-field="1"]').remove();
+    QUESTIONS.forEach((q, i) => {
+        const value = answers[i];
+        if (value === null || value === undefined || String(value).trim() === '') return;
+        $('<input>', {
+            type: 'hidden',
+            name: `answers[${q.id}]`,
+            value: value,
+            'data-answer-field': '1',
+        }).appendTo($form);
+    });
     Swal.fire({
         title: 'กำลังส่งข้อสอบ...',
         allowOutsideClick: false,
@@ -582,7 +702,7 @@ function submitExam() {
         customClass: { popup: 'rounded-2xl font-sans' },
         didOpen: () => Swal.showLoading(),
     });
-    $('#exam-form').submit();
+    $form.submit();
 }
 
 function autoSubmit(msg = 'ระบบกำลังส่งคำตอบให้อัตโนมัติ...') {

@@ -7,6 +7,7 @@ ini_set('session.cookie_samesite', 'Strict');
 ini_set('session.use_strict_mode', '1');
 ini_set('session.gc_maxlifetime', '1800');
 
+session_name('EXAMCERT_SESS');
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

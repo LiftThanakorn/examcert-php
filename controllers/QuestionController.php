@@ -45,14 +45,29 @@ class QuestionController
 
                         // Process choices
                         $choices = [];
-                        if ($type === 'multiple_choice' || $type === 'true_false') {
+                        if ($type === 'multiple_choice') {
+                            $choiceKeys = questionChoiceKeys();
                             $parts = explode('|', $choicesRaw);
-                            foreach ($parts as $p) {
+                            foreach ($parts as $idx => $p) {
                                 $p = trim($p);
                                 if ($p !== '') {
-                                    $choices[] = ['key' => $p, 'text' => $p];
+                                    $key = $choiceKeys[count($choices)] ?? null;
+                                    if (preg_match('/^([a-dกขคง])[\).\:\-]\s*(.+)$/u', $p, $matches)) {
+                                        $key = normalizeChoiceKey($matches[1]);
+                                        $p = trim($matches[2]);
+                                    }
+                                    if ($key !== null && in_array($key, $choiceKeys, true)) {
+                                        $choices[] = ['key' => $key, 'text' => $p];
+                                    }
                                 }
                             }
+                            $correct = normalizeChoiceKey($correct);
+                        } elseif ($type === 'true_false') {
+                            $choices = [
+                                ['key' => 'true', 'text' => 'ถูก'],
+                                ['key' => 'false', 'text' => 'ผิด'],
+                            ];
+                            $correct = textLower($correct);
                         }
 
                         $questions[] = [
