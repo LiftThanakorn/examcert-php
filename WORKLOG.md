@@ -1,3 +1,15 @@
+## 2026-05-12 - Overall Report Logic Improvement
+
+Completed:
+- Refactored `ReportController.php` to use SQL subqueries instead of `LEFT JOIN`s for more accurate and efficient metric calculation.
+- Added `in_progress_count` metric to track participants currently taking exams.
+- Updated `views/reports/index.php` to display the "กำลังสอบ" (In Progress) count in the summary table.
+- Updated CSV export functionality in `ReportController.php` to include the in-progress count.
+
+Verification:
+- Ran PHP lint on `controllers/ReportController.php` and `views/reports/index.php`: passed.
+- Verified that the SQL query correctly calculates participants, questions, finalized sessions, and in-progress sessions without Cartesian product inflation.
+
 ## 2026-05-12 - Participant Import Enhancements and Exam Integrity
 
 Completed:

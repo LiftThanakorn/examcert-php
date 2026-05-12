@@ -3,10 +3,12 @@
 Last updated: 2026-05-12
 
 ## Checkpoint
-- Checkpoint note updated after adding "Title" field to participant import, unique session name, download certificate button, and re-entry prevention for passed participants.
+- Checkpoint note updated after improving overall reports logic with SQL subqueries and adding in-progress tracking.
 - No Git checkpoint commit has been created in this turn.
 
 ## Current Scope
+- Overall reports logic refactored to use efficient subqueries.
+- Reports now include tracking for "In Progress" (กำลังสอบ) sessions.
 - Participant import now supports the "Title" (คำนำหน้า) column.
 - The application uses a unique session name (`EXAMCERT_SESS`) to avoid domain-wide conflicts.
 - Participants can download their certificate immediately from the result page after passing.
@@ -22,6 +24,7 @@ Last updated: 2026-05-12
 - Exam submission accepts both Thai and English choice keys and normalizes them before grading.
 
 ## Recent Completed Work
+- Refactored `ReportController.php` and `views/reports/index.php` to improve accuracy and add "In Progress" session tracking.
 - Implemented "Title" (คำนำหน้า) column support in `models/Participant.php` and `views/participants/import.php`.
 - Added `session_name('EXAMCERT_SESS')` to `config/session.php` to isolate the session.
 - Added a "Download Certificate" button to `views/exam/result.php`.

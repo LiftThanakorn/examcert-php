@@ -11,16 +11,13 @@ function projectReportRows(): array
             p.name,
             p.code,
             p.status,
-            COUNT(DISTINCT pt.id) AS participant_count,
-            COUNT(DISTINCT q.id) AS question_count,
-            COUNT(DISTINCT es.id) AS session_count,
-            SUM(CASE WHEN es.status = "submitted" AND es.result = "pass" THEN 1 ELSE 0 END) AS pass_count,
-            AVG(CASE WHEN es.status IN ("submitted","expired") THEN es.percent ELSE NULL END) AS avg_percent
+            (SELECT COUNT(*) FROM participants WHERE project_id = p.id) AS participant_count,
+            (SELECT COUNT(*) FROM questions WHERE project_id = p.id) AS question_count,
+            (SELECT COUNT(*) FROM exam_sessions WHERE project_id = p.id AND status IN ("submitted", "expired")) AS session_count,
+            (SELECT COUNT(*) FROM exam_sessions WHERE project_id = p.id AND status = "in_progress") AS in_progress_count,
+            (SELECT COUNT(*) FROM exam_sessions WHERE project_id = p.id AND status IN ("submitted", "expired") AND result = "pass") AS pass_count,
+            (SELECT AVG(percent) FROM exam_sessions WHERE project_id = p.id AND status IN ("submitted", "expired")) AS avg_percent
         FROM projects p
-        LEFT JOIN participants pt ON pt.project_id = p.id
-        LEFT JOIN questions q ON q.project_id = p.id
-        LEFT JOIN exam_sessions es ON es.project_id = p.id
-        GROUP BY p.id
         ORDER BY p.created_at DESC
     ');
 
@@ -57,7 +54,7 @@ class ReportController
         }
 
         fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
-        fputcsv($out, ['โครงการ', 'รหัส', 'สถานะ', 'ผู้มีสิทธิ์', 'จำนวนข้อสอบ', 'การเข้าสอบ', 'สอบผ่าน', 'คะแนนเฉลี่ย', 'อัตราการผ่าน']);
+        fputcsv($out, ['โครงการ', 'รหัส', 'สถานะ', 'ผู้มีสิทธิ์', 'จำนวนข้อสอบ', 'ส่งแล้ว', 'กำลังสอบ', 'สอบผ่าน', 'คะแนนเฉลี่ย', 'อัตราการผ่าน']);
 
         foreach ($rows as $row) {
             $sessions = (int) $row['session_count'];
@@ -71,6 +68,7 @@ class ReportController
                 $row['participant_count'],
                 $row['question_count'],
                 $sessions,
+                (int) $row['in_progress_count'],
                 $passes,
                 $row['avg_percent'] !== null ? round((float) $row['avg_percent'], 2) : '',
                 $passRate . '%',

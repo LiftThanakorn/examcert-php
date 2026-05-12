@@ -58,7 +58,8 @@ foreach ($rows as $row) {
                     <th class="px-6 py-4 font-medium">โครงการ</th>
                     <th class="px-6 py-4 font-medium text-center">ผู้มีสิทธิ์</th>
                     <th class="px-6 py-4 font-medium text-center">ข้อสอบ</th>
-                    <th class="px-6 py-4 text-center font-medium">ส่งข้อสอบแล้ว</th>
+                    <th class="px-6 py-4 text-center font-medium">ส่งแล้ว</th>
+                    <th class="px-6 py-4 text-center font-medium">กำลังสอบ</th>
                     <th class="px-6 py-4 text-center font-medium">สอบผ่าน</th>
                     <th class="px-6 py-4 text-center font-medium">คะแนนเฉลี่ย</th>
                     <th class="px-6 py-4 text-right font-medium">Pass Rate</th>
@@ -84,6 +85,9 @@ foreach ($rows as $row) {
                         </td>
                         <td class="px-6 py-4 text-center font-semibold text-gray-800">
                             <?= $sessions ?>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-orange-600 font-medium"><?= (int) $row['in_progress_count'] ?></span>
                         </td>
                         <td class="px-6 py-4 text-center">
                             <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xxs font-bold bg-green-50 text-green-700 border border-green-100">
