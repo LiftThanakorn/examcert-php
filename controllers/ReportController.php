@@ -16,6 +16,7 @@ function projectReportRows(): array
             (SELECT COUNT(*) FROM exam_sessions WHERE project_id = p.id AND status IN ("submitted", "expired")) AS session_count,
             (SELECT COUNT(*) FROM exam_sessions WHERE project_id = p.id AND status = "in_progress") AS in_progress_count,
             (SELECT COUNT(*) FROM exam_sessions WHERE project_id = p.id AND status IN ("submitted", "expired") AND result = "pass") AS pass_count,
+            (SELECT COUNT(*) FROM certificates WHERE project_id = p.id) AS certificate_count,
             (SELECT AVG(percent) FROM exam_sessions WHERE project_id = p.id AND status IN ("submitted", "expired")) AS avg_percent
         FROM projects p
         ORDER BY p.created_at DESC
@@ -54,7 +55,7 @@ class ReportController
         }
 
         fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
-        fputcsv($out, ['โครงการ', 'รหัส', 'สถานะ', 'ผู้มีสิทธิ์', 'จำนวนข้อสอบ', 'ส่งแล้ว', 'กำลังสอบ', 'สอบผ่าน', 'คะแนนเฉลี่ย', 'อัตราการผ่าน']);
+        fputcsv($out, ['โครงการ', 'รหัส', 'สถานะ', 'ผู้มีสิทธิ์', 'จำนวนข้อสอบ', 'ส่งแล้ว', 'กำลังสอบ', 'สอบผ่าน', 'ใบเกียรติบัตร', 'คะแนนเฉลี่ย', 'อัตราการผ่าน']);
 
         foreach ($rows as $row) {
             $sessions = (int) $row['session_count'];
@@ -70,6 +71,7 @@ class ReportController
                 $sessions,
                 (int) $row['in_progress_count'],
                 $passes,
+                (int) $row['certificate_count'],
                 $row['avg_percent'] !== null ? round((float) $row['avg_percent'], 2) : '',
                 $passRate . '%',
             ]);

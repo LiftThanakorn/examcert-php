@@ -61,6 +61,7 @@ foreach ($rows as $row) {
                     <th class="px-6 py-4 text-center font-medium">ส่งแล้ว</th>
                     <th class="px-6 py-4 text-center font-medium">กำลังสอบ</th>
                     <th class="px-6 py-4 text-center font-medium">สอบผ่าน</th>
+                    <th class="px-6 py-4 text-center font-medium">ใบเกียรติบัตร</th>
                     <th class="px-6 py-4 text-center font-medium">คะแนนเฉลี่ย</th>
                     <th class="px-6 py-4 text-right font-medium">Pass Rate</th>
                 </tr>
@@ -74,8 +75,10 @@ foreach ($rows as $row) {
                     ?>
                     <tr class="group transition-colors">
                         <td class="px-6 py-4">
-                            <div class="font-medium text-gray-800"><?= e($row['name']) ?></div>
-                            <div class="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-0.5"><?= e($row['code'] ?: '-') ?> | <?= e($row['status']) ?></div>
+                            <a href="<?= e(BASE_URL) ?>/admin/projects/detail.php?id=<?= (int) $row['id'] ?>" class="group-hover:text-primary-600 transition-colors">
+                                <div class="font-medium text-gray-800"><?= e($row['name']) ?></div>
+                                <div class="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-0.5"><?= e($row['code'] ?: '-') ?> | <?= e($row['status']) ?></div>
+                            </a>
                         </td>
                         <td class="px-6 py-4 text-center">
                             <span class="text-gray-600"><?= (int) $row['participant_count'] ?></span>
@@ -93,6 +96,9 @@ foreach ($rows as $row) {
                             <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xxs font-bold bg-green-50 text-green-700 border border-green-100">
                                 <?= $passes ?>
                             </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-blue-600 font-medium"><?= (int) $row['certificate_count'] ?></span>
                         </td>
                         <td class="px-6 py-4 text-center">
                             <span class="font-bold text-gray-700"><?= $row['avg_percent'] !== null ? round((float) $row['avg_percent'], 1) . '%' : '-' ?></span>
