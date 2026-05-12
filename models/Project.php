@@ -26,6 +26,7 @@ function projectDefaults(): array
         'manual_override' => '0',
         'cert_template_id' => '',
         'cert_number_prefix' => 'CERT',
+        'cert_sequence' => '1',
         'status' => 'draft',
     ];
 }
@@ -97,6 +98,7 @@ function projectPayload(array $data, ?int $adminId): array
         'manual_override' => !empty($data['manual_override']) ? 1 : 0,
         'cert_template_id' => (int) ($data['cert_template_id'] ?? 0) ?: null,
         'cert_number_prefix' => trim((string) ($data['cert_number_prefix'] ?? 'CERT')) ?: 'CERT',
+        'cert_sequence' => max(1, (int) ($data['cert_sequence'] ?? 1)),
         'status' => in_array($data['status'] ?? 'draft', ['draft', 'active', 'closed'], true) ? $data['status'] : 'draft',
         'created_by' => $adminId,
     ];
@@ -147,8 +149,8 @@ function createProject(array $data, ?int $adminId): array
                 question_count, randomize_questions, randomize_choices,
                 show_result_immediately, warning_before, allow_early_login,
                 auto_submit_on_close, manual_override, cert_template_id,
-                cert_number_prefix, status, created_by
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                cert_number_prefix, cert_sequence, status, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
         $stmt->execute([
             $payload['name'], $payload['code'], $payload['description'], $payload['organizer'], $payload['location'],
@@ -157,7 +159,7 @@ function createProject(array $data, ?int $adminId): array
             $payload['randomize_questions'], $payload['randomize_choices'], $payload['show_result_immediately'],
             $payload['warning_before'], $payload['allow_early_login'], $payload['auto_submit_on_close'],
             $payload['manual_override'], $payload['cert_template_id'], $payload['cert_number_prefix'],
-            $payload['status'], $payload['created_by'],
+            $payload['cert_sequence'], $payload['status'], $payload['created_by'],
         ]);
 
         return ['success' => true, 'id' => (int) getDB()->lastInsertId()];
@@ -185,7 +187,7 @@ function updateProject(int $id, array $data): array
                 randomize_questions = ?, randomize_choices = ?, show_result_immediately = ?,
                 warning_before = ?, allow_early_login = ?, auto_submit_on_close = ?,
                 manual_override = ?, cert_template_id = ?, cert_number_prefix = ?,
-                status = ?, updated_at = NOW()
+                cert_sequence = ?, status = ?, updated_at = NOW()
             WHERE id = ?
         ');
         $stmt->execute([
@@ -195,7 +197,7 @@ function updateProject(int $id, array $data): array
             $payload['randomize_questions'], $payload['randomize_choices'], $payload['show_result_immediately'],
             $payload['warning_before'], $payload['allow_early_login'], $payload['auto_submit_on_close'],
             $payload['manual_override'], $payload['cert_template_id'], $payload['cert_number_prefix'],
-            $payload['status'], $id,
+            $payload['cert_sequence'], $payload['status'], $id,
         ]);
 
         return ['success' => true, 'id' => $id];
@@ -231,7 +233,7 @@ function getProjectRuntimeStatus(array $project, ?DateTimeImmutable $now = null)
                 return [
                     'allowed'      => false,
                     'status'       => 'closed',
-                    'message'      => 'หมดเวลาการสอบแล้ว (exam_end ผ่านมาแล้ว)',
+                    'message'      => 'หมดเวลาการสอบแล้ว',
                     'seconds_left' => 0,
                     'warning'      => false,
                 ];
@@ -268,7 +270,7 @@ function getProjectRuntimeStatus(array $project, ?DateTimeImmutable $now = null)
                 'message'      => 'หมดเวลาการสอบแล้ว',
                 'seconds_left' => 0,
                 'warning'      => false,
-            ];
+              ];
         }
     }
 
@@ -343,7 +345,6 @@ function extendProjectExamEnd(int $id, int $minutes): bool
         $stmt->execute([$minutes, $id]);
 
         // 2. Update all active sessions for this project
-        // This ensures students currently taking the exam get the extra time immediately
         $stmtSession = $db->prepare('
             UPDATE exam_sessions 
             SET expires_at = DATE_ADD(expires_at, INTERVAL ? MINUTE) 

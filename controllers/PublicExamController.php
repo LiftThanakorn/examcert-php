@@ -23,12 +23,12 @@ class PublicExamController
         $runtimeStatus = getProjectRuntimeStatus($project);
         $error = '';
 
-        // Server-side lockdown: Redirect back to exam if a session is already in progress
+        // Server-side lockdown: redirect back to an active exam only while the project is still open.
         if (isset($_SESSION['participant_id'])) {
             $stmt = getDB()->prepare("SELECT id FROM exam_sessions WHERE participant_id = ? AND project_id = ? AND status = 'in_progress' LIMIT 1");
             $stmt->execute([(int)$_SESSION['participant_id'], (int)$project['id']]);
             $activeSession = $stmt->fetch();
-            if ($activeSession) {
+            if ($activeSession && $runtimeStatus['allowed']) {
                 redirect('public/take-exam.php?session_id=' . (int) $activeSession['id']);
             }
         }

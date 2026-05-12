@@ -1,19 +1,29 @@
 # Current State Handoff
 
-Last updated: 2026-05-11
+Last updated: 2026-05-12
 
 ## Checkpoint
-- Checkpoint note updated after completing TCPDF certificate builder/export implementation.
-- No Git checkpoint commit has been created in this turn because the worktree already contains many unrelated modified/deleted files.
-- Safe checkpoint scope for a future commit should include only the certificate builder/export files touched in this phase.
+- Checkpoint commit created after adding certificate numbering settings and fixing preview mock data.
+- Recent changes include manual numbering controls (prefix/sequence) and UI polish for the certificate template builder.
 
 ## Current Scope
-- Added TCPDF-ready certificate template builder schema and UI.
-- Certificate templates now store millimeter-based background and element JSON data.
-- Builder save/upload APIs are available for the new template builder screen.
-- TCPDF export and preview routes now render builder elements from `cert_templates.elements`.
+- Certificate numbering settings (Prefix, Next Sequence) are now configurable in Project settings.
+- Certificate model (`models/Project.php`) reconstructed and hardened after previous tool failure.
+- Certificate preview mock data in `CertificateController.php` now uses dynamic Thai year and standard placeholder.
 
 ## Recent Completed Work
+- Added `cert_number_prefix` and `cert_sequence` fields to the Project creation/edit form.
+- Updated `models/Project.php` to handle `cert_sequence` persistence.
+- Reconstructed `models/Project.php` to restore missing CRUD functions.
+- Fixed `CERT-2568-AI-00001` hardcoded mock number in `CertificateController::previewPDF` to use current Thai year and remove 'AI'.
+- Implemented browser back-button locking in `views/exam/entry.php` and `controllers/PublicExamController.php` to prevent participants from accidentally leaving the exam.
+- Standardized closed-exam and manual override messaging across the public entry flow.
+
+## Recent Completed Work
+- Fixed certificate template builder selection issues caused by duplicate/missing element IDs and overlapping default placement.
+- Changed the manual override expired-exam public message to `หมดเวลาการสอบแล้ว` without exposing the internal `exam_end` field name.
+- Fixed manual override entry enforcement after `exam_end` has passed.
+- Entry close banners now show the runtime status message in user-facing wording.
 - Added `views/certificates/template_builder.php` with fixed A4 canvas scaling, draggable/resizable elements, and properties panel.
 - Added `api/save_template.php` and `api/upload_asset.php` with login and CSRF validation.
 - Updated `models/CertTemplate.php`, `database/schema.sql`, `TemplateController`, and routes for the new `cert_templates` structure.

@@ -233,6 +233,51 @@ let isDragging = false;
 let isResizing = false;
 let dragStart = {};
 let resizeDir = '';
+let elementSeq = 0;
+
+function nextElementId() {
+  let id;
+  do {
+    elementSeq += 1;
+    id = `el_${Date.now().toString(36)}_${elementSeq.toString(36)}`;
+  } while (elements.some(el => String(el.id) === id));
+  return id;
+}
+
+function normalizeElementIds() {
+  const used = new Set();
+  elements = elements.map(el => {
+    const currentId = String(el.id || '').trim();
+    if (currentId && !used.has(currentId)) {
+      used.add(currentId);
+      return { ...el, id: currentId };
+    }
+
+    const id = nextElementId();
+    used.add(id);
+    return { ...el, id };
+  });
+}
+
+function isSameSpot(a, b) {
+  return Math.abs(Number(a.x || 0) - Number(b.x || 0)) < 0.001
+    && Math.abs(Number(a.y || 0) - Number(b.y || 0)) < 0.001;
+}
+
+function nextElementPlacement(defaultEl) {
+  const placed = { ...defaultEl, style: { ...(defaultEl.style || {}) } };
+  const baseX = Number(defaultEl.x || 0);
+  const baseY = Number(defaultEl.y || 0);
+  let offset = 0;
+
+  while (elements.some(el => isSameSpot(el, placed)) && offset < 12) {
+    offset += 1;
+    placed.x = parseFloat((baseX + offset * 6).toFixed(3));
+    placed.y = parseFloat((baseY + offset * 4).toFixed(3));
+  }
+
+  return placed;
+}
 
 function renderCanvas() {
   const canvas = document.getElementById('canvas-wrap');
@@ -461,14 +506,14 @@ function updateStyle(key, val) {
 }
 
 function addElement(type) {
-  const id = 'el_' + Date.now();
+  const id = nextElementId();
   const defaults = {
     text: { x:148.5, y:100, w:150, h:15, anchor:'center', content:'ข้อความใหม่', style:{font:'thsarabunnew', size:20, bold:false, color:'#1A1A1A', align:'C'} },
     image: { x:20, y:20, w:40, h:28, anchor:'topleft', content:'', style:{} },
     qrcode: { x:257, y:175, w:25, h:25, anchor:'topleft', content:'{{verify_url}}', style:{} },
     line: { x:40, y:165, w:80, h:0.5, anchor:'topleft', content:'', style:{color:'#AAAAAA', lineWidth:0.5} },
   };
-  elements.push({ id, type, ...defaults[type] });
+  elements.push({ id, type, ...nextElementPlacement(defaults[type]) });
   selectElement(id);
 }
 
@@ -588,6 +633,7 @@ function changeOrientation() {
   renderCanvas();
 }
 
+normalizeElementIds();
 renderCanvas();
 </script>
 </body>

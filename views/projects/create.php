@@ -200,14 +200,30 @@ $action = $action ?? '';
                     <h3 class="font-bold text-gray-800">เกียรติบัตร</h3>
                 </div>
                 
-                <div>
-                    <label class="block text-xxs font-bold text-gray-400 uppercase tracking-widest mb-2">เทมเพลตที่จะใช้</label>
-                    <select name="cert_template_id" class="w-full px-4 py-3 text-sm bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-400/10 transition-all appearance-none">
-                        <option value="">-- ไม่ระบุ (ใช้ค่าเริ่มต้น) --</option>
-                        <?php foreach ($templates as $tmpl): ?>
-                            <option value="<?= (int) $tmpl['id'] ?>" <?= (int) ($project['cert_template_id'] ?? 0) === (int) $tmpl['id'] ? 'selected' : '' ?>><?= e($tmpl['name']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xxs font-bold text-gray-400 uppercase tracking-widest mb-2">เทมเพลตที่จะใช้</label>
+                        <select name="cert_template_id" class="w-full px-4 py-3 text-sm bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-400/10 transition-all appearance-none">
+                            <option value="">-- ไม่ระบุ (ใช้ค่าเริ่มต้น) --</option>
+                            <?php foreach ($templates as $tmpl): ?>
+                                <option value="<?= (int) $tmpl['id'] ?>" <?= (int) ($project['cert_template_id'] ?? 0) === (int) $tmpl['id'] ? 'selected' : '' ?>><?= e($tmpl['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xxs font-bold text-gray-400 uppercase tracking-widest mb-2">คำนำหน้าเลขที่</label>
+                            <input name="cert_number_prefix" value="<?= e($project['cert_number_prefix']) ?>" 
+                                   class="w-full px-4 py-3 text-sm bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-400/10 transition-all"
+                                   placeholder="เช่น CERT">
+                        </div>
+                        <div>
+                            <label class="block text-xxs font-bold text-gray-400 uppercase tracking-widest mb-2">ลำดับเลขถัดไป</label>
+                            <input type="number" min="1" name="cert_sequence" value="<?= e((string) $project['cert_sequence']) ?>" 
+                                   class="w-full px-4 py-3 text-sm bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-400/10 transition-all">
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -1,3 +1,46 @@
+## 2026-05-12 - Certificate Numbering Settings UI
+Completed:
+- Added `cert_sequence` to `projectPayload` in `models/Project.php` to support saving certificate sequences.
+- Updated `createProject` and `updateProject` in `models/Project.php` to include `cert_sequence` in database operations.
+- Added UI fields for "คำนำหน้าเลขที่" (Prefix) and "ลำดับเลขถัดไป" (Next Sequence) in the project creation and editing form (`views/projects/create.php`).
+- Reconstructed `models/Project.php` to fix a corruption caused by an incorrect tool call during the previous step.
+
+Verification:
+- Verified `models/Project.php` file integrity and syntax.
+- Verified that `cert_number_prefix` and `cert_sequence` are correctly passed to and saved by the database via form submission.
+
+## 2026-05-12 - Certificate Template Element Selection Fix
+
+Completed:
+- Fixed template builder element IDs so newly added or loaded elements cannot share the same selection ID.
+- Normalized missing/duplicate element IDs before rendering existing templates.
+- Offset newly added elements when their default position overlaps an existing element, making the new item visible and separately clickable.
+
+Verification:
+- Ran PHP lint on `views/certificates/template_builder.php`: passed.
+
+## 2026-05-12 - User-Friendly Closed Exam Message
+
+Completed:
+- Changed the manual override expired-exam message from the technical `exam_end` wording to the user-facing text `หมดเวลาการสอบแล้ว`.
+
+Verification:
+- Ran PHP lint on `models/Project.php`: passed.
+- Checked `getProjectRuntimeStatus()` for manual override with a past end time: returned `allowed=false`, `status=closed`, and `message=หมดเวลาการสอบแล้ว`.
+
+## 2026-05-12 - Manual Override Entry Close Enforcement
+
+Completed:
+- Updated `PublicExamController::entry()` so an existing in-progress session redirects back to the exam only while `getProjectRuntimeStatus()` still allows entry.
+- Updated the public entry status banner to show the runtime close reason for manual override projects.
+- Blocked the public participant autocomplete API when the project runtime status is not allowed, keeping entry behavior and API access aligned.
+
+Verification:
+- Ran PHP lint on `controllers/PublicExamController.php`: passed.
+- Ran PHP lint on `api/exam.php`: passed.
+- Ran PHP lint on `views/exam/entry.php`: passed.
+- Checked `getProjectRuntimeStatus()` for `manual_override=1`, `status=active`, and a past end time: returned `allowed=false`, `status=closed`.
+
 ## 2026-05-11 - API Compatibility Fix (Production 404)
 
 Completed:

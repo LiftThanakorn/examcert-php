@@ -102,7 +102,7 @@ class CertificateController
             'organizer' => 'สถาบัน ExamCert',
             'issued_date' => date('Y-m-d'),
             'percent' => '88.0',
-            'cert_number' => 'CERT-2568-AI-00001',
+            'cert_number' => 'CERT-' . ((int) date('Y') + 543) . '-00001',
             'verify_token' => 'preview_token',
             'bg_color' => $template['bg_color'] ?? '#FFFFFF',
             'bg_image' => $template['bg_image'] ?? '',

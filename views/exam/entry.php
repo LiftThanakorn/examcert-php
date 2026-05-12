@@ -259,6 +259,9 @@
                     <div class="status-icon-circle"><i class="fas fa-circle-info"></i></div>
                     <div>
                         <h3 class="font-extrabold text-[10px] m-0"><?= $examStatus === 'scheduled' ? 'ยังไม่เปิดสอบ' : 'ปิดระบบแล้ว' ?></h3>
+                        <?php if (!empty($runtimeStatus['message'])): ?>
+                            <p class="mt-0.5 text-[10px] font-semibold opacity-75"><?= e((string) $runtimeStatus['message']) ?></p>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php endif; ?>

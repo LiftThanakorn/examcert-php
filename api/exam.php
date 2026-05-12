@@ -83,6 +83,11 @@ if ($action === 'search_participants') {
         jsonResponse(false, 'Project not found.', [], 404);
     }
 
+    $runtimeStatus = getProjectRuntimeStatus($project);
+    if (!$runtimeStatus['allowed']) {
+        jsonResponse(false, (string) ($runtimeStatus['message'] ?? 'Exam is not open.'), [], 403);
+    }
+
     $stmt = getDB()->prepare('
         SELECT id, first_name, last_name, title
         FROM participants 

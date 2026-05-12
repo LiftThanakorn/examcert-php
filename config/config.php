@@ -4,8 +4,8 @@ declare(strict_types=1);
 date_default_timezone_set('Asia/Bangkok');
 
 define('APP_NAME', 'ระบบสอบออนไลน์พร้อมออกใบเกียรติบัตร มหาวิทยาลัยราชภัฏร้อยเอ็ด');
-define('APP_ENV', 'Production');
-define('BASE_URL', 'https://datapersonnel.reru.ac.th/examcert');
+define('APP_ENV', 'Development');
+define('BASE_URL', 'http://localhost/examcert');
 
 // เปิดการแสดง Error ชั่วคราวเพื่อหาสาเหตุหน้าขาว
 ini_set('display_errors', '1');
