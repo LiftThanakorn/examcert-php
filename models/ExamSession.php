@@ -276,6 +276,16 @@ function normalizeSubmittedAnswer(mixed $answer): string
     return trim((string) $answer);
 }
 
+function normalizeRatingScaleAnswer(string $answer): string
+{
+    $value = filter_var($answer, FILTER_VALIDATE_INT);
+    if ($value === false || $value < 1 || $value > 5) {
+        return '';
+    }
+
+    return (string) $value;
+}
+
 function submitExamSession(int $sessionId, array $answers): array
 {
     $db = getDB();
@@ -319,14 +329,28 @@ function submitExamSession(int $sessionId, array $answers): array
             if ($type === 'multiple_choice' && $given !== '') {
                 $given = normalizeChoiceKey($given);
             }
+            if ($type === 'rating_scale' && $given !== '') {
+                $given = normalizeRatingScaleAnswer($given);
+            }
             
             $isSubjective = $type === 'subjective';
-            $weight = $isSubjective ? 0.0 : (float) $question['score_weight'];
+            $isRatingScale = $type === 'rating_scale';
+            $weight = $isSubjective ? 0.0 : ($isRatingScale ? 5.0 : (float) $question['score_weight']);
             $total += $weight;
 
-            $correct = $isSubjective ? null : ($given !== '' && isAnswerCorrect($question, $given));
-            $earned = $correct ? $weight : 0.0;
-            $gradingStatus = $isSubjective ? 'pending_manual' : 'auto';
+            if ($isSubjective) {
+                $correct = null;
+                $earned = 0.0;
+                $gradingStatus = 'pending_manual';
+            } elseif ($isRatingScale) {
+                $correct = null;
+                $earned = $given !== '' ? (float) $given : 0.0;
+                $gradingStatus = 'auto';
+            } else {
+                $correct = $given !== '' && isAnswerCorrect($question, $given);
+                $earned = $correct ? $weight : 0.0;
+                $gradingStatus = 'auto';
+            }
             $score += $earned;
             
             $insert->execute([$sessionId, $qid, $given === '' ? null : $given, $correct === null ? null : ($correct ? 1 : 0), $earned, $gradingStatus]);
@@ -384,12 +408,30 @@ function deleteExamSession(int $sessionId): bool
 function getSessionAnswerLogs(int $sessionId): array
 {
     $stmt = getDB()->prepare('
-        SELECT al.*, q.question_text, q.choices, q.correct_answer, q.explanation, q.type
+        SELECT al.*, q.question_text, q.choices, q.correct_answer, q.explanation, q.type, q.category
         FROM answer_logs al
         JOIN questions q ON q.id = al.question_id
         WHERE al.session_id = ?
         ORDER BY al.id ASC
     ');
     $stmt->execute([$sessionId]);
+    return $stmt->fetchAll();
+}
+
+function getSessionCategoryScores(int $sessionId): array
+{
+    $defaultCategory = 'ทั่วไป';
+    $stmt = getDB()->prepare('
+        SELECT
+            COALESCE(NULLIF(TRIM(q.category), ""), ?) AS category,
+            SUM(al.score_earned) AS score,
+            COUNT(*) AS answer_count
+        FROM answer_logs al
+        JOIN questions q ON q.id = al.question_id
+        WHERE al.session_id = ?
+        GROUP BY COALESCE(NULLIF(TRIM(q.category), ""), ?)
+        ORDER BY category ASC
+    ');
+    $stmt->execute([$defaultCategory, $sessionId, $defaultCategory]);
     return $stmt->fetchAll();
 }

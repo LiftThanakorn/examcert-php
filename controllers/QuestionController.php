@@ -42,6 +42,7 @@ class QuestionController
                         $category = trim($data[5] ?? '');
 
                         if ($text === '') { $errors++; continue; }
+                        if (!in_array($type, questionTypeValues(), true)) { $errors++; continue; }
 
                         // Process choices
                         $choices = [];
@@ -68,6 +69,11 @@ class QuestionController
                                 ['key' => 'false', 'text' => 'ผิด'],
                             ];
                             $correct = textLower($correct);
+                        } elseif ($type === 'rating_scale') {
+                            $choices = ratingScaleChoices();
+                            $correct = '';
+                        } elseif ($type === 'subjective') {
+                            $correct = '';
                         }
 
                         $questions[] = [

@@ -1,10 +1,11 @@
 # Current State Handoff
 
-Last updated: 2026-05-12
+Last updated: 2026-05-18
 
 ## Checkpoint
 - Checkpoint note updated after improving overall reports logic with SQL subqueries and adding in-progress tracking.
 - No Git checkpoint commit has been created in this turn.
+- Rating-scale survey question support has been added in the current working tree; no Git checkpoint commit has been created for this change.
 
 ## Current Scope
 - Overall reports logic refactored to use efficient subqueries.
@@ -22,8 +23,13 @@ Last updated: 2026-05-12
 - Entering an active exam should not immediately fail unless the session has truly expired or auto-submit-on-close is enabled.
 - Multiple-choice options display as `ก/ข/ค/ง` while internal answer keys remain `a/b/c/d`.
 - Exam submission accepts both Thai and English choice keys and normalizes them before grading.
+- Questions now support `rating_scale`; public exam rendering shows a fixed 5-4-3-2-1 Likert scale.
+- Rating-scale answers are scored directly from the submitted 1-5 value and category score totals are shown on the result page when immediate result display is enabled.
 
 ## Recent Completed Work
+- Added `rating_scale` to question type support, schema, admin question form, CSV import type documentation, and runtime enum upgrade logic.
+- Added rating-scale scoring in `submitExamSession()` and prepared category score aggregation with result-page rendering.
+
 - Refactored `ReportController.php` and `views/reports/index.php` to improve accuracy and add "In Progress" session tracking.
 - Implemented "Title" (คำนำหน้า) column support in `models/Participant.php` and `views/participants/import.php`.
 - Added `session_name('EXAMCERT_SESS')` to `config/session.php` to isolate the session.

@@ -4,11 +4,19 @@ $pct = (float) $session['percent'];
 $correctCount = 0;
 $wrongCount = 0;
 $skipCount = 0;
+$categoryScores = $categoryScores ?? [];
 
 foreach ($answerLogs as $log) {
-    if ((int)$log['is_correct'] === 1) $correctCount++;
-    elseif ($log['given_answer'] === null || trim((string)$log['given_answer']) === '') $skipCount++;
-    else $wrongCount++;
+    $type = (string)($log['type'] ?? '');
+    if ($log['given_answer'] === null || trim((string)$log['given_answer']) === '') {
+        $skipCount++;
+    } elseif (in_array($type, ['subjective', 'rating_scale'], true)) {
+        continue;
+    } elseif ((int)$log['is_correct'] === 1) {
+        $correctCount++;
+    } else {
+        $wrongCount++;
+    }
 }
 
 // Calculate time used
@@ -177,6 +185,28 @@ $timeUsedStr .= $diff->s . " วินาที";
         </div>
       </div>
     </div>
+    <?php if (!empty($categoryScores)): ?>
+    <div class="bg-white rounded-2xl shadow-card-lg p-6 mb-6 anim-fade-up d-4">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="text-xxs font-bold text-gray-400 uppercase tracking-widest">Category Score</p>
+          <h2 class="text-lg font-bold text-gray-800 mt-1">คะแนนแยกตามหมวด</h2>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
+          <i class="fas fa-layer-group text-primary-500 text-sm"></i>
+        </div>
+      </div>
+
+      <div class="space-y-2.5">
+        <?php foreach ($categoryScores as $categoryScore): ?>
+          <div class="flex items-center justify-between gap-4 p-3 rounded-xl bg-gray-50 border border-gray-100">
+            <span class="text-sm font-semibold text-gray-700 truncate"><?= e((string)$categoryScore['category']) ?></span>
+            <span class="text-sm font-bold text-primary-500 flex-shrink-0"><?= e(number_format((float)$categoryScore['score'], 2)) ?> คะแนน</span>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+    <?php endif; ?>
     <?php endif; ?>
 
     <!-- ── ACTION CARD ── -->

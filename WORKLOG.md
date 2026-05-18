@@ -1,3 +1,17 @@
+## 2026-05-18 - Rating Scale Survey Questions and Category Scores
+
+Completed:
+- Added `rating_scale` to the question type schema and runtime question type support.
+- Added fixed 5-4-3-2-1 rating choices for authoring, CSV import, and the public exam UI.
+- Updated exam submission scoring so rating-scale answers are validated as 1-5 and stored directly in `answer_logs.score_earned` without comparing `correct_answer`.
+- Added prepared category score aggregation from `answer_logs` joined to `questions`.
+- Added a result-page category score card using the existing `shadow-card-lg`, `anim-fade-up`, rounded, border, and primary color classes.
+
+Verification:
+- Ran PHP lint with Laragon PHP on the touched controllers, models, and views: passed.
+- Ran `git diff --check`: passed with Git CRLF normalization warnings only.
+- Ran the required mojibake scan on edited Thai files: no matches.
+
 ## 2026-05-12 - Overall Report Logic Improvement
 
 Completed:

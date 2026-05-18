@@ -157,6 +157,7 @@ class PublicExamController
         $participant = getParticipant((int) $session['participant_id']);
         $certificate = $session['result'] === 'pass' ? getCertificateBySession($sessionId) : null;
         $answerLogs = getSessionAnswerLogs($sessionId);
+        $categoryScores = getSessionCategoryScores($sessionId);
         
         $pageTitle = 'ผลสอบ';
         $bodyClass = 'bg-mesh min-h-screen flex flex-col items-center justify-start p-6 font-sans'; 

@@ -49,7 +49,7 @@
                 <p>ไฟล์ CSV ต้องประกอบด้วยคอลัมน์ดังนี้ (ตามลำดับ):</p>
                 <ol class="list-decimal list-inside space-y-2 ml-1">
                     <li><strong class="text-gray-700">Question Text:</strong> โจทย์ข้อสอบ</li>
-                    <li><strong class="text-gray-700">Type:</strong> multiple_choice, true_false, fill_blank</li>
+                    <li><strong class="text-gray-700">Type:</strong> multiple_choice, true_false, fill_blank, subjective, rating_scale</li>
                     <li><strong class="text-gray-700">Choices:</strong> JSON หรือ ข้อความ (ถ้ามี)</li>
                     <li><strong class="text-gray-700">Correct Answer:</strong> คำตอบที่ถูกต้อง</li>
                     <li><strong class="text-gray-700">Difficulty:</strong> easy, medium, hard</li>

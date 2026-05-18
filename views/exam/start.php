@@ -303,8 +303,10 @@
 const QUESTIONS = <?= jsonForScript(array_map(function($q) use ($project) {
     $type = (string)($q['type'] ?? 'multiple_choice');
     $choiceLabels = thaiChoiceLabels();
-    $choices = json_decode((string)($q['choices'] ?? ''), true) ?: [];
-    if ((int)($project['randomize_choices'] ?? 0) === 1) {
+    $choices = $type === 'rating_scale'
+        ? ratingScaleChoices()
+        : (json_decode((string)($q['choices'] ?? ''), true) ?: []);
+    if ($type !== 'rating_scale' && (int)($project['randomize_choices'] ?? 0) === 1) {
         shuffle($choices);
     }
     $choices = array_values(array_map(static function ($choice) use ($type, $choiceLabels) {
@@ -501,6 +503,28 @@ function renderQuestion(dir = 'right') {
                     oninput="selectAnswer(this.value)">
             </div>
         `);
+    } else if (q.type === 'rating_scale') {
+        const $scale = $('<div class="grid grid-cols-5 gap-2 sm:gap-3"></div>');
+        q.choices.forEach(choice => {
+            const checked = answers[current] === choice.key;
+            $scale.append(`
+                <label class="option-item block cursor-pointer select-none">
+                    <input type="radio" name="q${q.id}" value="${choice.key}"
+                        class="sr-only" ${checked ? 'checked' : ''}
+                        onchange="selectAnswer('${choice.key}')">
+                    <div class="option-label min-h-[76px] flex flex-col items-center justify-center gap-2 p-3 border-2 border-gray-100 rounded-xl
+                                hover:border-primary-200 hover:bg-primary-50/50 transition-all duration-150
+                                ${checked ? 'border-primary-400 bg-primary-50' : ''}">
+                        <span class="option-key w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center
+                                     text-sm font-semibold text-gray-400 flex-shrink-0
+                                     ${checked ? 'bg-primary-400 border-primary-400 text-white' : ''}">
+                            ${choice.label || choice.key}
+                        </span>
+                    </div>
+                </label>
+            `);
+        });
+        $container.append($scale);
     } else {
         q.choices.forEach(choice => {
             const checked = answers[current] === choice.key;

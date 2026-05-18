@@ -31,6 +31,7 @@ $choiceLabels = thaiChoiceLabels();
                     <select name="type" id="question-type" onchange="toggleQuestionTypeFields()" class="w-full h-12 px-5 text-sm bg-gray-50/30 border border-gray-200 rounded-2xl focus:outline-none focus:border-primary-400 focus:ring-[4px] focus:ring-orange-100 transition-all appearance-none cursor-pointer outline-none">
                         <option value="multiple_choice" <?= $question['type'] === 'multiple_choice' ? 'selected' : '' ?>>ปรนัย (4 ตัวเลือก)</option>
                         <option value="subjective" <?= $question['type'] === 'subjective' ? 'selected' : '' ?>>อัตนัย (ตอบเป็นข้อความ)</option>
+                        <option value="rating_scale" <?= $question['type'] === 'rating_scale' ? 'selected' : '' ?>>Rating Scale (5-1)</option>
                     </select>
                     <i class="fas fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 text-xs pointer-events-none"></i>
                 </div>
@@ -81,6 +82,11 @@ $choiceLabels = thaiChoiceLabels();
         <div id="subjective-note" class="hidden p-5 rounded-2xl border border-amber-100 bg-amber-50/60 text-sm text-amber-800">
             <div class="font-bold mb-1">ข้อสอบอัตนัย</div>
             <p>ผู้เข้าสอบจะตอบเป็นข้อความ ระบบจะบันทึกคำตอบไว้และตั้งสถานะเป็น pending/manual review โดยไม่ตรวจคะแนนอัตโนมัติ</p>
+        </div>
+
+        <div id="rating-note" class="hidden p-5 rounded-2xl border border-primary-100 bg-primary-50/60 text-sm text-primary-700">
+            <div class="font-bold mb-1">Rating Scale</div>
+            <p>Participants choose one value from 5, 4, 3, 2, 1. The submitted value is stored directly as the score for this question.</p>
         </div>
 
         <!-- Explanation -->
@@ -153,19 +159,23 @@ function updateCorrectUI(radio) {
 function toggleQuestionTypeFields() {
     const type = document.getElementById('question-type').value;
     const isSubjective = type === 'subjective';
+    const isRatingScale = type === 'rating_scale';
     const choiceSection = document.getElementById('choice-section');
     const subjectiveNote = document.getElementById('subjective-note');
+    const ratingNote = document.getElementById('rating-note');
+    const requiresAutoAnswer = !isSubjective && !isRatingScale;
 
-    choiceSection.classList.toggle('hidden', isSubjective);
+    choiceSection.classList.toggle('hidden', !requiresAutoAnswer);
     subjectiveNote.classList.toggle('hidden', !isSubjective);
+    ratingNote.classList.toggle('hidden', !isRatingScale);
 
     document.querySelectorAll('.choice-input').forEach(input => {
-        input.required = !isSubjective;
+        input.required = requiresAutoAnswer;
     });
 
     document.querySelectorAll('input[name="correct_answer"]').forEach(input => {
-        input.required = !isSubjective;
-        if (isSubjective) input.checked = false;
+        input.required = requiresAutoAnswer;
+        if (!requiresAutoAnswer) input.checked = false;
     });
 }
 

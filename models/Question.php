@@ -35,6 +35,19 @@ function thaiChoiceLabels(): array
     ];
 }
 
+function questionTypeValues(): array
+{
+    return ['multiple_choice', 'true_false', 'fill_blank', 'subjective', 'rating_scale'];
+}
+
+function ratingScaleChoices(): array
+{
+    return array_map(
+        static fn(int $score): array => ['key' => (string) $score, 'text' => (string) $score],
+        [5, 4, 3, 2, 1]
+    );
+}
+
 function normalizeChoiceKey(string $value): string
 {
     $normalized = textLower(trim($value));
@@ -103,7 +116,7 @@ function validateQuestionInput(array $data): array
         $errors[] = 'กรุณากรอกคำถาม';
     }
 
-    if (!in_array($type, ['multiple_choice', 'true_false', 'fill_blank', 'subjective'], true)) {
+    if (!in_array($type, questionTypeValues(), true)) {
         $errors[] = 'ประเภทคำถามไม่ถูกต้อง';
     }
 
@@ -124,13 +137,15 @@ function validateQuestionInput(array $data): array
         if (!in_array((string) ($data['correct_answer'] ?? ''), ['true', 'false'], true)) {
             $errors[] = 'คำตอบที่ถูกต้องต้องเป็น true หรือ false';
         }
+    } elseif ($type === 'rating_scale') {
+        // Rating scale answers are scored from the submitted 1-5 value.
     } elseif ($type === 'subjective') {
         // Subjective answers are stored for manual review and are not auto-scored.
     } elseif (trim((string) ($data['correct_answer'] ?? '')) === '') {
         $errors[] = 'กรุณากรอกคำตอบที่ถูกต้อง';
     }
 
-    if ($type !== 'subjective' && (float) ($data['score_weight'] ?? 0) <= 0) {
+    if (!in_array($type, ['subjective', 'rating_scale'], true) && (float) ($data['score_weight'] ?? 0) <= 0) {
         $errors[] = 'คะแนนต้องมากกว่า 0';
     }
 
@@ -156,19 +171,21 @@ function questionPayload(array $data): array
             ['key' => 'true', 'text' => 'ถูก'],
             ['key' => 'false', 'text' => 'ผิด'],
         ], JSON_UNESCAPED_UNICODE);
+    } elseif ($type === 'rating_scale') {
+        $choices = json_encode(ratingScaleChoices(), JSON_UNESCAPED_UNICODE);
     }
 
     return [
         'question_text' => trim((string) $data['question_text']),
         'type' => $type,
         'choices' => $choices,
-        'correct_answer' => $type === 'subjective'
+        'correct_answer' => in_array($type, ['subjective', 'rating_scale'], true)
             ? ''
             : ($type === 'multiple_choice'
                 ? normalizeChoiceKey((string) ($data['correct_answer'] ?? ''))
                 : trim((string) ($data['correct_answer'] ?? ''))),
         'explanation' => trim((string) ($data['explanation'] ?? '')) ?: null,
-        'score_weight' => (float) ($data['score_weight'] ?? 1),
+        'score_weight' => $type === 'rating_scale' ? 5.0 : (float) ($data['score_weight'] ?? 1),
         'category' => trim((string) ($data['category'] ?? '')) ?: null,
         'difficulty' => in_array($data['difficulty'] ?? 'medium', ['easy', 'medium', 'hard'], true) ? $data['difficulty'] : 'medium',
         'order_num' => (int) ($data['order_num'] ?? 0),
@@ -312,8 +329,8 @@ function ensureQuestionSubjectiveSupport(): void
     $column = $stmt->fetch();
     $type = (string) ($column['Type'] ?? '');
 
-    if ($type !== '' && strpos($type, 'subjective') === false) {
-        getDB()->exec("ALTER TABLE questions MODIFY type ENUM('multiple_choice','true_false','fill_blank','subjective') DEFAULT 'multiple_choice'");
+    if ($type !== '' && (strpos($type, 'subjective') === false || strpos($type, 'rating_scale') === false)) {
+        getDB()->exec("ALTER TABLE questions MODIFY type ENUM('multiple_choice','true_false','fill_blank','subjective','rating_scale') DEFAULT 'multiple_choice'");
     }
 
     $checked = true;

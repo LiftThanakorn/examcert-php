@@ -122,7 +122,7 @@ CREATE TABLE `questions` (
   `project_id` int NOT NULL,
   `question_text` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `question_image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `type` enum('multiple_choice','true_false','fill_blank','subjective') COLLATE utf8mb4_unicode_ci DEFAULT 'multiple_choice',
+  `type` enum('multiple_choice','true_false','fill_blank','subjective','rating_scale') COLLATE utf8mb4_unicode_ci DEFAULT 'multiple_choice',
   `choices` json DEFAULT NULL,
   `correct_answer` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `explanation` text COLLATE utf8mb4_unicode_ci,
