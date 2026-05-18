@@ -1,3 +1,14 @@
+## 2026-05-18 - Install Database Script for Test Machines
+
+Completed:
+- Added `install-database.php` as a web-based database install/update helper for test machines.
+- Reworked installer text to ASCII/UTF-8-safe English to avoid Thai encoding issues during setup.
+- Made installer create/use the configured `DB_NAME`, run `database/schema.sql`, import `database/data_export.sql` when present, and write a setup lock timestamp.
+- Added update migrations for `questions.type` rating-scale support and other current schema columns commonly needed by existing databases.
+
+Verification:
+- Ran PHP lint on `install-database.php`: passed.
+
 ## 2026-05-18 - Rating Scale Survey Questions and Category Scores
 
 Completed:

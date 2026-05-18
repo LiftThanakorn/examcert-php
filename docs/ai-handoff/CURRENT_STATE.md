@@ -6,6 +6,7 @@ Last updated: 2026-05-18
 - Checkpoint note updated after improving overall reports logic with SQL subqueries and adding in-progress tracking.
 - No Git checkpoint commit has been created in this turn.
 - Rating-scale survey question support has been added in the current working tree; no Git checkpoint commit has been created for this change.
+- `install-database.php` has been added for test-machine database install/update and should be removed from public servers after use.
 
 ## Current Scope
 - Overall reports logic refactored to use efficient subqueries.
@@ -25,8 +26,11 @@ Last updated: 2026-05-18
 - Exam submission accepts both Thai and English choice keys and normalizes them before grading.
 - Questions now support `rating_scale`; public exam rendering shows a fixed 5-4-3-2-1 Likert scale.
 - Rating-scale answers are scored directly from the submitted 1-5 value and category score totals are shown on the result page when immediate result display is enabled.
+- Test installs can use `install-database.php` to create/update the configured database, run schema/data import, and apply rating-scale migration support.
 
 ## Recent Completed Work
+- Added `install-database.php` as an ASCII/UTF-8-safe web installer for test machines with clean install and update modes.
+- Installer now handles configured database creation, schema execution, optional data import, and current migrations including `rating_scale`.
 - Added `rating_scale` to question type support, schema, admin question form, CSV import type documentation, and runtime enum upgrade logic.
 - Added rating-scale scoring in `submitExamSession()` and prepared category score aggregation with result-page rendering.
 
