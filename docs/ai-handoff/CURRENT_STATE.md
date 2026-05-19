@@ -8,6 +8,7 @@ Last updated: 2026-05-19
 - Rating-scale survey question support has been added in the current working tree; no Git checkpoint commit has been created for this change.
 - `install-database.php` has been added for test-machine database install/update and should be removed from public servers after use.
 - Rating-scale survey UI/report refinements and production migration SQL are pending commit in the current turn.
+- Admin project-level rating-scale reporting and CSV export are pending commit in the current turn.
 
 ## Current Scope
 - Overall reports logic refactored to use efficient subqueries.
@@ -29,8 +30,11 @@ Last updated: 2026-05-19
 - Rating-scale answers are scored directly from the submitted 1-5 value and category score totals are shown on the result page when immediate result display is enabled.
 - Test installs can use `install-database.php` to create/update the configured database, run schema/data import, and apply rating-scale migration support.
 - Rating-scale-only result pages hide the normal exam score ring/pass-threshold card and show a survey report card with category averages and interpretation labels.
+- Admin reports now include a per-project Rating Scale Report with category averages, per-question 5-1 distributions, individual responses, and CSV export.
 
 ## Recent Completed Work
+- Added `/admin/reports/rating-scale.php` and `/admin/reports/rating-scale-export.php` for detailed rating-scale reporting.
+- Added links from the overall reports page to rating-scale reports.
 - Added `database/production-rating-scale-migration.sql` for production database updates without dropping existing data.
 - Refined rating-scale exam UI to use survey-specific cards and result UI to show average/interpretation instead of normal exam scoring when applicable.
 - Added `install-database.php` as an ASCII/UTF-8-safe web installer for test machines with clean install and update modes.

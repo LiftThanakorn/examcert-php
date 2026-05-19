@@ -13,6 +13,9 @@ foreach ($rows as $row) {
         <p class="text-sm text-gray-400 mt-0.5">สรุปสถิติรายโครงการสำหรับติดตามความคืบหน้า</p>
     </div>
     <div class="flex items-center gap-2">
+        <a href="<?= e(BASE_URL) ?>/admin/reports/rating-scale.php" class="inline-flex items-center px-4 py-2 bg-primary-50 border border-primary-100 hover:bg-primary-100 text-primary-700 text-sm font-medium rounded-xl transition-colors shadow-sm">
+            <i class="fas fa-chart-simple mr-2"></i> Rating Scale Report
+        </a>
         <button onclick="excel.export('reports-table', 'overall-reports.xlsx')" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm">
             <i class="fas fa-file-excel mr-2 text-green-600"></i> ส่งออกรายงาน (Excel)
         </button>
@@ -78,6 +81,9 @@ foreach ($rows as $row) {
                             <a href="<?= e(BASE_URL) ?>/admin/projects/detail.php?id=<?= (int) $row['id'] ?>" class="group-hover:text-primary-600 transition-colors">
                                 <div class="font-medium text-gray-800"><?= e($row['name']) ?></div>
                                 <div class="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-0.5"><?= e($row['code'] ?: '-') ?> | <?= e($row['status']) ?></div>
+                            </a>
+                            <a href="<?= e(BASE_URL) ?>/admin/reports/rating-scale.php?project_id=<?= (int)$row['id'] ?>" class="inline-flex items-center mt-2 text-[10px] font-bold text-primary-500 hover:text-primary-600">
+                                <i class="fas fa-chart-simple mr-1"></i> Rating report
                             </a>
                         </td>
                         <td class="px-6 py-4 text-center">

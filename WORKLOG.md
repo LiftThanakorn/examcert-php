@@ -1,3 +1,16 @@
+## 2026-05-19 - Project Rating Scale Report and CSV Export
+
+Completed:
+- Added admin Rating Scale Report per project with project selector.
+- Added category averages, question-level distribution counts for scores 5-1, and individual response details.
+- Added CSV export for rating-scale summaries and response rows.
+- Added routes for `/admin/reports/rating-scale.php` and `/admin/reports/rating-scale-export.php`.
+- Added navigation links from the overall reports page.
+
+Verification:
+- Ran PHP lint on `controllers/ReportController.php`, `views/reports/rating_scale.php`, `views/reports/index.php`, and `index.php`: passed.
+- Ran local smoke test against rating-scale report queries: 1 project, 15 summary rows, 1 category, 15 responses.
+
 ## 2026-05-19 - Rating Scale Survey UI and Production Migration
 
 Completed:

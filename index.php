@@ -73,6 +73,8 @@ $match = match ($requestUri) {
     '/admin/exam-sessions/delete.php' => [ExamController::class, 'deleteSession'],
     '/admin/reports', '/admin/reports/', '/admin/reports/index.php' => [ReportController::class, 'index'],
     '/admin/reports/export.php' => [ReportController::class, 'export'],
+    '/admin/reports/rating-scale.php' => [ReportController::class, 'ratingScale'],
+    '/admin/reports/rating-scale-export.php' => [ReportController::class, 'ratingScaleExport'],
     
     // Public Routes
     '/verify', '/public/verify.php' => [PublicExamController::class, 'verify'],
