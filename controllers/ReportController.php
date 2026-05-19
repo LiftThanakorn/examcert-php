@@ -116,6 +116,28 @@ function ratingScaleResponseRows(int $projectId): array
     return $stmt->fetchAll();
 }
 
+function ratingScaleResponseMatrixRows(array $responseRows): array
+{
+    $matrix = [];
+
+    foreach ($responseRows as $row) {
+        $sessionId = (int) $row['session_id'];
+        if (!isset($matrix[$sessionId])) {
+            $matrix[$sessionId] = [
+                'session_id' => $sessionId,
+                'submitted_at' => $row['submitted_at'],
+                'participant_name' => $row['participant_name'],
+                'organization' => $row['organization'],
+                'answers' => [],
+            ];
+        }
+
+        $matrix[$sessionId]['answers'][(int) $row['question_id']] = $row['given_answer'];
+    }
+
+    return array_values($matrix);
+}
+
 function ratingScaleMeaning(float $average): string
 {
     if ($average >= 4.51) return 'มากที่สุด';
@@ -192,6 +214,7 @@ class ReportController
         $summaryRows = $project ? ratingScaleSummaryRows($projectId) : [];
         $categoryRows = $project ? ratingScaleCategoryRows($projectId) : [];
         $responseRows = $project ? ratingScaleResponseRows($projectId) : [];
+        $responseMatrixRows = $project ? ratingScaleResponseMatrixRows($responseRows) : [];
 
         $pageTitle = 'Rating Scale Report';
         $breadcrumb = ['Dashboard', 'Reports', 'Rating Scale'];
@@ -213,6 +236,7 @@ class ReportController
 
         $summaryRows = ratingScaleSummaryRows($projectId);
         $responseRows = ratingScaleResponseRows($projectId);
+        $responseMatrixRows = ratingScaleResponseMatrixRows($responseRows);
 
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="rating-scale-project-' . $projectId . '.csv"');
@@ -243,19 +267,28 @@ class ReportController
         }
 
         fputcsv($out, []);
-        fputcsv($out, ['Responses']);
-        fputcsv($out, ['Session ID', 'Submitted At', 'Participant', 'Organization', 'Category', 'Question', 'Answer', 'Score']);
-        foreach ($responseRows as $row) {
-            fputcsv($out, [
+        fputcsv($out, ['Responses by Participant']);
+
+        $headers = ['Session ID', 'Submitted At', 'Participant', 'Organization'];
+        foreach ($summaryRows as $row) {
+            $headers[] = $row['question_text'];
+        }
+        fputcsv($out, $headers);
+
+        foreach ($responseMatrixRows as $row) {
+            $csvRow = [
                 $row['session_id'],
                 $row['submitted_at'],
                 $row['participant_name'],
                 $row['organization'],
-                $row['category'],
-                $row['question_text'],
-                $row['given_answer'],
-                $row['score_earned'],
-            ]);
+            ];
+
+            foreach ($summaryRows as $question) {
+                $questionId = (int) $question['id'];
+                $csvRow[] = $row['answers'][$questionId] ?? '';
+            }
+
+            fputcsv($out, $csvRow);
         }
     }
 }

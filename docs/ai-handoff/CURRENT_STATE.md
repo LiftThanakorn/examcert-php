@@ -31,8 +31,10 @@ Last updated: 2026-05-19
 - Test installs can use `install-database.php` to create/update the configured database, run schema/data import, and apply rating-scale migration support.
 - Rating-scale-only result pages hide the normal exam score ring/pass-threshold card and show a survey report card with category averages and interpretation labels.
 - Admin reports now include a per-project Rating Scale Report with category averages, per-question 5-1 distributions, individual responses, and CSV export.
+- The Rating Scale Report now displays individual responses as one participant/session per row, with rating questions as columns and selected 1-5 scores in the cells. The CSV response section uses the same matrix format.
 
 ## Recent Completed Work
+- Updated rating-scale project report and CSV export to a participant matrix layout.
 - Added `/admin/reports/rating-scale.php` and `/admin/reports/rating-scale-export.php` for detailed rating-scale reporting.
 - Added links from the overall reports page to rating-scale reports.
 - Added `database/production-rating-scale-migration.sql` for production database updates without dropping existing data.

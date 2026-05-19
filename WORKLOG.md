@@ -946,3 +946,15 @@ Completed:
 Verification:
 - Ran PHP lint on `config/config.php`: passed.
 - Verified `2026-05-11 14:00:00` formats as `11/05/2026 14:00` after loading config.
+
+## 2026-05-19 - Rating Scale Participant Matrix Report
+
+Completed:
+- Changed the rating-scale project report's individual response table to show one row per participant/session.
+- Added question columns to the participant response table, with each cell showing the selected 1-5 score.
+- Changed rating-scale CSV export so the response section is exported as one participant/session per row with question columns.
+
+Verification:
+- Ran PHP lint on `controllers/ReportController.php`: passed.
+- Ran PHP lint on `views/reports/rating_scale.php`: passed.
+- Ran `git diff --check`: no whitespace errors; Git reported only existing LF-to-CRLF warnings.

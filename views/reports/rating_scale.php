@@ -1,5 +1,7 @@
 <?php
-$totalResponses = count(array_unique(array_map(static fn($row) => (int)$row['session_id'], $responseRows)));
+$responseMatrixRows = $responseMatrixRows ?? [];
+$questionColumns = $summaryRows ?? [];
+$totalResponses = count($responseMatrixRows);
 $totalAnswers = count($responseRows);
 $overallAverage = 0.0;
 if ($totalAnswers > 0) {
@@ -125,37 +127,45 @@ if ($totalAnswers > 0) {
 
 <div class="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden fade-up fade-up-3">
     <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h3 class="text-sm font-bold text-gray-800">Individual Responses</h3>
-        <span class="text-xs text-gray-400"><?= $totalAnswers ?> answers</span>
+        <h3 class="text-sm font-bold text-gray-800">Responses by Participant</h3>
+        <span class="text-xs text-gray-400"><?= $totalResponses ?> responses</span>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse table-row-hover">
             <thead>
                 <tr class="bg-gray-50/50 border-b border-gray-100 text-xs font-semibold text-gray-500 tracking-wide uppercase">
-                    <th class="px-5 py-3 font-medium">Participant</th>
-                    <th class="px-5 py-3 font-medium">Category</th>
-                    <th class="px-5 py-3 font-medium">Question</th>
-                    <th class="px-5 py-3 font-medium text-center">Answer</th>
-                    <th class="px-5 py-3 font-medium">Submitted</th>
+                    <th class="px-5 py-3 font-medium sticky left-0 bg-gray-50/95 z-10 min-w-[220px]">Participant</th>
+                    <th class="px-5 py-3 font-medium min-w-[140px]">Submitted</th>
+                    <?php foreach ($questionColumns as $question): ?>
+                        <th class="px-4 py-3 font-medium min-w-[180px] max-w-[240px]">
+                            <div class="line-clamp-2 normal-case tracking-normal text-gray-600"><?= e($question['question_text']) ?></div>
+                            <div class="mt-1 text-[10px] text-gray-400 normal-case tracking-normal"><?= e($question['category']) ?></div>
+                        </th>
+                    <?php endforeach; ?>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 text-sm">
-                <?php foreach ($responseRows as $row): ?>
+                <?php foreach ($responseMatrixRows as $row): ?>
                     <tr>
-                        <td class="px-5 py-3">
+                        <td class="px-5 py-3 sticky left-0 bg-white z-10">
                             <div class="font-semibold text-gray-800"><?= e($row['participant_name']) ?></div>
                             <div class="text-[10px] text-gray-400"><?= e($row['organization'] ?: '-') ?></div>
                         </td>
-                        <td class="px-5 py-3 text-gray-600"><?= e($row['category']) ?></td>
-                        <td class="px-5 py-3 text-gray-700 min-w-[280px]"><?= e($row['question_text']) ?></td>
-                        <td class="px-5 py-3 text-center">
-                            <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary-50 text-primary-600 font-black border border-primary-100"><?= e((string)$row['given_answer']) ?></span>
-                        </td>
                         <td class="px-5 py-3 text-gray-500 whitespace-nowrap"><?= e((string)$row['submitted_at']) ?></td>
+                        <?php foreach ($questionColumns as $question): ?>
+                            <?php $answer = $row['answers'][(int)$question['id']] ?? ''; ?>
+                            <td class="px-4 py-3 text-center">
+                                <?php if ($answer !== ''): ?>
+                                    <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary-50 text-primary-600 font-black border border-primary-100"><?= e((string)$answer) ?></span>
+                                <?php else: ?>
+                                    <span class="text-gray-300">-</span>
+                                <?php endif; ?>
+                            </td>
+                        <?php endforeach; ?>
                     </tr>
                 <?php endforeach; ?>
-                <?php if (!$responseRows): ?>
-                    <tr><td colspan="5" class="px-5 py-10 text-center text-gray-400">ยังไม่มีคำตอบ Rating Scale</td></tr>
+                <?php if (!$responseMatrixRows): ?>
+                    <tr><td colspan="<?= e((string)(2 + count($questionColumns))) ?>" class="px-5 py-10 text-center text-gray-400">ยังไม่มีคำตอบ Rating Scale</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
