@@ -423,15 +423,28 @@ function getSessionCategoryScores(int $sessionId): array
     $defaultCategory = 'ทั่วไป';
     $stmt = getDB()->prepare('
         SELECT
-            COALESCE(NULLIF(TRIM(q.category), ""), ?) AS category,
-            SUM(al.score_earned) AS score,
-            COUNT(*) AS answer_count
-        FROM answer_logs al
-        JOIN questions q ON q.id = al.question_id
-        WHERE al.session_id = ?
-        GROUP BY COALESCE(NULLIF(TRIM(q.category), ""), ?)
+            category,
+            SUM(score_earned) AS score,
+            COUNT(*) AS answer_count,
+            SUM(CASE WHEN type = "rating_scale" THEN score_earned ELSE 0 END) AS rating_score,
+            SUM(CASE WHEN type = "rating_scale" THEN 1 ELSE 0 END) AS rating_count,
+            ROUND(
+                SUM(CASE WHEN type = "rating_scale" THEN score_earned ELSE 0 END)
+                / NULLIF(SUM(CASE WHEN type = "rating_scale" THEN 1 ELSE 0 END), 0),
+                2
+            ) AS rating_average
+        FROM (
+            SELECT
+                COALESCE(NULLIF(TRIM(q.category), ""), ?) AS category,
+                al.score_earned,
+                q.type
+            FROM answer_logs al
+            JOIN questions q ON q.id = al.question_id
+            WHERE al.session_id = ?
+        ) category_logs
+        GROUP BY category
         ORDER BY category ASC
     ');
-    $stmt->execute([$defaultCategory, $sessionId, $defaultCategory]);
+    $stmt->execute([$defaultCategory, $sessionId]);
     return $stmt->fetchAll();
 }

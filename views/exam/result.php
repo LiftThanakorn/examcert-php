@@ -5,9 +5,33 @@ $correctCount = 0;
 $wrongCount = 0;
 $skipCount = 0;
 $categoryScores = $categoryScores ?? [];
+$hasRatingScaleAnswers = false;
+$hasExamScoreAnswers = false;
+
+function ratingScaleMeaning(float $average): string
+{
+    if ($average >= 4.51) {
+        return 'มากที่สุด';
+    }
+    if ($average >= 3.51) {
+        return 'มาก';
+    }
+    if ($average >= 2.51) {
+        return 'ปานกลาง';
+    }
+    if ($average >= 1.51) {
+        return 'น้อย';
+    }
+    return 'น้อยที่สุด';
+}
 
 foreach ($answerLogs as $log) {
     $type = (string)($log['type'] ?? '');
+    if ($type === 'rating_scale') {
+        $hasRatingScaleAnswers = true;
+    } elseif ($type !== 'subjective') {
+        $hasExamScoreAnswers = true;
+    }
     if ($log['given_answer'] === null || trim((string)$log['given_answer']) === '') {
         $skipCount++;
     } elseif (in_array($type, ['subjective', 'rating_scale'], true)) {
@@ -18,6 +42,9 @@ foreach ($answerLogs as $log) {
         $wrongCount++;
     }
 }
+
+$isRatingScaleSurveyOnly = $hasRatingScaleAnswers && !$hasExamScoreAnswers;
+$showExamScoreCard = (int)($project['show_result_immediately'] ?? 1) === 1 && !$isRatingScaleSurveyOnly;
 
 // Calculate time used
 $start = new DateTime($session['started_at']);
@@ -114,7 +141,7 @@ $timeUsedStr .= $diff->s . " วินาที";
       <?php endif; ?>
     </div>
 
-    <?php if ((int)($project['show_result_immediately'] ?? 1) === 1): ?>
+    <?php if ($showExamScoreCard): ?>
     <!-- Score ring card -->
     <div class="bg-white rounded-2xl shadow-card-lg p-6 mb-6 anim-fade-up d-2">
       <div class="flex flex-col sm:flex-row items-center gap-8">
@@ -185,28 +212,61 @@ $timeUsedStr .= $diff->s . " วินาที";
         </div>
       </div>
     </div>
-    <?php if (!empty($categoryScores)): ?>
+    <?php endif; ?>
+
+    <?php if ((int)($project['show_result_immediately'] ?? 1) === 1 && !empty($categoryScores)): ?>
     <div class="bg-white rounded-2xl shadow-card-lg p-6 mb-6 anim-fade-up d-4">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <p class="text-xxs font-bold text-gray-400 uppercase tracking-widest">Category Score</p>
+          <p class="text-xxs font-bold text-gray-400 uppercase tracking-widest">Survey Report</p>
           <h2 class="text-lg font-bold text-gray-800 mt-1">คะแนนแยกตามหมวด</h2>
         </div>
         <div class="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
-          <i class="fas fa-layer-group text-primary-500 text-sm"></i>
+          <i class="fas fa-chart-simple text-primary-500 text-sm"></i>
         </div>
       </div>
 
-      <div class="space-y-2.5">
+      <div class="space-y-3">
         <?php foreach ($categoryScores as $categoryScore): ?>
-          <div class="flex items-center justify-between gap-4 p-3 rounded-xl bg-gray-50 border border-gray-100">
-            <span class="text-sm font-semibold text-gray-700 truncate"><?= e((string)$categoryScore['category']) ?></span>
-            <span class="text-sm font-bold text-primary-500 flex-shrink-0"><?= e(number_format((float)$categoryScore['score'], 2)) ?> คะแนน</span>
-          </div>
+          <?php
+            $ratingCount = (int)($categoryScore['rating_count'] ?? 0);
+            $ratingAverage = $ratingCount > 0 ? (float)$categoryScore['rating_average'] : 0.0;
+            $ratingPercent = $ratingCount > 0 ? max(0, min(100, ($ratingAverage / 5) * 100)) : 0;
+          ?>
+          <?php if ($ratingCount > 0): ?>
+            <div class="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+              <div class="flex items-start justify-between gap-4 mb-4">
+                <div class="min-w-0">
+                  <p class="text-sm font-bold text-gray-800 truncate"><?= e((string)$categoryScore['category']) ?></p>
+                  <p class="text-xs text-gray-400 mt-0.5"><?= $ratingCount ?> รายการประเมิน</p>
+                </div>
+                <div class="text-right flex-shrink-0">
+                  <p class="text-2xl font-black text-primary-500 leading-none"><?= e(number_format($ratingAverage, 2)) ?></p>
+                  <p class="text-xs font-bold text-gray-500 mt-1">จาก 5.00</p>
+                </div>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-bold border border-primary-100"><?= e(ratingScaleMeaning($ratingAverage)) ?></span>
+                <span class="text-xs text-gray-400">ค่าเฉลี่ย <?= e(number_format((float)$categoryScore['rating_score'], 2)) ?> / <?= $ratingCount ?></span>
+              </div>
+              <div class="mt-4">
+                <div class="h-2.5 bg-white border border-gray-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full bg-primary-400 transition-all duration-[1.4s] ease-out" style="width:<?= e(number_format($ratingPercent, 2, '.', '')) ?>%"></div>
+                </div>
+                <div class="grid grid-cols-5 gap-1 mt-2 text-[10px] font-semibold text-gray-400 text-center">
+                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                </div>
+              </div>
+            </div>
+          <?php else: ?>
+            <div class="flex items-center justify-between gap-4 p-3 rounded-xl bg-gray-50 border border-gray-100">
+              <span class="text-sm font-semibold text-gray-700 truncate"><?= e((string)$categoryScore['category']) ?></span>
+              <span class="text-sm font-bold text-primary-500 flex-shrink-0"><?= e(number_format((float)$categoryScore['score'], 2)) ?> คะแนน</span>
+            </div>
+          <?php endif; ?>
         <?php endforeach; ?>
       </div>
     </div>
-    <?php endif; ?>
     <?php endif; ?>
 
     <!-- ── ACTION CARD ── -->

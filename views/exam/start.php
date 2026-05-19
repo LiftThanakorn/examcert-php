@@ -504,22 +504,49 @@ function renderQuestion(dir = 'right') {
             </div>
         `);
     } else if (q.type === 'rating_scale') {
-        const $scale = $('<div class="grid grid-cols-5 gap-2 sm:gap-3"></div>');
+        const ratingLabels = {
+            '5': 'มากที่สุด',
+            '4': 'มาก',
+            '3': 'ปานกลาง',
+            '2': 'น้อย',
+            '1': 'น้อยที่สุด'
+        };
+        const $scale = $(`
+            <div class="rounded-2xl border border-gray-100 bg-gray-50/40 p-4 sm:p-5">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <div>
+                        <p class="text-xxs font-bold text-gray-400 uppercase tracking-widest">Rating Scale</p>
+                        <p class="text-sm font-semibold text-gray-700 mt-0.5">เลือกระดับความคิดเห็นของคุณ</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm">
+                        <i class="fas fa-star-half-stroke text-primary-400 text-sm"></i>
+                    </div>
+                </div>
+                <div class="grid grid-cols-5 gap-2 sm:gap-3" data-rating-options="1"></div>
+                <div class="flex items-center justify-between mt-3 text-[10px] font-semibold text-gray-400">
+                    <span>น้อยที่สุด</span>
+                    <span>มากที่สุด</span>
+                </div>
+            </div>
+        `);
+        const $ratingOptions = $scale.find('[data-rating-options="1"]');
         q.choices.forEach(choice => {
             const checked = answers[current] === choice.key;
-            $scale.append(`
-                <label class="option-item block cursor-pointer select-none">
+            const label = ratingLabels[choice.key] || choice.text || choice.key;
+            $ratingOptions.append(`
+                <label class="rating-item block cursor-pointer select-none">
                     <input type="radio" name="q${q.id}" value="${choice.key}"
                         class="sr-only" ${checked ? 'checked' : ''}
                         onchange="selectAnswer('${choice.key}')">
-                    <div class="option-label min-h-[76px] flex flex-col items-center justify-center gap-2 p-3 border-2 border-gray-100 rounded-xl
-                                hover:border-primary-200 hover:bg-primary-50/50 transition-all duration-150
-                                ${checked ? 'border-primary-400 bg-primary-50' : ''}">
-                        <span class="option-key w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center
-                                     text-sm font-semibold text-gray-400 flex-shrink-0
-                                     ${checked ? 'bg-primary-400 border-primary-400 text-white' : ''}">
-                            ${choice.label || choice.key}
+                    <div class="rating-label min-h-[92px] flex flex-col items-center justify-center gap-2 p-2 border-2 border-gray-100 rounded-xl bg-white
+                                hover:border-primary-200 hover:bg-primary-50/50 hover:-translate-y-0.5 transition-all duration-150 shadow-sm
+                                ${checked ? 'border-primary-400 bg-primary-50 shadow-orange' : ''}">
+                        <span class="rating-score w-11 h-11 rounded-full border-2 border-gray-200 flex items-center justify-center
+                                     text-lg font-black text-gray-500 flex-shrink-0
+                                     ${checked ? 'bg-primary-400 border-primary-400 text-white' : 'bg-gray-50'}">
+                            ${choice.key}
                         </span>
+                        <span class="rating-text text-[10px] sm:text-xs font-semibold text-center leading-tight ${checked ? 'text-primary-800' : 'text-gray-500'}">${label}</span>
                     </div>
                 </label>
             `);
@@ -576,6 +603,17 @@ function selectAnswer(key) {
     renderPalette();
     renderDots();
     saveAnswer(QUESTIONS[current].id, key);
+
+    if (QUESTIONS[current].type === 'rating_scale') {
+        $('.rating-label').each(function() {
+            const input = $(this).closest('label').find('input')[0];
+            const chosen = input.value === key;
+            $(this).toggleClass('border-primary-400 bg-primary-50 shadow-orange', chosen).toggleClass('border-gray-100 bg-white', !chosen);
+            $(this).find('.rating-score').toggleClass('bg-primary-400 border-primary-400 text-white', chosen).toggleClass('bg-gray-50 text-gray-500', !chosen);
+            $(this).find('.rating-text').toggleClass('text-primary-800', chosen).toggleClass('text-gray-500', !chosen);
+        });
+        return;
+    }
 
     if (QUESTIONS[current].type !== 'fill_blank' && QUESTIONS[current].type !== 'subjective') {
         $('.option-label').each(function() {

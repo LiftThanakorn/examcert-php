@@ -1,3 +1,15 @@
+## 2026-05-19 - Rating Scale Survey UI and Production Migration
+
+Completed:
+- Updated the public exam `rating_scale` renderer to use a dedicated survey-style UI instead of the normal answer-option UI.
+- Updated the result page to calculate and display rating-scale averages with interpretation ranges.
+- Hid the normal exam score ring/pass-threshold card when a submitted session is rating-scale survey only.
+- Added `database/production-rating-scale-migration.sql` for production database updates without dropping data.
+
+Verification:
+- Ran PHP lint on `models/ExamSession.php`, `views/exam/start.php`, and `views/exam/result.php`: passed.
+- Ran local category-score query for session 14 after the strict SQL fix: passed.
+
 ## 2026-05-18 - Install Database Script for Test Machines
 
 Completed:
